@@ -14,18 +14,27 @@ to be lost to weather.
 |---|---|
 | Python environment, project layout, polite downloaders for 5 public sources | done |
 | Live collectors (GTC panel every 15 min, TNG 24 h series, GTC 30-day series) | running |
-| Bulk historical download (NOT 1997+, R2D2 2018+, ING nights 2010+) | next |
-| Models: dome-closure risk, seeing, hours lost, honest baselines | planned |
+| Bulk historical download (NOT 1997+, R2D2 2018+, ING nights 2007+) | NOT and R2D2 done; ING in progress |
+| Clean tables (Parquet) and exploratory analysis — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done (ING part provisional) |
+| Models: dome-closure risk, seeing, hours lost, honest baselines | next |
 | FIWARE `WeatherObserved` ingestion + Grafana panel | planned |
 | Bilingual (EN/ES) local web with tonight's forecast | planned |
+
+## Key findings so far
+
+- The dome-closure rule rebuilt from humidity tracks the hours the WHT really lost to weather (r = 0.72), but misses winter losses caused by wind, dust or ice.
+- Wind is the strongest driver of seeing (Spearman +0.58 with the night's maximum wind); easterly winds give the worst seeing.
+- For seeing, the monthly climatology (RMSE 0.34″) beats "same as last night" (0.41″): that is the bar a model must clear.
+
+![Seeing vs weather](reports/figures/03_seeing_vs_weather.png)
 
 ## Data sources (all real, all public)
 
 | Source | What we use | Coverage |
 |---|---|---|
-| [NOT weather archive](https://www.not.iac.es/weather/archive/met/index.php) (Nordic Optical Telescope) | temperature, humidity, pressure, wind, every minute | 1997 → today |
+| [NOT weather archive](https://www.not.iac.es/weather/archive/met/index.php) (Nordic Optical Telescope) | temperature, humidity, pressure, wind (every 5 min until 2006, every minute since) | 1997 → today |
 | [ING R2D2 seeing monitor](https://astro.ing.iac.es/seeing/) (Isaac Newton Group) | DIMM seeing, every 15–35 s at night | Sep 2018 → today |
-| [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather / technical problems on the WHT, Moon illumination | ~2010 → today |
+| [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather / technical problems on the WHT, Moon illumination | 2007 → today |
 | [GTC atmosportal](https://atmosportal.gtc.iac.es/) (Gran Telescopio Canarias weather station) | ~11 s series (last 30 days only) and live panel incl. rain, PM10 dust and warning colours | collected by this project from Oct 2026 |
 | [TNG weather](https://tngweb.tng.iac.es/weather) (Telescopio Nazionale Galileo) | 1-min series of the last 24 h, dust counts by particle size, downtime | collected by this project from Oct 2026 |
 
@@ -43,9 +52,10 @@ simulated data in future projects will be labelled as such.
 Requires [uv](https://docs.astral.sh/uv/) (it installs Python 3.13 if needed).
 
 ```bash
-uv sync                                         # create .venv and install dependencies
-.venv/bin/python -m pytest                      # run the tests
-.venv/bin/python -m roque_forecast.collect sample   # download small samples into data/raw/samples
+uv sync                                          # create .venv and install dependencies
+.venv/bin/python -m pytest                       # run the tests
+.venv/bin/python -m roque_forecast.backfill not  # historical download (also: r2d2, ing); resumable
+.venv/bin/python -m roque_forecast.build_tables  # raw files -> data/processed/*.parquet
 ```
 
 ### Collectors (macOS)
@@ -68,6 +78,13 @@ src/roque_forecast/
   config.py          site coordinates, folders, polite-download settings
   polite_http.py     shared HTTP client (User-Agent, delay, retries)
   collect.py         command-line collector (live / daily / weekly / sample)
+  backfill.py        resumable bulk download of the historical archives
+  build_tables.py    raw files -> clean Parquet tables (minutes, R2D2 points, ING nights, nights)
+  astro.py           Sun altitude and astronomical night (NOAA formulas, checked against ING)
+  dome.py            dome-closure rule rebuilt from humidity
+  plotting.py        shared figure style (colour-blind-safe palette)
+notebooks/           analysis notebooks (.py source + executed .ipynb)
+reports/             written findings and figures
   sources/           one module per data source: download + parse
 tests/               parser tests on small real files (tests/fixtures/)
 launchd/             LaunchAgent templates

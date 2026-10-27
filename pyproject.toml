@@ -9,10 +9,15 @@ dependencies = [
     "pandas>=2.2",
     "pyarrow>=17",
     "beautifulsoup4>=4.12",
+    "matplotlib>=3.11.2",
+    "scipy>=1.18.1",
 ]
 
 [dependency-groups]
 dev = [
+    "ipykernel>=7.4.0",
+    "jupytext>=1.19.6",
+    "nbconvert>=7.17.2",
     "pytest>=8",
     "ruff>=0.6",
 ]
