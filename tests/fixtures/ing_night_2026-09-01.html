@@ -1,0 +1,787 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+
+
+   <meta name="Classification" content="Public">
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (Win95; I) [Netscape]">
+   <meta name="Author" content="Javier Méndez">
+   <meta name="Description" content="$Description">
+
+
+   
+<link rel="icon" href="https://www.ing.iac.es/gifs/favicon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="https://www.ing.iac.es/gifs/favicon.ico" type="image/x-icon">
+
+
+<LINK REL=StyleSheet HREF="https://www.ing.iac.es/stylesheets/stylesheet.css" TYPE="text/css">
+
+
+</head>
+
+
+
+
+<body bgcolor="#FFFFFF" text="#000000" background="http://www.ing.iac.es/gifs/ing_backgrnd.jpg"><center>
+<a name="top"></a>
+
+
+<style>
+
+
+TABLE.menu
+{
+    BACKGROUND-COLOR: #D3DCE3;
+    BORDER-BOTTOM: black thin solid;
+    BORDER-LEFT: black thin;
+    BORDER-RIGHT: black thin inset;
+    BORDER-TOP: black thin;
+    border: solid black-line;
+    border-collapse: collapse;
+    FONT-FAMILY: Arial;
+    FONT-SIZE: 2pt;
+    POSITION: absolute; left: 2px; top: 16px;
+    align: left;
+    box-shadow: 1px 1px  #999;
+    VISIBILITY: hidden
+}
+
+TR.menu
+{
+    border-collapse: collapse
+    padding: 2px;
+    height: 20px;
+}
+TD.menu
+{
+    height: 20px;
+    padding: 2px;
+    border-collapse: collapse
+
+}
+
+TR.menu2
+{
+    border-collapse: collapse
+    padding: 2px;
+    height: 20px;
+}
+TD.menu2
+{
+    height: 20px;
+    padding: 2px;
+    border-collapse: collapse
+
+}
+
+
+TABLE.menu2
+{
+    BACKGROUND-COLOR: #D3DCE3;
+    BORDER-BOTTOM: black thin solid;
+    BORDER-LEFT: black thin;
+    BORDER-RIGHT: black thin inset;
+    BORDER-TOP: black thin;
+    FONT-FAMILY: Arial;
+    FONT-SIZE: 2pt;
+    border: solid black-line;
+    border-collapse: collapse;
+    POSITION: absolute; left: 2px; top: 16px;
+    align: left;
+    box-shadow: 1px 1px  #999;
+VISIBILITY: hidden
+}
+TABLE.menu3
+{
+    BACKGROUND-COLOR: #D3DCE3;
+    BORDER-BOTTOM: black thin solid;
+    BORDER-LEFT: black thin;
+    BORDER-RIGHT: black thin inset;
+    BORDER-TOP: black thin;
+    FONT-FAMILY: Arial;
+    FONT-SIZE: 2pt;
+    border: solid black-line;
+    border-collapse: collapse;
+    POSITION: absolute; left: 2px; top: 16px;
+    align: left;
+
+VISIBILITY: hidden
+}
+
+
+.tapado
+{
+    LEFT: 2mm;
+    OVERFLOW: hidden;
+    POSITION: absolute;
+    Z-INDEX: 1
+}
+SPAN.menu
+{
+    BACKGROUND-COLOR: turquoise;
+    COLOR: olive;
+    FONT-FAMILY: Arial;
+    FONT-SIZE: 10pt;
+    FONT-WEIGHT: bolder;
+    POSITION: relative;
+    TEXT-DECORATION: underline;
+    TEXT-TRANSFORM: capitalize;
+    WIDTH: 45pt
+}
+
+DIV.menu
+{
+    CURSOR: hand;
+    LEFT: 10pt;
+    POSITION: absolute; 
+    WIDTH: 60pt;
+    Z-INDEX: 10
+
+}
+SPAN.metodo
+{
+    COLOR: green;
+    FONT-FAMILY: 'MS Sans Serif';
+    FONT-SIZE: 12pt
+}
+SPAN.objeto
+{
+    COLOR: mediumblue;
+    FONT-FAMILY: 'MS Sans Serif';
+    FONT-SIZE: 12pt
+}
+SPAN.palabra-clave
+{
+    COLOR: red;
+    FONT-FAMILY: 'MS Sans Serif';
+    FONT-SIZE: 12pt;
+    FONT-WEIGHT: 500
+}
+SPAN.tag
+{
+    COLOR: brown;
+    FONT-FAMILY: 'MS Sans Serif';
+    FONT-SIZE: 12pt
+}
+SPAN.comentario
+{
+    COLOR: lightskyblue;
+    FONT-FAMILY: 'MS Sans Serif';
+    FONT-SIZE: 18pt;
+    FONT-WEIGHT: bolder
+}
+
+
+a.plain2:hover {background: #D3DCE3; color: #000099; font-weight: bold}
+a.plain3:hover {background: #000099; color: #D3DCE3; face: bold;}
+a.plain3 {text-decoration: none; background: #D3DCE3; color: #000099; font-weight: bold;  font-size: 13px;}
+
+</style>
+
+<table border="0" cellspacing="0" cellpadding="0" width="600"><tr><td>
+
+<!--
+<center><a href="http://www.ing.iac.es"><img src="http://www.ing.iac.es/gifs/banner_ing2.jpg" border="0" alt="ING Banner"></a></center></td></tr>
+-->
+
+
+<center><a href="http://www.ing.iac.es"><img src="http://www.ing.iac.es/gifs/banner5_small.png" border="0" alt="ING Banner"></a></center></td></tr>
+
+<tr><td><center>
+<table border="0" cellspacing="0" cellpadding="1" bgcolor="#000000" width="598">
+<tr><td>
+<center>
+<table BORDER="0" cellspacing="0" cellpadding="2" width="100%">
+<tr><td NOWRAP valign="middle" BGCOLOR="#D3DCE3"><center>
+
+<!--
+<div id=wrapper style="position:relative; valign: bottom; height:10; max-height:10px; padding:0px;">
+-->
+
+<!-- Comienzo del menu0 -->
+
+<div style="position: relative; float: left; width: 95px; height: 20px;" id=menu0 onclick=ocultarMenu("mnuPrueba0") onmouseover=mostrarMenu("mnuPrueba0") onmouseout=ocultarMenu("mnuPrueba0")>
+<a class="plain3" href="http://www.ing.iac.es/about-ING/">&nbsp;&nbsp;About ING&nbsp;&nbsp;<img src="http://www.ing.iac.es/gifs/menu.gif" border="0" align="bottom"></a>
+
+<TABLE id=mnuPrueba0 class=menu>
+
+
+<tr><td>&nbsp;</td></tr>
+
+<TR CLASS=MENU><TD CLASS=MENU class="menu" onmouseover=estoyen("mnu2") onmouseout=salgode("mnu2")  id=mnu2><a class="plain3" href="https://www.ing.iac.es/about-ING/Contact_points/contacts1.html">&nbsp;&nbsp;Address&nbsp;and&nbsp;contacts&nbsp;</a></TD></TR>
+
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu4") onmouseout=salgode("mnu4")  id=mnu4><a class="plain3" href="https://www.ing.iac.es/intranet/">&nbsp;&nbsp;Intranet&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu4") onmouseout=salgode("mnu4")  id=mnu4><a class="plain3" href="https://www.ing.iac.es/about-ING/Vacancies/vacancies1.html">&nbsp;&nbsp;Job&nbsp;opportunities&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu4") onmouseout=salgode("mnu4")  id=mnu4><a class="plain3" href="https://ingpublic.atlassian.net/wiki/x/AQAuB">&nbsp;&nbsp;Job&nbsp;opportunities&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu0") onmouseout=salgode("mnu0")  id=mnu0><a class="plain3" href="https://www.ing.iac.es/last.html">&nbsp;&nbsp;Latest&nbsp;news&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu0") onmouseout=salgode("mnu0")  id=mnu0><a class="plain3" href="https://www.ing.iac.es/about-ING/Overview/ing_overview.html">&nbsp;&nbsp;Overview&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu3") onmouseout=salgode("mnu3")  id=mnu3><a class="plain3" href="https://www.ing.iac.es/about-ING/staff_directory_ext.html">&nbsp;&nbsp;Staff&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu3") onmouseout=salgode("mnu3")  id=mnu3><a class="plain3" href="https://www.ing.iac.es/about-ING/Staff/ing_staff.html">&nbsp;&nbsp;Staff&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu1") onmouseout=salgode("mnu1")  id=mnu1><a class="plain3" href="https://www.ing.iac.es/about-ING/strategy/">&nbsp;&nbsp;Strategy&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+
+</TABLE>
+
+</div>
+<!-- Fin del menu 0 -->
+
+
+<!-- Comienzo del menu1 -->
+<div style="position: relative; float: left; width: 95px; height: 20px;" id=menu1 onclick=ocultarMenu("mnuPrueba1") onmouseover=mostrarMenu("mnuPrueba1") onmouseout=ocultarMenu("mnuPrueba1")>
+<a class="plain3" href="http://www.ing.iac.es/astronomy/">&nbsp;&nbsp;Astronomy&nbsp;<img src="http://www.ing.iac.es/gifs/menu.gif" border="0" align="bottom"></a>
+<TABLE class=menu2 id="mnuPrueba1">
+
+
+<tr class=menu2><td class=menu2 colspan=2><br></td></tr>
+
+
+<!--
+
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu5") onmouseout=salgode("mnu5")  id=mnu5><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/INGinfo_home.html">&nbsp;&nbsp;Applying&nbsp;for&nbsp;time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu16") onmouseout=salgode("mnu16")  id=mnu16><a class="plain3" href="http://catserver.ing.iac.es/staralt/index.php">Object&nbsp;visibility&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+-->
+
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu5") onmouseout=salgode("mnu5")  id=mnu5><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/INGinfo_home.html">&nbsp;&nbsp;Applying&nbsp;for&nbsp;time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu16") onmouseout=salgode("mnu16")  id=mnu16><a class="plain3" href="https://astro.ing.iac.es/staralt/">Object&nbsp;visibility&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+
+
+
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu24") onmouseout=salgode("mnu24")  id=mnu24><a class="plain3" href="https://www.ing.iac.es/astronomy/archives.html">&nbsp;&nbsp;Data&nbsp;Archives&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu23") onmouseout=salgode("mnu23")  id=mnu23><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/instruments.html">Instruments&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu22") onmouseout=salgode("mnu22")  id=mnu22><a class="plain3" href="https://www.ing.iac.es/astronomy/computing/">&nbsp;&nbsp;Computing&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu19") onmouseyout=salgode("mnu19")  id=mnu19><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/overrides.html">Override&nbsp;programmes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+-->
+
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu27") onmouseout=salgode("mnu27")  id=mnu27><a class="plain3" href="https://a.ing.iac.es/weave/DDT.php">&nbsp;&nbsp;Director's&nbsp;Discretionary&nbsp;Time</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu8") onmouseout=salgode("mnu8")  id=mnu8><a class="plain3" href="https://astro.ing.iac.es/biblio/pubs.php">Publications&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+
+
+</tr>
+
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu14") onmouseout=salgode("mnu14")  id=mnu14><a class="plain3" href="https://www.ing.iac.es/astronomy/planning/">Planning&nbsp;observations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+-->
+<TR CLASS=MENU2>
+<!--
+<TD CLASS=MENU2 onmouseover=estoyen("mnu13") onmouseout=salgode("mnu13")  id=mnu13><a class="plain3" href="https://www.ing.iac.es/engineering/detectors.html">&nbsp;&nbsp;Detectors&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+-->
+
+
+<!--
+<TD CLASS=MENU2 onmouseover=estoyen("mnu17") onmouseout=salgode("mnu17")  id=mnu17><a class="plain3" href="http://catserver.ing.iac.es/biblio/pubs.php">&nbsp;&nbsp;Publications&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+-->
+
+
+<TD CLASS=MENU2 onmouseover=estoyen("mnu17") onmouseout=salgode("mnu17")  id=mnu17><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/HARPS3-OT.html">&nbsp;&nbsp;HARPS3&nbsp;Open&nbsp;Time</a></TD>
+
+
+
+<TD CLASS=MENU2 onmouseover=estoyen("mnu17") onmouseout=salgode("mnu17")  id=mnu17><a class="plain3" href="https://astro.ing.iac.es/schedules/">Schedules&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu15") onmouseout=salgode("mnu15")  id=mnu15><a class="plain3" href="http://catserver.ing.iac.es/signal/">&nbsp;&nbsp;Exposure&nbsp;time&nbsp;calculator&nbsp;&nbsp;</a></TD>
+</TR>
+-->
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu20") onmouseout=salgode("mnu20")  id=mnu20><a class="plain3" href="http://faultdb.ing.iac.es">&nbsp;&nbsp;Fault&nbsp;reports&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu26") onmouseout=salgode("mnu26")  id=mnu26><a class="plain3" href="https://www.ing.iac.es/astronomy/science/seminars.html">Seminar&nbsp;programme&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+-->
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu21") onmouseout=salgode("mnu21")  id=mnu21><a class="plain3" href="http://catserver.ing.iac.es/feedback/">&nbsp;&nbsp;Feedback&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu7") onmouseout=salgode("mnu7")  id=mnu7><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/service/">Service&nbsp;programme&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+-->
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu12") onmouseout=salgode("mnu12")  id=mnu12>
+<a class="plain3" href="https://astro.ing.iac.es/filter/">&nbsp;&nbsp;Filters&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+</TD>
+</tr>
+-->
+
+<TR CLASS=MENU2>
+<!--
+<TD CLASS=MENU2 onmouseover=estoyen("mnu28") onmouseout=salgode("mnu28")  id=mnu28><a class="plain3" href="https://www.ing.iac.es/astronomy/library/">Library&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+-->
+<TD CLASS=MENU2 onmouseover=estoyen("mnu11") onmouseout=salgode("mnu11")  id=mnu11><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/WEAVE-OT.html">&nbsp;&nbsp;WEAVE&nbsp;Open&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+
+<TD CLASS=MENU2 onmouseover=estoyen("mnu25") onmouseout=salgode("mnu25")  id=mnu25><a class="plain3" href="https://www.ing.iac.es/astronomy/science/studentship.html">Studentship&nbsp;programme&nbsp;&nbsp;&nbsp;</a></TD>
+
+</TR>
+
+
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu10") onmouseout=salgode("mnu10")  id=mnu10><a class="plain3" href="https://www.ing.iac.es/Astronomy/telescopes/int/">&nbsp;&nbsp;Isaac&nbsp;Newton&nbsp;Telescope&nbsp;&nbsp;&nbsp;</a></TD>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu6") onmouseout=salgode("mnu6")  id=mnu6><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/patt/time.html">Time&nbsp;allocations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+</TR>
+
+
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu11") onmouseout=salgode("mnu11")  id=mnu11><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/instruments.html">&nbsp;&nbsp;Instruments&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+-->
+
+
+<!--
+<TR CLASS=MENU2>
+</TR>
+-->
+
+
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu9") onmouseout=salgode("mnu9")  id=mnu9><a class="plain3" href="https://www.ing.iac.es/Astronomy/telescopes/wht/">&nbsp;&nbsp;William&nbsp;Herschel&nbsp;Telescope</a></TD>
+
+<TD CLASS=MENU2 onmouseover=estoyen("mnu18") onmouseout=salgode("mnu18")  id=mnu18><a class="plain3" href="https://astro.ing.iac.es/weather/">Weather&nbsp;and&nbsp;seeing&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD>
+
+</TR>
+
+<!--
+<TR CLASS=MENU2>
+<TD CLASS=MENU2 onmouseover=estoyen("mnu9") onmouseout=salgode("mnu9")  id=mnu9><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/WEAVE-OT.html">&nbsp;&nbsp;WEAVE Open Time</a></TD>
+
+<TD CLASS=MENU2 onmouseover=estoyen("mnu9") onmouseout=salgode("mnu9")  id=mnu9><a class="plain3" href="https://www.ing.iac.es/astronomy/observing/WEAVE-ph2.html">WEAVE Phase 2</a></TD>
+-->
+<!--
+<TR CLASS=MENU2>
+</TR>
+-->
+</TABLE>
+
+
+
+</div>
+<!-- Fin del menu 1 -->
+
+
+<!-- Comienzo del menu2 -->
+<div style="position: relative; float: left; width: 115px; height: 20px;" id=menu2 onclick=ocultarMenu("mnuPrueba2") onmouseover=mostrarMenu("mnuPrueba2") onmouseout=ocultarMenu("mnuPrueba2")>
+<!--
+&nbsp;&nbsp;<a class="plain3" href="">WEAVE&nbsp;</a><img src="http://www.ing.iac.es/gifs/menu.gif" border="0" align="bottom">
+-->
+
+&nbsp;&nbsp;<a class="plain3" href="">Developments&nbsp;</a><img src="http://www.ing.iac.es/gifs/menu.gif" border="0" align="bottom">
+
+<TABLE id=mnuPrueba2 class=menu>
+
+<!--
+-->
+<tr><td height=1>&nbsp;</td></tr>
+
+
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu30") onmouseout=salgode("mnu30")  id=mnu30><a class="plain3" href="https://www.ing.iac.es/Astronomy/instruments/acam/">&nbsp;&nbsp;ACAM&nbsp;imager&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu31") onmouseout=salgode("mnu31")  id=mnu31><a class="plain3" href="https://www.ing.iac.es/engineering/CCDgroup.html">&nbsp;&nbsp;CCD&nbsp;developments&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu32") onmouseout=salgode("mnu32")  id=mnu32><a class="plain3" href="https://www.ing.iac.es/engineering/mass.htm">&nbsp;&nbsp;MASS&nbsp;turbulence&nbsp;profiler&nbsp;&nbsp;</a></TD></TR>
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu33") onmouseout=salgode("mnu33")  id=mnu33><a class="plain3" href="https://www.ing.iac.es/engineering/software.htm">&nbsp;&nbsp;Software&nbsp;and&nbsp;computing&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+
+<!--
+<tr><td height=1>&nbsp;</td></tr>
+-->
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu29") onmouseout=salgode("mnu29")  id=mnu29><a class="plain3" href="https://www.terrahunting.org/harps3.html">&nbsp;&nbsp;HARPS-3</a></TD></TR>
+-->
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu29") onmouseout=salgode("mnu29")  id=mnu29><a class="plain3" href="https://www.ing.iac.es/astronomy/instruments/harps3/">&nbsp;&nbsp;HARPS3</a></TD></TR>
+
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu29") onmouseout=salgode("mnu29")  id=mnu29><a class="plain3" href="https://www.ing.iac.es/astronomy/instruments/weave/weaveinst.html">&nbsp;&nbsp;WEAVE (astronomy)</a></TD></TR>
+
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu29") onmouseout=salgode("mnu29")  id=mnu29><a class="plain3" href="https://www.ing.iac.es/weave/">&nbsp;&nbsp;WEAVE (project)</a></TD></TR>
+
+</TABLE>
+
+</div>
+<!-- Fin del menu 2 -->
+
+<!-- Comienzo del menu3 -->
+<div style="position: relative; float: left; width: 130px; height: 20px;" id=menu3 onclick=ocultarMenu("mnuPrueba3") onmouseover=mostrarMenu("mnuPrueba3") onmouseout=ocultarMenu("mnuPrueba3")>
+<a class="plain3" href="http://www.ing.iac.es/PR/">&nbsp;&nbsp;Public Information&nbsp;<img src="http://www.ing.iac.es/gifs/menu.gif" border="0" align="bottom"></a>
+
+<TABLE class=menu id=mnuPrueba3>
+
+
+<tr><td>&nbsp;</td></tr>
+
+<!--
+<TR CLASS=MENU><TD onmouseover=estoyen("mnu44") onmouseout=salgode("mnu44")  id=mnu44><a class="plain3" href="https://www.ing.iac.es/PR/dissemination/question.php">&nbsp;&nbsp;Ask&nbsp;an&nbsp;astronomer&nbsp;!&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu45") onmouseout=salgode("mnu45")  id=mnu45><a class="plain3" href="https://www.ing.iac.es/PR/credits.html">&nbsp;&nbsp;Credits&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu41") onmouseout=salgode("mnu41")  id=mnu41><a class="plain3" href="https://www.ing.iac.es/PR/images_index.html">&nbsp;&nbsp;Images&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu41") onmouseout=salgode("mnu41")  id=mnu41><a class="plain3" href="https://astro.ing.iac.es/outreach/astro.php">&nbsp;&nbsp;Images&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu36") onmouseout=salgode("mnu36")  id=mnu36><a class="plain3" href="https://www.ing.iac.es/PR/int_info/">&nbsp;&nbsp;Info&nbsp;INT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu37") onmouseout=salgode("mnu37")  id=mnu37><a class="plain3" href="https://www.ing.iac.es/PR/jkt_info/">&nbsp;&nbsp;Info&nbsp;JKT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu35") onmouseout=salgode("mnu35")  id=mnu35><a class="plain3" href="https://www.ing.iac.es/PR/wht_info/">&nbsp;&nbsp;Info&nbsp;WHT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+<!--
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu35") onmouseout=salgode("mnu35")  id=mnu35><a class="plain3" href="https://www.ing.iac.es/PR/email_alerts.html">&nbsp;&nbsp;[INGPUBLIC]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu46") onmouseout=salgode("mnu46")  id=mnu46><a class="plain3" href="https://www.lpiya.org/">LPIYA&nbsp;Group</a></TD></TR>
+-->
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu38") onmouseout=salgode("mnu38")  id=mnu38><a class="plain3" href="https://www.ing.iac.es/news.html">&nbsp;&nbsp;News&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu40") onmouseout=salgode("mnu40")  id=mnu40><a class="plain3" href="https://astro.ing.iac.es/outreach/?ph">&nbsp;&nbsp;Photo archive&nbsp;&nbsp;</a></TD></TR>
+
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu46") onmouseout=salgode("mnu46")  id=mnu46><a class="plain3" href="https://www.lpiya.org/nuestrosalumnos/">&nbsp;&nbsp;School&nbsp;(Local)&nbsp;Programme</a></TD></TR>
+-->
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu42") onmouseout=salgode("mnu42")  id=mnu42><a class="plain3" href="https://www.ing.iac.es/PR/SH/">&nbsp;&nbsp;Scientific&nbsp;highlights&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu40") onmouseout=salgode("mnu40")  id=mnu40><a class="plain3" href="https://astro.ing.iac.es/outreach/?vid">&nbsp;&nbsp;Video archive&nbsp;&nbsp;</a></TD></TR>
+
+<!--
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu34") onmouseout=salgode("mnu34")  id=mnu34><a class="plain3" href="https://www.ing.iac.es/PR/tour/leaflet.html">&nbsp;&nbsp;Virtual&nbsp;tour&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+-->
+
+<TR CLASS=MENU><TD CLASS=MENU onmouseover=estoyen("mnu43") onmouseout=salgode("mnu43")  id=mnu43><a class="plain3" href="https://www.ing.iac.es/PR/visits/">&nbsp;&nbsp;Visiting&nbsp;ING&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></TD></TR>
+
+</TABLE>
+</div>
+<!-- Fin del menu 3 -->
+</td>
+
+<td NOWRAP BGCOLOR="#D3DCE3">
+
+
+<form method="get" action="http://google.ing.iac.es/search">
+<div style="position: relative; float: left; width: 140px; height: 22px;">
+<a class="plain3" href="https://www.ing.iac.es/search/">Search:&nbsp;</a>
+<input style="height:18px;" type="text" name="q" size="8">
+</div>
+<input type="hidden" name="btnG" value="ING+Document+Search">
+<input type="hidden" name="entqr" value="0">
+<input type="hidden" name="output" value="xml_no_dtd">
+<input type="hidden" name="sort" value="date%3AD%3AL%3Ad1">
+<input type="hidden" name="entsp" value="a">
+<input type="hidden" name="client" value="ing">
+<input type="hidden" name="ud" value="1">
+<input type="hidden" name="oe" value="UTF-8">
+<input type="hidden" name="ie" value="UTF-8">
+<input type="hidden" name="proxystylesheet" value="ing">
+<input type="hidden" name="site" value="v20z">
+</form>
+
+</td></tr></table>
+
+</td></tr></table>
+
+</td></tr></table>
+
+<table border=0 cellpadding=0 cellspacing=0 width=600><tr valign="top"><td>
+<b><a href="https://www.ing.iac.es/">Home</a> &gt;
+<a href="https://www.ing.iac.es/Astronomy/">Astronomy</a> &gt;
+<a href="https://a.ing.iac.es/weather/">Weather and Seeing</a> &gt;
+</b><i>Nightly Weather and Observing Conditions</i>
+</td></tr></table>
+
+</center>
+
+<center><table width="600"><tr><td>
+<style>
+table.lib {border: solid 1px; background-color: #FAFAFA; border-collapse: collpase; cell-padding: 15px; cell-spacing:0px; padding:0px; }
+</style>
+</td></tr></table>
+
+</td></tr></table><br>
+
+
+
+<TABLE width="600" border="0" cellspacing="0" cellpadding="0">
+<TR>
+<TD width="100" align="left" valign=bottom>
+
+   
+                                     
+<form action="index.php" method="post">
+<input type="hidden" name="actionflag" value="showDate">
+<input type="hidden" name="year" value="2026">
+<input type="hidden" name="month" value="08">
+<input type="hidden" name="day" value="31">
+<INPUT TYPE="image" SRC="arrow_blue_left.gif" VALUE="Previous Day"
+  ALT="Previous Day" NAME="Previous Day">
+</form>
+				     
+</TD>
+<TD width="400" valign="top" align="center">
+
+
+    <center><h2>Nightly Weather and Observing Conditions</h2></center> 
+</TD>
+<TD width="100" align="right" valign=bottom>
+   
+<form action="index.php" method="post">
+<input type="hidden" name="actionflag" value="showDate">
+<input type="hidden" name="year" value="2026">
+<input type="hidden" name="month" value="09">
+<input type="hidden" name="day" value="02">
+<INPUT TYPE="image" SRC="arrow_blue_right.gif" VALUE="Next Day"
+  ALT="Next Day" NAME="Next Day">
+</form>
+
+				     
+</td></tr></table>
+
+<form action="index.php" metod="GET">
+Select another night: 
+
+<input type="date" name="night">
+
+<input type="hidden" name="actionflag" value="showDate">
+<input type="submit" name="submit" value="submit">
+
+</form>
+
+
+
+<center><table><tr>
+        <TD align="left"> <B>Night 01/09/2026</B></TD>
+</tr></table>  
+
+
+URL: <a href="https://a.ing.iac.es/s/?f6547c">https://a.ing.iac.es/s/?f6547c</a><center><table class="lib" width=600><tr><td><center><table class="lib" width=600><tr><td><table cellpadding=0 border=0 cellspacing=0 width=100% bgcolor=white><tr>
+<th> </th><th>Night</th><th>Wea. lost</th><th>Tech. lost</th><th>Other</th><th>Observed</th><th>Obs. log</th></tr>
+<tr><td>WHT</td><td align=center>08:35</td><td align=center bgcolor=#FF6666>03:00</td><td align=center >00:00</td>
+<td align=center >00:00</td>
+<td align=center>05:35</td><td NOWRAP align=center><a href="https://www.ing.iac.es/astronomy/observing/inglogs.php?tel=wht&year=2026&month=09&day=01&actionflag=search&submit=Obs%20log">Header</a></td></tr></table></td></tr></table>
+<TABLE  width="600" border="0" cellspacing="0" cellpadding="0">
+<TR><TD bgcolor="#cccccc">
+  <TABLE width="100%" bgcolor="#cccccc" cellspacing="3" cellpadding="4" border="1">
+<style>
+table.lib {border: solid 1px; background-color: #FFFFFF; border-collapse: collpase; cell-padding: 15px; cell-spacing:0px; padding:0px; }
+</style>
+
+<TABLE width="600" bgcolor="#FFFFFF" cellspacing="3" cellpadding="4" border="0"><tr><td>
+<table width=100% class=lib cellpadding="3" border="1">
+<tr><th NOWRAP>Julian day</th><td width=400> 2461285</td></tr>
+<tr><th NOWRAP>Sunset</th><td> 19:42 UT</td></tr> 
+<tr><th NOWRAP>Eve. twilight</th><td> 20:55 UT</td></tr> 
+<tr><th NOWRAP>Mor. twilight</th><td> 05:29 UT</td></tr> 
+<tr><th NOWRAP>Sunrise</th><td>06:44 UT</td></tr> 
+<tr><th NOWRAP>Moon coordinates</th><td> 02h20m +19d14m (00:00 UT)</td></tr> 
+<tr><th NOWRAP>Moon illumination</th><td> 75% (01:00 UT)</td></tr>
+<tr><th NOWRAP>Sky brightness</th><td> Dark: 20:55-21:53 UT. Bright: 21:53-5:29 UT  (approx.)</td></tr> 
+<tr><th NOWRAP>Night length</th><td> 8.6h</td></tr> 
+<tr><th NOWRAP>Middle of the night</th><td> 01:13 UT (00:42 LST)</td></tr> 
+<tr><th NOWRAP>Object visibility</th><td> 17:11-04:13 LST</td></tr>
+</table>  ==> <a target="new" href="http://catserver.ing.iac.es/weather/ephemeris/index.php?observatory=Roque+de+los+Muchachos+%28342.1184E++%2B28.7606+2326m%29&date=2026+09+01+20+00+00&coord=&.submit=Submit+Query">more ephemerides</a> </td></tr></table>
+
+</td></tr></table>
+</td></tr></table>
+</td></tr></table>   
+
+
+    </TD>
+  </TR>
+
+
+</TABLE>
+
+
+</td></tr></table>
+</td></tr></table>
+<br><br><b><font size=+1>SQM Sky Brightness</font></b><p>  
+<center><iframe src="https://a.ing.iac.es/weather/archive/sqmwht.php?night=20260901" width="1300" height="700" frameborder="0"></iframe>
+  
+<br><br><b><font size=+1>TESS Sky Brightness and clouds (tsky)</font></b><p>
+<center><iframe src="https://tess.dashboards.stars4all.eu/d/tess_raw/s4a-photometer-network-raw?orgId=1&from=1788285600000&to=1788339600000&refresh=5m&var-Tess=stars383" width="1200" height="840" frameborder="0"></iframe>
+
+<br><br><b><font size=+1>Dust</font></b><p><a href="https://a.ing.iac.es/weather/plot.php?dust/20260901"><img src="https://a.ing.iac.es/weather/plot.php?dust/20260901"  border=0></a>
+
+<br><center></td></tr></table></td></tr></table>
+<table class="lib" width=800><tr><td><center><b><font size=+1>Seeing</font></b><br><a href="https://www.not.iac.es/weather/dimm_index.php?day=01&month=09&year=2026&submit=Raw+Data"><img src="https://a.ing.iac.es/weather/archive/seeing_not/seeing_not_20260901.png"></a><table cellpadding=3 border=1 cellspacing=0 width=100% bgcolor=white><tr>
+<th>WHT R2D2</th><td align=center valign=top>&nbsp;<a href="https://a.ing.iac.es/seeing/r2d2_median_night.php?date1=2026-09-01 17:00:00&date2=2026-09-02 08:00:00" target=_blank>Average & median</a> [ <a href="https://astro.ing.iac.es/seeing/r2d2_data.php?date1=2026-09-01&date2=2026-09-03&submit=Submit">Data</a> ]</td></tr>
+</table></td></tr></table>      <a href="https://a.ing.iac.es/weather/plot.php?seeing/20260901"><img src="https://a.ing.iac.es/weather/plot.php?seeing/20260901"  border=0></a>
+<br><br><b><font size=+1>Moon Visibility</font></b><p><img src="https://a.ing.iac.es/weather/archive/staralt/notargets20260901.gif"><br><img src="https://a.ing.iac.es/weather/archive/startrack/notargets20260901.gif"><br><br><b><font size=+1>Movies</font></b>
+
+<center><br><table border=1 bgcolor=white cellpadding=3><tr><td><center><img src="https://a.ing.iac.es/weather/archive/gtc/GTC_20260901.gif"></td></tr><tr><td><center><a href="http://www.gtc.iac.es/multimedia/webcams.php">GTC</a> all-sky camera [  <a href="https://a.ing.iac.es/weather/archive/gtc/GTC_20260901.gif" target=_blank>GIF</a> ]</td></tr></table><center><br><table border=1 bgcolor=white cellpadding=3><tr><td><center><img src="https://a.ing.iac.es/weather/archive/lt/LT_20260901.gif"></td></tr><tr><td><center><a href="https://telescope.livjm.ac.uk/Live/v2_index.php">LT</a> all-sky camera [ <a href="http://telescope.livjm.ac.uk/data/webfiles/Skycam/Movies/2026/a_20260901_sm_hms.avi"  target=_blank>AVI</a> ]</b></td></tr></table><center><br><table border=1 bgcolor=white cellpadding=3><tr><td><center><img src="https://a.ing.iac.es/weather/archive/magic/MAGIC_20260901.gif"></td></tr><tr><td><center><a href="http://www.magic.iac.es/webcams/webcam/">MAGIC</a> all-sky camera  [ <a href="https://a.ing.iac.es/weather/archive/magic/MAGIC_20260901.gif" target=_blank>GIF</a> ]</td></tr></table>
+
+
+<center><br><table width=600><tr><td>
+<input type="hidden" name="check" value="yes"><center>
+<table bgcolor=white border=cellspacing=5 cellpadding=2>
+
+
+
+
+
+<TABLE width="100%" border="0" cellspacing="2" cellpadding="0">
+<tr><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?temperature/20260901"><img src="https://a.ing.iac.es/weather/plot.php?temperature/20260901" width="600" border=0></a>
+
+</td><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?humidity/20260901"><img src="https://a.ing.iac.es/weather/plot.php?humidity/20260901" width="600" border=0></a>
+
+</td></tr><tr><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?pressure/20260901"><img src="https://a.ing.iac.es/weather/plot.php?pressure/20260901" width="600" border=0></a>
+
+</td><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?windspeed/20260901"><img src="https://a.ing.iac.es/weather/plot.php?windspeed/20260901" width="600" border=0></a>
+
+</td></tr><tr><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?windgust/20260901"><img src="https://a.ing.iac.es/weather/plot.php?windgust/20260901" width="600" border=0></a>
+
+</td><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?winddirection/20260901"><img src="https://a.ing.iac.es/weather/plot.php?winddirection/20260901" width="600" border=0></a>
+
+</td></tr><tr><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?rainintensity/20260901"><img src="https://a.ing.iac.es/weather/plot.php?rainintensity/20260901" width="600" border=0></a>
+
+</td><td>
+
+<a href="https://a.ing.iac.es/weather/plot.php?dust/20260901"><img src="https://a.ing.iac.es/weather/plot.php?dust/20260901" width="600" border=0></a>
+
+</td></tr></table>
+
+
+    
+
+<br><br><table cellpadding=10 border=1>  <tbody bgcolor=white>  <tr><th>Other archives</th>
+
+<td>
+
+
+
+<a href="http://telescope.livjm.ac.uk/Reports/">LT</a> |
+<a href="http://www.not.iac.es/weather/archive/met/index.php?actionflag=process&day1=01&month1=09&year1=2026&hour1=18&min1=00&day2=02&month2=09&year2=2026&hour2=08&min2=00&sensors[]=DateTimeUT&sensors[]=DomeRainDetected&sensors[]=Dust&sensors[]=HumidityPercent&sensors[]=Rain&sensors[]=RainHumidityLimit&sensors[]=TempInAirDegC&sensors[]=WindSpeedFilteredMS&sensors[]=WindSpeedMS&ymin=&ymax=&autoscale=on&submit=View+graph">NOT</a> 
+
+
+</td></tr>
+</tbody>
+</table>
+
+
+
+</td></tr></table>
+<br><br>
+</td></tr></table>
+<center><table border=0 width=600 cellspacing=0 cellpadding=0><tr><td>
+<font face="Arial,helvetica,times">
+<font size=-1><a href="#top">Top</a> | <a href="javascript:history.back();">Back</a>
+</td></tr></table></center>
+
+<center><hr color="black" size=1 WIDTH="600"></center>
+
+
+<center><table WIDTH="600"><tr><td>
+<table>
+<tr valign=bottom>
+<td VALIGN=BOTTOM><img SRC="http://www.ing.iac.es/gifs/wht_small.gif" ></td>
+<td VALIGN=BOTTOM>
+<font face="Arial,helvetica,times">
+<font size=-1>
+
+Contact: 
+<script type="text/javascript" language="JavaScript1.2">
+     function scr_adr(){
+     var a,b,c,d,e,f
+     a='<a class=arclink href=\"mai'  // email-link part 1
+     b='jma'           // address part 1
+     c='\">'            // email-link part 4
+     a+='lto:'          // email-link part 2
+     b+='@ing.'       // address part 2
+     e='</a>'           // email-link part 3
+     f='Javier M&eacute;ndez'    // substitute email address with this string
+     b+='iac.es'        // address part 3
+     if (f) d=f
+     else d=b
+     document.write(a+b+c+d+e)
+     }
+     scr_adr()
+     //-->
+</script>
+
+&nbsp;(<i>Astronomy Computing</i>)<br>Last modified: 15 March 2026
+</font></font>
+</td></tr></table>
+</td></tr></table>
+
+</center>
+
+<!--
+<link rel="stylesheet" href="https://www.ing.iac.es/main.css" />
+<div class="cookies-eu-banner hidden">
+
+Utilizamos cookies propias y de terceros para el correcto funcionamiento del sitio web y mejorar nuestros servicios. Pulse el siguiente bot&oacute;n para aceptar su uso. Puede cambiar la configuraci&oacute;n u obtener m&aacute;s informaci&oacute;n en nuestra <a href="https://www.ing.iac.es/cookies-policy.html">Pol&iacute;tica de cookies</a>. 
+<p>  
+<i>We use our own and third-party cookies for the correct functioning of the website and to improve our services. Click the following button to accept its use. You can change the settings or obtain more information in our <a href="https://www.ing.iac.es/cookies-policy.html">Cookies Policy</a>.
+<p>
+<button>Aceptar / Accept</button>
+</div>
+<script src="https://www.ing.iac.es/main.js"></script>
+-->
+
+<center><hr color="black" size=1 WIDTH="600"></center>
+<center>
+<font face="arial,helvetica,times" size="-2">
+<a href="https://www.ing.iac.es/legal-notice.html">Legal notice</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+<a href="https://www.ing.iac.es/privacy-notice.html">Privacy notice</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+<a href="https://www.ing.iac.es/cookies-policy.html">Cookies policy</a>
+</center><center><hr color="black" size=1 WIDTH="600"></center>
+<br><br>
+
+</BODY></HTML>
+	
+
+
+
+
+
+
+

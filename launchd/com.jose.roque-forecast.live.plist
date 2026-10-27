@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Template: scripts/install_collectors.sh replaces __PROJECT_DIR__ and copies it to ~/Library/LaunchAgents -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.jose.roque-forecast.live</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>__PROJECT_DIR__/.venv/bin/python</string>
+        <string>-m</string>
+        <string>roque_forecast.collect</string>
+        <string>live</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>__PROJECT_DIR__</string>
+    <!-- every 15 minutes -->
+    <key>StartInterval</key>
+    <integer>900</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>__PROJECT_DIR__/data/logs/launchd_live.out</string>
+    <key>StandardErrorPath</key>
+    <string>__PROJECT_DIR__/data/logs/launchd_live.err</string>
+</dict>
+</plist>

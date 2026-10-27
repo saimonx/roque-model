@@ -1,0 +1,31 @@
+[project]
+name = "roque-night-forecast"
+version = "0.1.0"
+description = "Observing-conditions forecasting for the Roque de los Muchachos Observatory (independent portfolio project)."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "requests>=2.32",
+    "pandas>=2.2",
+    "pyarrow>=17",
+    "beautifulsoup4>=4.12",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/roque_forecast"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

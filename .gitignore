@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Downloaded and generated data (never committed: large, and re-downloadable)
+data/
+
+# macOS
+.DS_Store
