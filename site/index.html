@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
   <meta name="description" content="Forecast of tonight's observing conditions at the Roque de los Muchachos Observatory (La Palma), hour by hour: dome-closure risk, seeing and warnings. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=5">
+  <link rel="stylesheet" href="assets/style.css?v=6">
 </head>
 <body>
   <header class="top">
@@ -34,6 +34,7 @@
         <span id="mode" class="badge"></span>
       </div>
       <p class="muted small" id="night-window"></p>
+      <div class="callout small" id="mode-box"></div>
       <div class="tiles">
         <div class="tile">
           <span class="tile-label" data-i18n="tile_closed"></span>
@@ -80,7 +81,13 @@
       </details>
     </section>
 
-    <!-- 3. How it works, in three lines -->
+    <!-- 3. Where each number comes from -->
+    <section>
+      <h2 data-i18n="origin_title"></h2>
+      <div class="table-wrap"><table class="text origin" data-i18n-html="origin_table"></table></div>
+    </section>
+
+    <!-- 4. How it works, in three lines -->
     <section>
       <h2 data-i18n="how_title"></h2>
       <ol class="steps" data-i18n-html="how_short"></ol>
@@ -97,6 +104,13 @@
     <details class="fold">
       <summary><h2 data-i18n="fold_eval"></h2></summary>
       <p class="muted" data-i18n="eval_text"></p>
+      <h3 data-i18n="eval_plain"></h3>
+      <div class="table-wrap"><table id="table-plain" class="text plain"></table></div>
+      <p class="muted small" data-i18n="eval_plain_note"></p>
+
+      <details class="more">
+      <summary data-i18n="eval_technical"></summary>
+      <div class="prose small" data-i18n-html="glossary"></div>
 
       <h3 data-i18n="eval_hourly"></h3>
       <p class="muted small" data-i18n="eval_hourly_text"></p>
@@ -129,6 +143,8 @@
       <h3 data-i18n="eval_lost"></h3>
       <p class="muted small" data-i18n="eval_lost_text"></p>
       <div class="table-wrap"><table id="table-lost"></table></div>
+
+      </details>
 
       <h3 data-i18n="track_title"></h3>
       <p class="muted small" data-i18n="track_text"></p>
@@ -179,8 +195,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=5"></script>
-  <script src="assets/charts.js?v=5"></script>
-  <script src="assets/app.js?v=5"></script>
+  <script src="assets/i18n.js?v=6"></script>
+  <script src="assets/charts.js?v=6"></script>
+  <script src="assets/app.js?v=6"></script>
 </body>
 </html>

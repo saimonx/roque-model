@@ -122,6 +122,11 @@ def hour_slots(minutes: pd.DataFrame) -> pd.DataFrame:
     slots["closed"] = np.where(slots["humidity_minutes"] >= 45, (slots["closed_frac"] >= 0.5).astype(float), np.nan)
     slots["windy"] = np.where(slots["wind_minutes"] >= 45, (slots["wind_max"] >= WIND_LIMIT_MS).astype(float),
                               np.nan)
+    # "Shut": the dome would be closed that hour for humidity OR for wind. This is the number
+    # the page shows for each hour (one probability that covers both reasons).
+    either = (slots["closed"] == 1) | (slots["windy"] == 1)
+    both_known = slots["closed"].notna() & slots["windy"].notna()
+    slots["shut"] = np.where(either, 1.0, np.where(both_known, 0.0, np.nan))
     return slots
 
 
@@ -174,7 +179,7 @@ def event_baselines(fit: pd.DataFrame, frame: pd.DataFrame, target: str, raw_rul
         # training years, when the forecast read literally said yes (and when it said no).
         "raw forecast, read literally": rate_by(fit, raw_rule(fit), raw_rule(frame), target),
     }
-    if target == "closed":  # last night and the station before the night are about humidity
+    if target in ("closed", "shut"):  # last night and the station before the night are about humidity
         out["persistence (last night)"] = rate_by(fit, fit["prev_dome_closed_frac"] >= 0.5,
                                                   frame["prev_dome_closed_frac"] >= 0.5, target)
         out["precasting (humidity before night >= 90 %)"] = rate_by(
@@ -313,6 +318,34 @@ def windy_literal(frame: pd.DataFrame) -> pd.Series:
     return frame["h_wind_750"].fillna(frame["h_wind"]) >= WIND_LIMIT_MS
 
 
+def combine(p_humidity: np.ndarray, p_wind: np.ndarray) -> np.ndarray:
+    """Probability that the dome is shut for humidity OR wind, from the two separate models:
+    1 - P(not shut for humidity) x P(not shut for wind). It treats the two reasons as
+    independent; on the test hours this scores the same as a single model trained on
+    "humidity or wind" (Brier 0.065 both, final mode) and never falls below the humidity one."""
+    return 1 - (1 - p_humidity) * (1 - p_wind)
+
+
+def combined_metrics(sets: dict, closure: dict, wind: dict) -> list[dict]:
+    fit_on = pd.concat([sets["train"], sets["validation"]]).dropna(subset=["shut"])
+    test = sets["test"].dropna(subset=["shut"])
+    y = test["shut"]
+    # Skill against the same reference as everywhere: the monthly rate of the fitting years.
+    clim = brier_score_loss(y, test["month"].map(fit_on.groupby("month")["shut"].mean()))
+    rows = []
+    for mode, (pk, fk) in {"final": ("probability", "features"),
+                           "provisional": ("probability_forecast_only", "forecast_only_features")}.items():
+        p = combine(closure[pk].predict_proba(test[closure[fk]])[:, 1], wind[pk].predict_proba(test[wind[fk]])[:, 1])
+        rows.append({"target": "shut", "method": f"combined humidity + wind, {mode}", "kind": "model"}
+                    | event_metrics(y, p, clim))
+    return rows
+
+
+def shut_literal(frame: pd.DataFrame) -> pd.Series:
+    """The raw forecast read literally: humidity >= 90 % or wind >= 22.2 m/s."""
+    return humid_literal(frame) | windy_literal(frame)
+
+
 def main() -> int:
     config.LOG_DIR.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -324,17 +357,20 @@ def main() -> int:
 
     closure, closure_rows = train_event(sets, "closed", CLOSURE_FEATURES, CLOSURE_FORECAST_ONLY, humid_literal)
     wind, wind_rows = train_event(sets, "windy", CLOSURE_FEATURES, CLOSURE_FORECAST_ONLY, windy_literal)
+    shut, shut_rows = train_event(sets, "shut", CLOSURE_FEATURES, CLOSURE_FORECAST_ONLY, shut_literal)
     pd.DataFrame(closure["warning_test_scores"] + wind["warning_test_scores"]).to_csv(
         RESULTS_DIR / "hourly_warnings.csv", index=False, float_format="%.3f")
     seeing, seeing_rows = train_seeing(sets)
-    joblib.dump({"closure": closure, "wind": wind, "seeing": seeing, "wind_limit_ms": WIND_LIMIT_MS},
+    joblib.dump({"closure": closure, "wind": wind, "shut": shut, "seeing": seeing, "wind_limit_ms": WIND_LIMIT_MS},
                 MODELS_DIR / "hourly.joblib")
 
-    metrics = pd.DataFrame(closure_rows + wind_rows)
+    combined_rows = combined_metrics(sets, closure, wind)
+    metrics = pd.DataFrame(closure_rows + wind_rows + shut_rows + combined_rows)
     metrics.to_csv(RESULTS_DIR / "hourly_events_metrics.csv", index=False, float_format="%.4f")
     pd.DataFrame(seeing_rows).to_csv(RESULTS_DIR / "hourly_seeing_metrics.csv", index=False, float_format="%.4f")
     (RESULTS_DIR / "hourly_settings.json").write_text(json.dumps(
-        {"closure": closure["settings"], "wind": wind["settings"], "seeing": seeing["settings"],
+        {"closure": closure["settings"], "wind": wind["settings"], "shut": shut["settings"],
+         "seeing": seeing["settings"],
          "wind_limit_ms": WIND_LIMIT_MS}, indent=2))
     pd.set_option("display.width", 200)
     log.info("events\n%s", metrics.to_string(index=False, float_format="%.3f"))

@@ -53,6 +53,36 @@ window.I18N = {
       ["Prueba honesta", "Noches 2024–2026 nunca vistas, frente a climatología, persistencia y precasting."],
       ["En directo", "Cada hora: pronóstico de esta noche, entidades FIWARE, Grafana y esta web."],
     ],
+    tile_of_night: "Riesgo {level}, de {h} h de noche",
+    mode_box_provisional: "<b>Pronóstico provisional.</b> Antes de que empiece la noche solo sabemos la previsión meteorológica, lo que pasó anoche y la época del año. A las {time} se añade lo que mide la estación de la cumbre justo antes de la noche, que es lo que más ayuda, y pasa a <b>definitivo</b>. Cuando dice «cerrar», acierta el {prov} % de las veces en provisional y el {fin} % en definitivo.",
+    mode_box_final: "<b>Pronóstico definitivo.</b> Además de la previsión meteorológica, lo que pasó anoche y la época del año, ya usa lo que midió la estación de la cumbre justo antes de la noche, que es lo que más ayuda. Cuando dice «cerrar», acierta el {fin} % de las veces (en provisional, el {prov} %).",
+    sum_hours: "Se espera la cúpula cerrada unas {h} de las {total} horas de noche, por humedad o viento.",
+    sum_sky: "Probabilidad de cielo despejado: {p}.",
+    origin_title: "De dónde sale cada número",
+    origin_table: `<thead><tr><th>Lo que ves</th><th>Cómo se calcula</th><th>Aprendido de</th></tr></thead><tbody>
+<tr><td>% de cada hora</td><td>Probabilidad de cúpula cerrada por <b>humedad o viento</b>: une el modelo de humedad y el de viento de esa hora</td><td>Estación del NOT, minuto a minuto (regla de humedad y viento de más de 80 km/h)</td></tr>
+<tr><td>Cúpula cerrada (h)</td><td>La suma de los % de todas las horas: las horas de cierre que se esperan</td><td>Lo mismo</td></tr>
+<tr><td>Aviso «Viento»</td><td>El modelo de viento pasa de su umbral. Avisa casi siempre que hay viento fuerte, pero da muchas falsas alarmas</td><td>Viento medido en la cumbre</td></tr>
+<tr><td>Aviso «Hielo»</td><td>Regla sencilla: 0,5 °C o menos con humedad alta</td><td>—</td></tr>
+<tr><td>Horas perdidas por meteo</td><td>Otro modelo, para la noche entera, con todos los motivos (humedad, hielo, viento, nubes, calima)</td><td>Partes del Liverpool Telescope</td></tr>
+<tr><td>Cielo despejado</td><td>Otro modelo, para la noche entera: si se observa, ¿estará el cielo limpio? Solo por noche: los partes no dicen la hora</td><td>Partes del Liverpool Telescope</td></tr>
+<tr><td>Seeing</td><td>Modelos de nitidez, de la noche y de cada hora. No cambian el riesgo de cierre</td><td>Monitor de seeing R2D2</td></tr>
+<tr><td>Luna</td><td>Cálculo astronómico, no es un pronóstico</td><td>—</td></tr>
+</tbody>`,
+    eval_plain: "Resumen, en palabras sencillas",
+    eval_plain_note: "Todo con noches y horas de 2024–2026 que los modelos no vieron al aprender. «Acierta 7 de cada 10» = de cada 10 veces que dice «sí», 7 son verdad. «Detecta 8 de cada 10» = de cada 10 casos reales, avisó de 8.",
+    eval_technical: "Ver las cifras técnicas (para especialistas)",
+    glossary: `<ul>
+<li><b>Brier:</b> error medio de una probabilidad (0 es perfecto). <b>Acierto vs. clima:</b> cuánto error quita frente a decir siempre «lo normal del mes» (0 = nada, 1 = todo).</li>
+<li><b>AUC:</b> lo bien que ordena casos (0,5 = al azar, 1 = perfecto).</li>
+<li><b>MAE:</b> error medio, en las mismas unidades (segundos de arco u horas). <b>RMSE:</b> parecido, pero castiga más los errores grandes.</li>
+</ul>`,
+    plain_col_what: "Qué se predice", plain_col_ours: "Nuestro modelo", plain_col_ref: "Lo más sencillo que hay que batir",
+    plain_yesno: "acierta {r} de cada 10; detecta {c} de cada 10",
+    plain_number: "se equivoca de media {v}",
+    plain_warning: "detecta {c} de cada 10 horas con viento fuerte, pero solo {r} de cada 10 avisos se cumplen",
+    plain_refs: { raw: "Previsión meteorológica sola", precasting: "Mirar la humedad justo antes de la noche", persistence: "Decir «igual que anoche»", climatology: "Decir «lo normal del mes»", none: "La previsión sola no avisa nunca (su viento es demasiado flojo)" },
+    plain_what: { hour: "Cúpula cerrada en cada hora", night: "Que la cúpula cierre esa noche", sky: "Cielo despejado", seeing: "Seeing de la noche", lost: "Horas perdidas por meteo", wind: "Aviso de viento" },
     tile_closed: "Cúpula cerrada (previsto)", tile_any: "Que cierre en algún momento: {p}",
     tile_lost_wht: "Solo por humedad (criterio WHT): {h} h",
     tile_sky: "Cielo despejado (fotométrico)", tile_sky_help: "Probabilidad de cielo limpio de nubes y polvo si se observa",
@@ -75,7 +105,7 @@ window.I18N = {
     sum_warn_item: "{name} ({n} de {total} h)",
     sum_nowarn: "Sin avisos de viento ni de hielo.",
     hours_title: "Hora a hora",
-    hours_text: "<b>Previsión sola</b>: la humedad del modelo meteorológico leída tal cual (≥ 90 % = cerrar); en la cumbre casi siempre sale demasiado húmeda. <b>Nuestro pronóstico</b>: la probabilidad de cerrar por humedad, corregida con 7 años de datos de la cumbre.",
+    hours_text: "<b>Previsión sola</b>: la humedad del modelo meteorológico leída tal cual (≥ 90 % = cerrar); en la cumbre casi siempre sale demasiado húmeda. <b>Nuestro pronóstico</b>: la probabilidad de cúpula cerrada por humedad o viento, corregida con 7 años de datos de la cumbre.",
     col_hour: "Hora", col_raw: "Previsión sola", col_ours: "Nuestro pronóstico", col_seeing_h: "Seeing", col_warn: "Avisos", col_moon: "Luz de Luna",
     raw_closes: "cerraría", raw_opens: "abriría",
     warn_wind: "Viento", warn_ice: "Hielo",
@@ -98,7 +128,7 @@ window.I18N = {
     eval_hourly_text: "Horas de noche de 2024–2026. «Detectadas»: horas en que de verdad pasó y se avisó. «Falsas alarmas»: avisos que no se cumplieron. Nuestro modelo dice «cerrar» cuando la probabilidad pasa del 50 %.",
     col_event: "Qué", col_hits: "Detectadas", col_far2: "Falsas alarmas",
     raw_alone: "Previsión sola", model_final: "Nuestro modelo (definitivo)", model_provisional: "Nuestro modelo (provisional)",
-    events: { closed: "Cierre por humedad", windy: "Viento de cierre" },
+    events: { closed: "Cierre por humedad", windy: "Viento de cierre", shut: "Cúpula cerrada (humedad o viento)" },
     why_title: "Las entradas de esta noche",
     why_text: "Las entradas del modelo para esta noche. La más influyente, cuando está disponible, es la humedad de la estación justo antes de la noche.",
     hourly_title: "Pronóstico hora a hora",
@@ -255,6 +285,36 @@ window.I18N = {
       ["Honest test", "Unseen 2024–2026 nights, against climatology, persistence and precasting."],
       ["Live", "Every hour: tonight's forecast, FIWARE entities, Grafana and this page."],
     ],
+    tile_of_night: "{level} risk, of a {h} h night",
+    mode_box_provisional: "<b>Provisional forecast.</b> Before the night starts we only know the weather forecast, last night's outcome and the time of year. At {time} the summit station's readings just before the night are added (they help the most) and it becomes <b>final</b>. When it says \"close\", it is right {prov} % of the time when provisional and {fin} % when final.",
+    mode_box_final: "<b>Final forecast.</b> On top of the weather forecast, last night and the time of year, it now uses what the summit station measured just before the night, which helps the most. When it says \"close\", it is right {fin} % of the time (provisional: {prov} %).",
+    sum_hours: "The dome is expected to be closed for about {h} of the {total} night hours, for humidity or wind.",
+    sum_sky: "Chance of a clear sky: {p}.",
+    origin_title: "Where each number comes from",
+    origin_table: `<thead><tr><th>What you see</th><th>How it is computed</th><th>Learnt from</th></tr></thead><tbody>
+<tr><td>% for each hour</td><td>Chance that the dome is shut for <b>humidity or wind</b>: joins the humidity model and the wind model for that hour</td><td>NOT station, minute by minute (humidity rule and wind above 80 km/h)</td></tr>
+<tr><td>Dome closed (h)</td><td>The sum of all hourly %: the closed hours to expect</td><td>Same</td></tr>
+<tr><td>"Wind" warning</td><td>The wind model goes past its threshold. It warns almost every time there is strong wind, but with many false alarms</td><td>Wind measured at the summit</td></tr>
+<tr><td>"Ice" warning</td><td>Simple rule: 0.5 °C or less with high humidity</td><td>—</td></tr>
+<tr><td>Hours lost to weather</td><td>Another model, for the whole night, with every reason (humidity, ice, wind, cloud, dust)</td><td>Liverpool Telescope reports</td></tr>
+<tr><td>Clear sky</td><td>Another model, for the whole night: if observing, will the sky be clean? Per night only: the reports do not give the hour</td><td>Liverpool Telescope reports</td></tr>
+<tr><td>Seeing</td><td>Sharpness models, for the night and for each hour. They do not change the closing risk</td><td>R2D2 seeing monitor</td></tr>
+<tr><td>Moon</td><td>Astronomical computation, not a forecast</td><td>—</td></tr>
+</tbody>`,
+    eval_plain: "Summary, in plain words",
+    eval_plain_note: "All on 2024–2026 nights and hours the models never saw while learning. \"Right 7 in 10\" = of every 10 times it says \"yes\", 7 are true. \"Catches 8 in 10\" = of every 10 real cases, it warned about 8.",
+    eval_technical: "Show the technical figures (for specialists)",
+    glossary: `<ul>
+<li><b>Brier:</b> average error of a probability (0 is perfect). <b>Skill vs. climate:</b> how much error it removes against always saying "the usual for the month" (0 = none, 1 = all).</li>
+<li><b>AUC:</b> how well it ranks cases (0.5 = random, 1 = perfect).</li>
+<li><b>MAE:</b> average error, in the same units (arcseconds or hours). <b>RMSE:</b> similar, but punishes big errors more.</li>
+</ul>`,
+    plain_col_what: "What is forecast", plain_col_ours: "Our model", plain_col_ref: "The simplest thing to beat",
+    plain_yesno: "right {r} in 10; catches {c} in 10",
+    plain_number: "off by {v} on average",
+    plain_warning: "catches {c} in 10 hours with strong wind, but only {r} in 10 warnings come true",
+    plain_refs: { raw: "Raw weather forecast", precasting: "Looking at humidity just before the night", persistence: "Saying \"same as last night\"", climatology: "Saying \"the usual for the month\"", none: "The raw forecast never warns (its wind is far too weak)" },
+    plain_what: { hour: "Dome closed each hour", night: "Dome closing that night", sky: "Clear sky", seeing: "Seeing of the night", lost: "Hours lost to weather", wind: "Wind warning" },
     tile_closed: "Dome closed (expected)", tile_any: "Closing at some point: {p}",
     tile_lost_wht: "Humidity only (WHT criterion): {h} h",
     tile_sky: "Clear sky (photometric)", tile_sky_help: "Probability of a sky free of cloud and dust when observing",
@@ -277,7 +337,7 @@ window.I18N = {
     sum_warn_item: "{name} ({n} of {total} h)",
     sum_nowarn: "No wind or ice warnings.",
     hours_title: "Hour by hour",
-    hours_text: "<b>Raw forecast</b>: the weather model's humidity read literally (≥ 90 % = close); at the summit it is almost always too wet. <b>Our forecast</b>: the probability of closing for humidity, corrected with 7 years of summit data.",
+    hours_text: "<b>Raw forecast</b>: the weather model's humidity read literally (≥ 90 % = close); at the summit it is almost always too wet. <b>Our forecast</b>: the probability that the dome is shut for humidity or wind, corrected with 7 years of summit data.",
     col_hour: "Hour", col_raw: "Raw forecast", col_ours: "Our forecast", col_seeing_h: "Seeing", col_warn: "Warnings", col_moon: "Moonlight",
     raw_closes: "would close", raw_opens: "would open",
     warn_wind: "Wind", warn_ice: "Ice",
@@ -300,7 +360,7 @@ window.I18N = {
     eval_hourly_text: "Night hours of 2024–2026. \"Caught\": hours when it really happened and a warning was given. \"False alarms\": warnings that did not happen. Our model says \"close\" when its probability is above 50 %.",
     col_event: "What", col_hits: "Caught", col_far2: "False alarms",
     raw_alone: "Raw forecast", model_final: "Our model (final)", model_provisional: "Our model (provisional)",
-    events: { closed: "Closure for humidity", windy: "Closing wind" },
+    events: { closed: "Closure for humidity", windy: "Closing wind", shut: "Dome shut (humidity or wind)" },
     why_title: "Tonight's inputs",
     why_text: "The model inputs for tonight. When available, the most influential is the station humidity just before the night.",
     hourly_title: "Hour-by-hour forecast",

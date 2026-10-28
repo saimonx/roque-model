@@ -135,6 +135,11 @@ tr.baseline td:first-child::before { content: ""; display: inline-block; width: 
 .scale-mark { position: absolute; top: -4px; width: 3px; height: 16px; border-radius: 2px; background: var(--text); transform: translateX(-1px); }
 .scale-ends { display: flex; justify-content: space-between; }
 
+.callout { margin: 0.6rem 0 0; padding: 10px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); }
+.callout b { color: var(--text); }
+table.plain td:nth-child(2) b { color: var(--series-1); }
+table.origin td:first-child { font-weight: 600; white-space: nowrap; }
+
 /* Hour-by-hour table */
 table.hours td, table.hours th { text-align: left; }
 table.hours td:first-child { font-weight: 600; font-variant-numeric: tabular-nums; }

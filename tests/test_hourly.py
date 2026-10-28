@@ -38,3 +38,8 @@ def test_tonight_hours_keep_only_mostly_dark_hours():
     assert hours["hour"].iloc[0] == pd.Timestamp("2026-10-28 20:00", tz="UTC")
     assert hours["hour"].iloc[-1] == pd.Timestamp("2026-10-29 05:00", tz="UTC")
     assert (hours["dark_minutes"] >= hourly.MIN_DARK_MINUTES).all()
+
+
+def test_combined_probability_is_humidity_or_wind():
+    p = hourly.combine(np.array([0.3, 0.0, 0.5]), np.array([0.0, 0.2, 0.5]))
+    assert np.allclose(p, [0.3, 0.2, 0.75])  # never below either reason; 1 - 0.5 x 0.5 = 0.75

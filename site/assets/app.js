@@ -50,9 +50,14 @@
 
     // Tiles. Closed hours = sum of the hourly probabilities, so the tile and the table agree.
     const closedH = d.hours ? d.hours.reduce((sum, h) => sum + h.p_closed * h.dark_minutes / 60, 0) : f.closed_h;
+    const nightRisk = closedH / n.length_h < 0.1 ? "low" : closedH / n.length_h < 0.4 ? "medium" : "high";
     $("closed-h").textContent = num(closedH) + " h";
-    status($("risk"), f.risk, fill(t.tile_any, { p: pct(f.p_closed) }));
-    $("closure-ref").textContent = fill(t.tile_usual, { month, v: pct(r.closure_climatology) });
+    status($("risk"), nightRisk, fill(t.tile_of_night, { level: t["risk_" + nightRisk].toLowerCase(), h: num(n.length_h) }));
+    const ev = state.evaluation && state.evaluation.hourly_eval;
+    const right = (m) => { const r = ev && ev.find((x) => x.target === "shut" && x.method === m); return r ? Math.round((1 - r.false_alarm_ratio) * 100) : "–"; };
+    $("mode-box").innerHTML = fill(d.mode === "final" ? t.mode_box_final : t.mode_box_provisional,
+      { time: timeLocal(n.final_from_utc), prov: right("provisional"), fin: right("final") });
+    $("closure-ref").textContent = r.closed_h_climatology != null ? fill(t.tile_usual, { month, v: num(r.closed_h_climatology) + " h" }) : "";
     const lost = f.lt_lost_h != null ? f.lt_lost_h : f.lost_h;
     $("lost").textContent = num(lost) + " h";
     $("lost-of").textContent = fill(t.lost_of, { h: num(n.length_h) });
@@ -132,7 +137,8 @@
   // Two short sentences: the closure risk (and when it peaks) and the warnings.
   function summary(d) {
     const t = T(), f = d.forecast, hours = d.hours;
-    const parts = [fill(t.sum_risk, { level: t["risk_" + f.risk].toLowerCase(), p: pct(f.p_closed) })];
+    const closedH = hours.reduce((sum, h) => sum + h.p_closed * h.dark_minutes / 60, 0);
+    const parts = [fill(t.sum_hours, { h: Math.round(closedH), total: Math.round(d.night.length_h) })];
     const peak = hours.reduce((a, b) => (b.p_closed > a.p_closed ? b : a), hours[0]);
     const spread = Math.max(...hours.map((h) => h.p_closed)) - Math.min(...hours.map((h) => h.p_closed));
     parts.push(spread < 0.1 ? t.sum_flat : fill(t.sum_peak, { time: peak.local, p: pct(peak.p_closed) }));
@@ -140,6 +146,7 @@
       .map(([k, name]) => [name, hours.filter((h) => h[k]).length]).filter(([, count]) => count > 0)
       .map(([name, count]) => fill(t.sum_warn_item, { name: name.toLowerCase(), n: count, total: hours.length }));
     parts.push(items.length ? fill(t.sum_warn, { list: items.join(", ") }) : t.sum_nowarn);
+    if (f.p_photometric != null) parts.push(fill(t.sum_sky, { p: pct(f.p_photometric) }));
     return parts.join(" ");
   }
 
@@ -181,6 +188,19 @@
 
   function renderEvaluation(e) {
     const t = T(), name = (m) => t.methods[m] || m;
+    if (e.plain) {
+      const ten = (v) => Math.round(v * 10);
+      const yesno = (right, caught) => fill(t.plain_yesno, { r: ten(right), c: ten(caught) });
+      const numb = (v, r) => fill(t.plain_number, { v: num(v, r.digits) + r.unit });
+      const rows = e.plain.map((r) => {
+        let ours, ref;
+        if (r.kind === "yesno") { ours = yesno(r.ours_right, r.ours_caught); ref = `${t.plain_refs[r.ref]}: ${yesno(r.ref_right, r.ref_caught)}`; }
+        else if (r.kind === "number") { ours = numb(r.ours, r); ref = `${t.plain_refs[r.ref]}: ${numb(r.ref_value, r)}`; }
+        else { ours = fill(t.plain_warning, { c: ten(r.ours_caught), r: ten(r.ours_right) }); ref = t.plain_refs.none; }
+        return `<tr><td>${t.plain_what[r.key]}</td><td>${ours}</td><td>${ref}</td></tr>`;
+      });
+      table($("table-plain"), [t.plain_col_what, t.plain_col_ours, t.plain_col_ref], rows);
+    }
     if (e.hourly_eval) {
       const label = { raw: t.raw_alone, final: t.model_final, provisional: t.model_provisional };
       table($("table-hourly"), [t.col_event, t.col_method, t.col_hits, t.col_far2],

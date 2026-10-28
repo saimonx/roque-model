@@ -230,6 +230,8 @@ def references(row: pd.DataFrame, final: bool) -> dict:
     lost = wht["wht_weather_lost_h"].clip(upper=wht["wht_night_h"]).groupby(wht.index.month).mean()
     return {
         "closure_climatology": round(float(closure["climatology (month)"][0]), 3),
+        # Usual closed hours for the month (humidity rule, 2017-2023), for the "dome closed" tile.
+        "closed_h_climatology": round(float(fitted.groupby("month")["dome_closed_h"].mean().get(row["month"].iloc[0])), 2),
         "closure_persistence": round(float(closure["persistence (last night)"][0]), 3),
         # Precasting needs the station readings before the night: only in final mode.
         "closure_precasting": round(float(closure["precasting (humidity before night >= 90 %)"][0]), 3)
@@ -330,8 +332,10 @@ def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: 
     seeing_model, seeing_inputs = (seeing["model"], seeing["features"]) if final else \
         (seeing["model_forecast_only"], seeing["forecast_only_features"])
     table = table.astype({c: float for c in set(closure_inputs + wind_inputs + seeing_inputs)})
-    table["p_closed"] = closure_model.predict_proba(table[closure_inputs])[:, 1]
+    # The hourly % on the page: dome shut for humidity OR wind, combining the two models.
+    table["p_humidity"] = closure_model.predict_proba(table[closure_inputs])[:, 1]
     table["p_wind"] = wind_model.predict_proba(table[wind_inputs])[:, 1]
+    table["p_closed"] = hourly.combine(table["p_humidity"], table["p_wind"])
     table["seeing"] = seeing_model.predict(table[seeing_inputs])
 
     ice_from_station = recent_ice(live["minutes"], now)
@@ -347,6 +351,7 @@ def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: 
             "raw": {"rh": h.h_rh, "closes": bool(h.h_rh >= hourly.HUMIDITY_LIMIT_PCT), "wind": raw_wind,
                     "windy": bool(raw_wind >= hourly.WIND_LIMIT_MS), "temp": h.h_temp, "cloud": h.h_cloud},
             "p_closed": round(float(h.p_closed), 3), "risk": level(h.p_closed, RISK_LEVELS),
+            "p_humidity": round(float(h.p_humidity), 3), "p_wind": round(float(h.p_wind), 3),
             "seeing": round(float(h.seeing), 2), "seeing_class": level(h.seeing, SEEING_CLASSES),
             "warn_wind": bool(h.p_wind >= wind_threshold),
             "warn_ice": bool(h.h_temp <= ICE_TEMP_C and (h.h_rh >= hourly.HUMIDITY_LIMIT_PCT or ice_from_station)),

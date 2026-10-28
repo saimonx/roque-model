@@ -126,11 +126,15 @@ scripts/update_tonight.sh                       # both steps (hourly job); ROQUE
 literally (humidity ≥ 90 % → close), our probability of closing for humidity, the seeing of that hour, and
 warnings for wind and ice (`hourly.py`). On the 2024–2026 test hours:
 
-| Hour-by-hour call | Closed hours caught | Wrong "close" calls |
+The hourly % on the page is the chance that the dome is shut for **humidity or wind**: the humidity and
+wind models combined as 1 − (1 − p_humidity)(1 − p_wind). On the test hours this scores the same as a single
+model trained on "humidity or wind" (Brier 0.065), and it never falls below the humidity figure.
+
+| Hour-by-hour call (dome shut for humidity or wind) | Shut hours caught | Wrong "close" calls |
 |---|---|---|
-| Raw forecast, read literally | 95 % | **79 %** |
-| Our model (final), probability ≥ 50 % | 73 % | **25 %** |
-| Our model (provisional), probability ≥ 50 % | 59 % | 31 % |
+| Raw forecast, read literally (humidity ≥ 90 % or wind ≥ 22.2 m/s) | 93 % | **78 %** |
+| Our forecast (final), probability ≥ 50 % | 71 % | **26 %** |
+| Our forecast (provisional), probability ≥ 50 % | 58 % | 32 % |
 
 The raw forecast is far too wet at the summit (the 9 km grid point sits inside the cloud layer, below the
 real summit): it says "close" in 6,092 hours, of which 1,350 really closed. The hourly closure model scores

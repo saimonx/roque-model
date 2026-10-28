@@ -70,10 +70,10 @@ def hourly_eval() -> list[dict]:
     events = pd.read_csv(RESULTS / "hourly_events_metrics.csv")
     warnings = pd.read_csv(RESULTS / "hourly_warnings.csv")
     rows = []
-    for method, name in [("raw forecast, yes/no", "raw"), ("gradient boosting", "final"),
-                         ("gradient boosting, forecast only", "provisional")]:
-        r = events[(events["target"] == "closed") & (events["method"] == method)].iloc[0]
-        rows.append({"target": "closed", "method": name, "hit_rate": r["hit_rate"],
+    for method, name in [("raw forecast, yes/no", "raw"), ("combined humidity + wind, final", "final"),
+                         ("combined humidity + wind, provisional", "provisional")]:
+        r = events[(events["target"] == "shut") & (events["method"] == method)].iloc[0]
+        rows.append({"target": "shut", "method": name, "hit_rate": r["hit_rate"],
                      "false_alarm_ratio": r["false_alarm_ratio"]})
     for _, r in warnings[warnings["target"] == "windy"].iterrows():
         name = "raw" if r["warning"].startswith("raw") else ("final" if "final" in r["warning"] else "provisional")
@@ -86,6 +86,53 @@ def seeing_quantiles() -> list[float]:
     """Percentiles 1-99 of the nightly median seeing (R2D2, all nights): the scale on the page."""
     nights = pd.read_parquet(config.PROCESSED_DIR / "nights.parquet", columns=["seeing_median"])
     return [round(float(v), 3) for v in nights["seeing_median"].dropna().quantile(np.arange(1, 100) / 100)]
+
+
+def plain_summary() -> list[dict]:
+    """The evaluation in plain words: for each forecast, one number for our model and one for
+    the reference that is hardest to beat, in units anyone can read.
+
+    - yes/no forecasts: "when it says yes, it is right X times in 10" (1 - false-alarm ratio)
+      and "it catches X in 10 of the real cases" (hit rate);
+    - numbers (seeing, hours): "on average it is off by X" (mean absolute error).
+    All on the 2024-2026 test nights/hours.
+    """
+    def row(table, **match):
+        frame = table
+        for k, v in match.items():
+            frame = frame[frame[k] == v]
+        return frame.iloc[0]
+
+    events = pd.read_csv(RESULTS / "hourly_events_metrics.csv")
+    closure = pd.read_csv(RESULTS / "closure_metrics.csv")
+    seeing = pd.read_csv(RESULTS / "seeing_metrics.csv")
+    lt = pd.read_csv(RESULTS / "lt_lost_hours_metrics.csv")
+    sky = pd.read_csv(RESULTS / "sky_dust_metrics.csv")
+    warn = pd.read_csv(RESULTS / "hourly_warnings.csv")
+    ours_h = row(events, target="shut", method="combined humidity + wind, final")
+    raw_h = row(events, target="shut", method="raw forecast, yes/no")
+    ours_n = row(closure, inputs="forecast archive", method="gradient boosting")
+    ref_n = row(closure, inputs="forecast archive", method="precasting (humidity before night >= 90 %)")
+    wind = warn[(warn["target"] == "windy") & warn["warning"].str.contains("final")].iloc[0]
+    return [
+        {"key": "hour", "kind": "yesno", "ours_right": 1 - ours_h["false_alarm_ratio"], "ours_caught": ours_h["hit_rate"],
+         "ref": "raw", "ref_right": 1 - raw_h["false_alarm_ratio"], "ref_caught": raw_h["hit_rate"]},
+        {"key": "night", "kind": "yesno", "ours_right": 1 - ours_n["false_alarm_ratio"], "ours_caught": ours_n["hit_rate"],
+         "ref": "precasting", "ref_right": 1 - ref_n["false_alarm_ratio"], "ref_caught": ref_n["hit_rate"]},
+        {"key": "sky", "kind": "yesno",
+         "ours_right": 1 - row(sky, target="photometric sky", method="gradient boosting")["false_alarm_ratio"],
+         "ours_caught": row(sky, target="photometric sky", method="gradient boosting")["hit_rate"],
+         "ref": "persistence",
+         "ref_right": 1 - row(sky, target="photometric sky", method="persistence (last night)")["false_alarm_ratio"],
+         "ref_caught": row(sky, target="photometric sky", method="persistence (last night)")["hit_rate"]},
+        {"key": "seeing", "kind": "number", "unit": "″", "digits": 2,
+         "ours": row(seeing, inputs="forecast archive", method="gradient boosting")["mae"],
+         "ref": "climatology", "ref_value": row(seeing, inputs="forecast archive", method="climatology (month)")["mae"]},
+        {"key": "lost", "kind": "number", "unit": " h", "digits": 1,
+         "ours": row(lt, method="gradient boosting")["mae"],
+         "ref": "persistence", "ref_value": row(lt, method="persistence (last night)")["mae"]},
+        {"key": "wind", "kind": "warning", "ours_caught": wind["hit_rate"], "ours_right": 1 - wind["false_alarm_ratio"]},
+    ]
 
 
 def read_jsonl(path) -> pd.DataFrame:
@@ -123,6 +170,7 @@ def build() -> dict:
         "recent": recent_nights(),
         "track_record": track_record(),
         "hourly_eval": hourly_eval(),
+        "plain": plain_summary(),
         "seeing_quantiles": seeing_quantiles(),
         "lt_lost_hours": pd.read_csv(RESULTS / "lt_lost_hours_metrics.csv").to_dict(orient="records"),
         "sky_dust": pd.read_csv(RESULTS / "sky_dust_metrics.csv").to_dict(orient="records"),
