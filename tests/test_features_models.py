@@ -38,6 +38,16 @@ def test_nightly_forecast_uses_only_dark_hours_and_wind_components():
     assert night["fc_dew_spread_min"] == 3.0
 
 
+def test_nightly_upper_averages_the_jet_over_dark_hours_only():
+    hours = pd.date_range("2025-03-01 00:00", "2025-03-02 23:00", freq="h", tz="UTC")
+    payload = {"hourly": {"time": [t.strftime("%Y-%m-%dT%H:%M") for t in hours],
+                          "wind_speed_200hPa": [30.0] * len(hours)}}
+    hourly = open_meteo.parse_upper(payload)
+    hourly.loc[hourly["time_utc"].dt.hour == 14, "wind_speed_200hPa"] = 90.0  # daytime: ignored
+    nights = features.nightly_upper(hourly)
+    assert nights.loc[pd.Timestamp("2025-03-01"), "fc_jet_mean"] == 30.0
+
+
 def test_pre_night_observations_stop_at_the_start_of_the_night():
     start = pd.Timestamp("2025-03-01 20:00", tz="UTC")
     starts = pd.Series([start], index=pd.DatetimeIndex([pd.Timestamp("2025-03-01")], name="night"))

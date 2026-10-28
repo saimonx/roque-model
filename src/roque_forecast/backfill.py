@@ -33,7 +33,8 @@ R2D2_FIRST_MONTH = date(2018, 9, 1)  # the monitor started on 2018-09-19
 ING_FIRST_NIGHT = date(2007, 1, 1)  # earlier pages are empty (checked 2005); 2007 has night lengths
 # First year of each forecast archive for ECMWF IFS HRES (checked 28 Oct 2026; the
 # day-1 archive is empty before late 2025, empty hours are dropped when parsing).
-FORECAST_FIRST_YEAR = {"historical": 2017, "previous_day1": 2025}
+# "upper" is the GFS 200 hPa wind (jet stream), archived since March 2021.
+FORECAST_FIRST_YEAR = {"historical": 2017, "previous_day1": 2025, "upper": 2021}
 
 
 def months(first: date, last: date) -> Iterator[date]:
@@ -124,14 +125,16 @@ def backfill_forecasts(session: PoliteSession, today: date) -> None:
     for kind, first_year in FORECAST_FIRST_YEAR.items():
         folder = config.RAW_DIR / "open_meteo" / kind
         for year in range(first_year, today.year + 1):
-            final = folder / f"{open_meteo.MODEL}_{year}.json"
+            model = open_meteo.UPPER_MODEL if kind == "upper" else open_meteo.MODEL
+            final = folder / f"{model}_{year}.json"
             if final.exists() and year != today.year:
                 continue
             part = final.with_name(final.name + ".part")
             # The archive ends yesterday; for the current year, stop there.
             end = min(date(year, 12, 31), today)
+            start = max(date(year, 1, 1), open_meteo.UPPER_FIRST_DAY) if kind == "upper" else date(year, 1, 1)
             try:
-                open_meteo.download_year(session, kind, date(year, 1, 1), end, part)
+                open_meteo.download_year(session, kind, start, end, part)
                 finish(part, final)
                 log.info("Open-Meteo %s %d ok (%d bytes)", kind, year, final.stat().st_size)
             except Exception:

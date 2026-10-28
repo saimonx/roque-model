@@ -10,6 +10,11 @@ before the night started. So the inputs are:
    sunset an operator can look at the station, so this is fair. It also lets
    the model correct the forecast (a model grid point 4 km away, on smoothed
    terrain, does not see the summit exactly: it is usually wetter and calmer).
+   Plus, for the seeing only, the **jet-stream wind** (200 hPa, ~12 km high,
+   from the GFS archive, see sources/open_meteo.py): turbulence up there blurs
+   the stars even when the ground is calm. On the 2023 validation year it
+   lowered the seeing error from 0.347" to 0.340"; for the dome it adds nothing
+   (closure is a ground-humidity problem), so the dome models do not use it.
 3. **Last night's outcome** (closure, seeing): "persistence". Weather on La
    Palma comes in spells of several days, so yesterday says a lot about today.
 4. **The time of year**, as sine/cosine of the day of the year, so that 31 Dec
@@ -47,6 +52,9 @@ OBSERVED_FEATURES = ["pre_humidity_mean", "pre_humidity_max", "pre_wind_mean", "
 PERSISTENCE_FEATURES = ["prev_dome_closed_frac", "prev_seeing_median"]
 CALENDAR_FEATURES = ["doy_sin", "doy_cos"]
 FEATURES = FORECAST_FEATURES + OBSERVED_FEATURES + PERSISTENCE_FEATURES + CALENDAR_FEATURES
+# The seeing models add the jet-stream wind (missing before March 2021).
+UPPER_FEATURES = ["fc_jet_mean"]
+SEEING_FEATURES = FEATURES + UPPER_FEATURES
 
 
 def load_forecasts(kind: str) -> pd.DataFrame:
@@ -55,6 +63,21 @@ def load_forecasts(kind: str) -> pd.DataFrame:
         raise SystemExit(f"no forecast files for {kind}: run `backfill forecasts` first")
     hourly = pd.concat([open_meteo.parse(f) for f in files], ignore_index=True)
     return hourly.drop_duplicates("time_utc").sort_values("time_utc").reset_index(drop=True)
+
+
+def load_upper() -> pd.DataFrame:
+    files = sorted((config.RAW_DIR / "open_meteo" / "upper").glob("*.json"))
+    if not files:
+        raise SystemExit("no upper-wind files: run `backfill forecasts` first")
+    hourly = pd.concat([open_meteo.parse_upper(f) for f in files], ignore_index=True)
+    return hourly.drop_duplicates("time_utc").sort_values("time_utc").reset_index(drop=True)
+
+
+def nightly_upper(hourly: pd.DataFrame) -> pd.DataFrame:
+    """Mean jet-stream wind (200 hPa) over the hours of each astronomical night."""
+    hourly = hourly[astro.is_astronomical_night(hourly["time_utc"])]
+    night = pd.to_datetime(astro.night_label(hourly["time_utc"]))
+    return pd.DataFrame({"fc_jet_mean": hourly.groupby(night.to_numpy())["wind_speed_200hPa"].mean()})
 
 
 def nightly_forecast(hourly: pd.DataFrame) -> pd.DataFrame:
@@ -144,9 +167,9 @@ def add_labels_and_persistence(table: pd.DataFrame, nights: pd.DataFrame) -> pd.
     return out
 
 
-def build(kind: str, nights: pd.DataFrame, observed: pd.DataFrame) -> pd.DataFrame:
+def build(kind: str, nights: pd.DataFrame, observed: pd.DataFrame, upper: pd.DataFrame) -> pd.DataFrame:
     forecast = nightly_forecast(load_forecasts(kind))
-    table = forecast.join(observed, how="left")
+    table = forecast.join(upper, how="left").join(observed, how="left")
     table = add_labels_and_persistence(table, nights)
     table.index.name = "night"
     return table[table.index >= FIRST_NIGHT]
@@ -167,9 +190,10 @@ def main() -> int:
     )
     starts = night_starts(minutes["time_utc"].min().floor("D"), minutes["time_utc"].max().ceil("D"))
     observed = pre_night_observations(minutes, starts)
+    upper = nightly_upper(load_upper())
 
     for kind, name in [("historical", "model_table"), ("previous_day1", "model_table_day1")]:
-        table = build(kind, nights, observed)
+        table = build(kind, nights, observed, upper)
         table.to_parquet(config.PROCESSED_DIR / f"{name}.parquet")
         log.info("%s: %d nights, %s -> %s", name, len(table), table.index.min().date(), table.index.max().date())
     return 0

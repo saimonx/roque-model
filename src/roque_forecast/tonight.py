@@ -90,6 +90,8 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
     folder.mkdir(parents=True, exist_ok=True)
     forecast = open_meteo.download_current(session, forecast_days=3)
     (folder / "open_meteo.json").write_text(json.dumps(forecast), encoding="utf-8")
+    upper = open_meteo.download_current_upper(session, forecast_days=3)
+    (folder / "open_meteo_upper.json").write_text(json.dumps(upper), encoding="utf-8")
 
     start = (now - pd.Timedelta(hours=36)).to_pydatetime().replace(tzinfo=None)
     not_file = not_mast.download_range(session, start, now.to_pydatetime().replace(tzinfo=None),
@@ -98,7 +100,7 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
     # date2 is exclusive: today + 1 includes this morning's data.
     r2d2_file = r2d2.download_range(session, today - timedelta(days=2), today + timedelta(days=1),
                                     folder / "r2d2.html")
-    return {"forecast": open_meteo.parse(forecast), "minutes": clean_minutes(not_mast.parse(not_file)),
+    return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper), "minutes": clean_minutes(not_mast.parse(not_file)),
             "seeing": r2d2.parse(r2d2_file)}
 
 
@@ -164,6 +166,11 @@ def build_inputs(live: dict, window: dict, previous: dict, final: bool) -> pd.Da
     if label not in forecast.index:
         raise RuntimeError(f"the live forecast does not cover the night of {label.date()}")
     row = forecast.loc[[label]].copy()
+    # Jet-stream wind for the seeing (empty if the GFS request returned nothing for tonight).
+    row = row.join(features.nightly_upper(live["upper"]), how="left") if len(live.get("upper", [])) else row
+    for column in features.UPPER_FEATURES:
+        if column not in row:
+            row[column] = np.nan
 
     if final:
         starts = pd.Series([window["start"]], index=pd.DatetimeIndex([label], name="night"))
@@ -178,7 +185,7 @@ def build_inputs(live: dict, window: dict, previous: dict, final: bool) -> pd.Da
     doy = 2 * np.pi * row.index.day_of_year / 365.25
     row["doy_sin"], row["doy_cos"] = np.sin(doy), np.cos(doy)
     row["month"] = row.index.month
-    return row.astype({c: float for c in features.FEATURES})
+    return row.astype({c: float for c in features.SEEING_FEATURES})
 
 
 def level(value: float, levels: list[tuple[float, str]]) -> str:
@@ -279,7 +286,7 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
     previous = last_night(live["minutes"], live["seeing"], window["night"] - pd.Timedelta(days=1))
     row = build_inputs(live, window, previous, final)
     forecast = predict(row, window, final)
-    used = features.FEATURES if final else train.FORECAST_ONLY
+    used = features.SEEING_FEATURES if final else train.SEEING_FORECAST_ONLY
     last_minute = live["minutes"].dropna(subset=["humidity_pct"]).iloc[-1]
 
     page = {
