@@ -1,0 +1,13 @@
+# CrateDB speaks the PostgreSQL protocol, so Grafana's PostgreSQL data source reads it.
+apiVersion: 1
+datasources:
+  - name: CrateDB (QuantumLeap)
+    uid: cratedb
+    type: grafana-postgresql-datasource
+    url: crate:5432
+    user: crate
+    jsonData:
+      database: doc
+      sslmode: disable
+      postgresVersion: 1000
+    isDefault: true

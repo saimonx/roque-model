@@ -200,9 +200,16 @@ def train_closure(sets: dict, day1: pd.DataFrame) -> tuple[dict, list[dict], pd.
     # Hours closed (used by forecast 3): regression with the same inputs and settings.
     hours_target = "dome_closed_h"
     hours = gradient_boosting("regressor", **settings).fit(fit_on[FEATURES], fit_on[hours_target])
+    # Forecast-only twins, used by the live forecast before the 2-hour station window is complete
+    # (in the afternoon the station readings "just before the night" do not exist yet).
+    hours_forecast_only = gradient_boosting("regressor", **settings).fit(fit_on[FORECAST_ONLY], fit_on[hours_target])
     classifier = models["gradient boosting"][0]
     importance = importance_table(classifier, data["test"], target, "neg_brier_score")
-    joblib.dump({"probability": classifier, "hours": hours, "features": FEATURES}, MODELS_DIR / "closure.joblib")
+    joblib.dump({
+        "probability": classifier, "hours": hours, "features": FEATURES,
+        "probability_forecast_only": models["gradient boosting, forecast only"][0],
+        "hours_forecast_only": hours_forecast_only, "forecast_only_features": FORECAST_ONLY,
+    }, MODELS_DIR / "closure.joblib")
     return {"classifier": classifier, "hours": hours, "settings": settings}, rows, importance
 
 
@@ -264,7 +271,9 @@ def train_seeing(sets: dict, day1: pd.DataFrame) -> tuple[TransformedTargetRegre
 
     model = models["gradient boosting"][0]
     importance = importance_table(model, data["test"], target, "neg_root_mean_squared_error")
-    joblib.dump({"model": model, "features": FEATURES}, MODELS_DIR / "seeing.joblib")
+    joblib.dump({"model": model, "features": FEATURES,
+                 "model_forecast_only": models["gradient boosting, forecast only"][0],
+                 "forecast_only_features": FORECAST_ONLY}, MODELS_DIR / "seeing.joblib")
     return model, rows, importance
 
 
