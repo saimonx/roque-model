@@ -111,16 +111,9 @@ def download_current_upper(session: PoliteSession, forecast_days: int = 2) -> di
     return session.get(FORECAST_URL, params=params).json()
 
 
+# CAMS dust forecast archive (Copernicus, through Open-Meteo), Aug 2022 -> today. Used only to test
+# a dust warning against the Liverpool reports (extra_models.py); too few events, so not shown live.
 AIR_QUALITY_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
-
-
-def download_current_dust(session: PoliteSession, forecast_days: int = 2) -> dict:
-    """Today's desert-dust forecast at the site: CAMS (Copernicus Atmosphere Monitoring
-    Service) through Open-Meteo, in micrograms per cubic metre. Live only: it is shown as
-    a warning, not used by the models (its archive starts in 2022)."""
-    params = {"latitude": config.SITE_LAT, "longitude": config.SITE_LON, "timezone": "UTC",
-              "hourly": "dust,pm10", "forecast_days": forecast_days}
-    return session.get(AIR_QUALITY_URL, params=params).json()
 
 
 def parse_dust(payload: dict | Path) -> pd.DataFrame:

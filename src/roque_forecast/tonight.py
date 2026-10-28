@@ -92,13 +92,6 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
     (folder / "open_meteo.json").write_text(json.dumps(forecast), encoding="utf-8")
     upper = open_meteo.download_current_upper(session, forecast_days=3)
     (folder / "open_meteo_upper.json").write_text(json.dumps(upper), encoding="utf-8")
-    try:  # the dust forecast is only a warning: the page works without it
-        dust = open_meteo.download_current_dust(session, forecast_days=3)
-        (folder / "open_meteo_dust.json").write_text(json.dumps(dust), encoding="utf-8")
-        dust = open_meteo.parse_dust(dust)
-    except Exception:
-        log.exception("dust forecast failed")
-        dust = pd.DataFrame(columns=["time_utc", "dust", "pm10"])
 
     start = (now - pd.Timedelta(hours=36)).to_pydatetime().replace(tzinfo=None)
     not_file = not_mast.download_range(session, start, now.to_pydatetime().replace(tzinfo=None),
@@ -107,7 +100,7 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
     # date2 is exclusive: today + 1 includes this morning's data.
     r2d2_file = r2d2.download_range(session, today - timedelta(days=2), today + timedelta(days=1),
                                     folder / "r2d2.html")
-    return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper), "dust": dust,
+    return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper),
             "minutes": clean_minutes(not_mast.parse(not_file)),
             "seeing": r2d2.parse(r2d2_file)}
 
@@ -294,16 +287,9 @@ def predict_extra(row: pd.DataFrame, window: dict, final: bool) -> dict:
             "sky": level(1 - p_sky, RISK_LEVELS)}  # low risk of a non-photometric sky = good
 
 
-def dust_threshold() -> float:
-    """Dust warning threshold (ug/m3) chosen on 2022-2023 against the LT reports (extra_models.py)."""
-    path = MODELS_DIR / "extra.joblib"
-    return float(joblib.load(path)["dust"]["raw_threshold_ugm3"]) if path.exists() else DUST_WARNING_UGM3
-
-
 # --------------------------------------------------------------------------
 # Hour by hour
 # --------------------------------------------------------------------------
-DUST_WARNING_UGM3 = 50  # fallback only (EU daily PM10 limit); the live threshold comes from dust_threshold()
 ICE_TEMP_C = 0.5  # at or below this temperature, wet surfaces can freeze
 
 
@@ -348,17 +334,13 @@ def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: 
     table["p_wind"] = wind_model.predict_proba(table[wind_inputs])[:, 1]
     table["seeing"] = seeing_model.predict(table[seeing_inputs])
 
-    dust = live.get("dust")
-    dust_by_hour = dust.set_index("time_utc")["dust"] if dust is not None and len(dust) else pd.Series(dtype=float)
     ice_from_station = recent_ice(live["minutes"], now)
     mid = pd.DatetimeIndex(table["hour"]) + pd.Timedelta(minutes=30)
     moon_up = astro.moon_altitude_deg(mid) > 0
     wind_threshold = models["wind"]["warning_thresholds"][mode]
-    dust_limit = dust_threshold()
     out = []
     for i, h in enumerate(table.itertuples()):
         raw_wind = h.h_wind_750 if not np.isnan(h.h_wind_750) else h.h_wind
-        dust_value = dust_by_hour.get(h.hour, np.nan)
         out.append({
             "t": iso(h.hour), "local": h.hour.tz_convert(LOCAL_TZ).strftime("%H:%M"),
             "dark_minutes": int(h.dark_minutes),
@@ -368,8 +350,6 @@ def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: 
             "seeing": round(float(h.seeing), 2), "seeing_class": level(h.seeing, SEEING_CLASSES),
             "warn_wind": bool(h.p_wind >= wind_threshold),
             "warn_ice": bool(h.h_temp <= ICE_TEMP_C and (h.h_rh >= hourly.HUMIDITY_LIMIT_PCT or ice_from_station)),
-            "dust": None if np.isnan(dust_value) else round(float(dust_value)),
-            "warn_dust": bool(not np.isnan(dust_value) and dust_value >= dust_limit),
             "moon_up": bool(moon_up[i]),
         })
     return out
@@ -443,7 +423,6 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
                         "pressure": last_minute.pressure_hpa},
         "gtc_panel": latest_gtc_panel(),
         "hours": hour_by_hour(live, window, row, final, now),
-        "dust_threshold_ugm3": dust_threshold(),
         "hourly": hourly_curve(live["forecast"], window),
         "station_24h": station_curve(live["minutes"], now),
         "model": {"trained_on": "2017-2023", "tested_on": "2024-2026",

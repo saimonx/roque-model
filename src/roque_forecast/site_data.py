@@ -126,7 +126,6 @@ def build() -> dict:
         "seeing_quantiles": seeing_quantiles(),
         "lt_lost_hours": pd.read_csv(RESULTS / "lt_lost_hours_metrics.csv").to_dict(orient="records"),
         "sky_dust": pd.read_csv(RESULTS / "sky_dust_metrics.csv").to_dict(orient="records"),
-        "dust_warnings": pd.read_csv(RESULTS / "dust_warnings.csv").to_dict(orient="records"),
     })
 
 

@@ -31,8 +31,7 @@
   function applyTexts() {
     document.documentElement.lang = state.lang;
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = T()[n.dataset.i18n] || ""; });
-    const dustLimit = state.tonight && state.tonight.dust_threshold_ugm3 != null ? Math.round(state.tonight.dust_threshold_ugm3) : 20;
-    document.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = fill(T()[n.dataset.i18nHtml] || "", { dust: dustLimit }); });
+    document.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = T()[n.dataset.i18nHtml] || ""; });
     document.querySelectorAll("[data-i18n-title]").forEach((n) => { n.title = T()[n.dataset.i18nTitle]; });
     document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
   }
@@ -123,8 +122,7 @@
     const rows = hours.map((h) => {
       const raw = `${Math.round(h.raw.rh)} % → ${h.raw.closes ? chip("raw-closed", t.raw_closes) : chip("raw-open", t.raw_opens)}`;
       const ours = chip("risk-" + h.risk, `${pct(h.p_closed)} · ${t["risk_" + h.risk].toLowerCase()}`);
-      const warns = [h.warn_wind && chip("warn", t.warn_wind), h.warn_ice && chip("warn", t.warn_ice),
-        h.warn_dust && chip("warn", `${t.warn_dust} ${h.dust}`)].filter(Boolean).join(" ") || `<span class="muted">${t.na}</span>`;
+      const warns = [h.warn_wind && chip("warn", t.warn_wind), h.warn_ice && chip("warn", t.warn_ice)].filter(Boolean).join(" ") || `<span class="muted">${t.na}</span>`;
       const see = `<span class="dot see-${h.seeing_class}"></span>${num(h.seeing, 2)}″`;
       return `<tr><td>${h.local}</td><td>${raw}</td><td>${ours}</td><td>${see}</td><td>${warns}</td><td>${h.moon_up ? fill(t.moonlight_yes, { p: moonPct }) : t.moonlight_no}</td></tr>`;
     });
@@ -138,7 +136,7 @@
     const peak = hours.reduce((a, b) => (b.p_closed > a.p_closed ? b : a), hours[0]);
     const spread = Math.max(...hours.map((h) => h.p_closed)) - Math.min(...hours.map((h) => h.p_closed));
     parts.push(spread < 0.1 ? t.sum_flat : fill(t.sum_peak, { time: peak.local, p: pct(peak.p_closed) }));
-    const items = [["warn_wind", t.warn_wind], ["warn_ice", t.warn_ice], ["warn_dust", t.warn_dust]]
+    const items = [["warn_wind", t.warn_wind], ["warn_ice", t.warn_ice]]
       .map(([k, name]) => [name, hours.filter((h) => h[k]).length]).filter(([, count]) => count > 0)
       .map(([name, count]) => fill(t.sum_warn_item, { name: name.toLowerCase(), n: count, total: hours.length }));
     parts.push(items.length ? fill(t.sum_warn, { list: items.join(", ") }) : t.sum_nowarn);
@@ -196,10 +194,6 @@
       const sky = e.sky_dust.filter((r) => r.target === "photometric sky");
       table($("table-sky"), [t.col_method, t.col_nights, t.col_brier, t.col_skill, t.col_auc],
         sky.map((r) => `<tr class="${r.kind}"><td>${name(r.method)}</td><td>${r.hours}</td><td>${num(r.brier, 3)}</td><td>${num(r.brier_skill_vs_climatology, 2)}</td><td>${num(r.auc, 2)}</td></tr>`));
-    }
-    if (e.dust_warnings) {
-      table($("table-dust"), [t.col_method, t.col_hits, t.col_far2],
-        e.dust_warnings.map((r) => `<tr><td>${r.warning.startsWith("raw") ? fill(t.dust_raw, { u: r.warning.match(/>= (\d+)/)[1] }) + (r.warning.includes("chosen") ? " " + t.dust_chosen : "") : t.dust_model}</td><td>${pct(r.hit_rate)} (${Math.round(r.hit_rate * r.event_hours)}/${r.event_hours})</td><td>${pct(r.false_alarm_ratio)}</td></tr>`));
     }
     const closure = e.closure.filter((r) => r.inputs === "forecast archive");
     Charts.skillBars($("chart-skill"), closure.map((r) => ({ label: name(r.method), value: r.brier_skill_vs_climatology, model: r.kind === "model" })), t);

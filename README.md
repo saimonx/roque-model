@@ -22,7 +22,7 @@ All data are **real and public**; nothing in this project is simulated.
 | [Open-Meteo](https://open-meteo.com) archived ECMWF IFS HRES forecasts ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | the hourly forecast at the site as issued at the time (not the weather measured later) | 2017 → today (issued 24 h earlier: 2025 → today) | model inputs |
 | [Open-Meteo](https://open-meteo.com) archived NOAA GFS forecasts | wind at 200 hPa (~12 km, jet stream) and 750 hPa (~2.5 km, summit height) | Mar 2021 → today | seeing input; hourly wind input |
 | [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/) (robotic 2 m telescope on the Roque) | hours observed / lost to weather / lost to faults and a comment with the reason ("high humidity", "ice risk", "calima", "photometric") | 2007 → today | hours lost to weather (all years reliable), photometric sky, dust label |
-| [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) archived CAMS dust forecast | hourly airborne dust (µg/m³) | Aug 2022 → today | choosing the dust-warning threshold |
+| [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) archived CAMS dust forecast | hourly airborne dust (µg/m³) | Aug 2022 → today | testing a dust warning (too few events; not shown) |
 
 ### Live (for tonight's forecast)
 
@@ -31,7 +31,7 @@ All data are **real and public**; nothing in this project is simulated.
 | Today's ECMWF and GFS forecast (Open-Meteo) | hourly | inputs of tonight's forecast, hour-by-hour chart |
 | NOT weather station, last 36 h | hourly | the 2 h before the night (final forecast), last night's closure, 24 h chart |
 | R2D2 seeing, last days | hourly | last night's seeing |
-| [CAMS](https://atmosphere.copernicus.eu/) dust forecast via [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) | hourly | dust (calima) warning, ≥ 50 µg/m³; not a model input |
+| Last night's Liverpool Telescope report | once a day | last night's hours lost and clear sky (model inputs) |
 | [GTC atmosportal](https://atmosportal.gtc.iac.es/) live panel (GTC weather station; rain, PM10 dust, warning colours) | every 15 min | shown on the page and as a FIWARE entity; not a model input (the site keeps only the last month) |
 | GTC 30-day series and [TNG weather](https://tngweb.tng.iac.es/weather) (24 h series, dust by particle size, downtime) | weekly / daily | stored to build up a history; not model inputs yet |
 
@@ -67,7 +67,7 @@ only use pages linked from the public sites.
 | WHT hours lost to weather (2026, reliable log) | climatology: RMSE 2.99 h; persistence: MAE 1.42 h | calibrated closure forecast: RMSE **2.65 h**, MAE **1.36 h** |
 | Liverpool Telescope hours lost to weather (all reasons) | climatology: RMSE 3.71 h; persistence: MAE 1.92 h | gradient boosting: RMSE **2.52 h** (−32 %), MAE **1.51 h** |
 | Photometric (clear) sky, LT nights observed | persistence: Brier 0.224 | gradient boosting: Brier **0.211**, AUC 0.74 (raw forecast cloud: no skill) |
-| Dust (calima) noted by the LT, 18 test nights | CAMS ≥ 50 µg/m³: catches 3 of 18 | CAMS ≥ 20 µg/m³ (threshold chosen on 2022–2023): catches 12 of 18, 93 % false alarms |
+| Dust (calima) noted by the LT, 18 test nights — **tested, not shown on the page** | CAMS ≥ 50 µg/m³: catches 3 of 18 | CAMS ≥ 20 µg/m³ (chosen on 2022–2023): 12 of 18, but 93 % false alarms; too few events to trust |
 
 Skill is against monthly climatology. The models use only what is known at the start of the night:
 - the ECMWF forecast, taken from forecast archives and not from the weather measured later;
@@ -124,7 +124,7 @@ scripts/update_tonight.sh                       # both steps (hourly job); ROQUE
 
 **Hour by hour.** The page shows each hour of the night side by side: what the weather forecast says read
 literally (humidity ≥ 90 % → close), our probability of closing for humidity, the seeing of that hour, and
-warnings for wind, ice and dust (`hourly.py`). On the 2024–2026 test hours:
+warnings for wind and ice (`hourly.py`). On the 2024–2026 test hours:
 
 | Hour-by-hour call | Closed hours caught | Wrong "close" calls |
 |---|---|---|
@@ -141,9 +141,9 @@ Wind and the other warnings are honest about their limits:
 - **Wind** (gusts above 80 km/h, the INT closing limit on the Roque): too rare (1.4 % of hours) for a
   calibrated probability, so the model drives a warning whose threshold was chosen on 2023. It catches 90 %
   of the windy hours (final) / 80 % (provisional), but about 5 of 6 warnings are false alarms.
-- **Ice** (forecast ≤ 0.5 °C with high humidity, or freezing and humid at the NOT in the last 24 h) and
-  **dust** (CAMS ≥ 50 µg/m³, the EU daily PM10 limit; no public dome limit exists) are simple rules,
-  not evaluated.
+- **Ice** (forecast ≤ 0.5 °C with high humidity, or freezing and humid at the NOT in the last 24 h) is a
+  simple rule, not evaluated. A **dust** warning was tested against the Liverpool reports (see
+  [MODELS_01](reports/MODELS_01.md), section 5) and left out: too few events to trust it.
 
 Two modes, so a forecast never uses information it could not have had:
 - **provisional** (afternoon): forecast-only models (weather forecast, last night, season);
