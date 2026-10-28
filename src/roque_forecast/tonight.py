@@ -275,7 +275,7 @@ def clean(value):
     if isinstance(value, list):
         return [clean(v) for v in value]
     if isinstance(value, (float, np.floating)):
-        return None if np.isnan(value) else round(float(value), 3)
+        return None if np.isnan(value) else round(float(value), 4)
     return value
 
 
@@ -301,6 +301,7 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
             "final_from_utc": iso(window["start"]),
         },
         "forecast": forecast,
+        "moon": astro.moon_during(window["start"], window["end"]),
         "references": references(row, final),
         "inputs": {name: row[name].iloc[0] for name in used},
         "last_night": previous,

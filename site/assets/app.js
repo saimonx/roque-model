@@ -62,6 +62,7 @@
     $("lost").textContent = num(f.lost_h) + " h";
     $("lost-of").textContent = fill(t.lost_of, { h: num(n.length_h) });
     $("lost-ref").textContent = fill(t.lost_ref, { month, clim: num(r.lost_h_climatology) });
+    if (d.moon) renderMoon(d.moon, n);
 
     // Inputs, with readable names and units (fractions shown as %).
     const dl = $("inputs");
@@ -107,6 +108,25 @@
       eval: state.evaluation ? new Date(state.evaluation.generated_utc).toLocaleDateString(locale()) : t.na });
   }
 
+  function moonPhase(m) {
+    const k = m.illumination;
+    if (k < 0.03) return "new";
+    if (k > 0.97) return "full";
+    if (k >= 0.43 && k <= 0.57) return m.waxing ? "first_quarter" : "last_quarter";
+    return (m.waxing ? "waxing_" : "waning_") + (k < 0.5 ? "crescent" : "gibbous");
+  }
+
+  function renderMoon(m, n) {
+    const t = T();
+    Charts.moonIcon($("moon-icon"), m.illumination, m.waxing);
+    let when;
+    if (m.rises_utc.length) when = fill(t.moon_rises, { time: timeLocal(m.rises_utc[0]) });
+    else if (m.sets_utc.length) when = fill(t.moon_sets, { time: timeLocal(m.sets_utc[0]) });
+    else when = m.up_at_start ? t.moon_all_night : t.moon_none;
+    $("moon-text").innerHTML = fill(t.moon_text, { pct: pct(m.illumination), phase: t.moon_phases[moonPhase(m)], when,
+      dark: `<b>${num(m.dark_h)} h</b>`, total: num(n.length_h) });
+  }
+
   function renderGtc(panel) {
     const t = T(), box = $("gtc-panel");
     if (!panel) { box.innerHTML = `<h3>${t.gtc_title}</h3><p class="empty">${t.gtc_none}</p>`; return; }
@@ -131,6 +151,16 @@
     table($("table-closure"), [t.col_method, t.col_nights, t.col_brier, t.col_skill, t.col_auc, t.col_hit, t.col_far],
       closure.map((r) => `<tr class="${r.kind}"><td>${name(r.method)}</td><td>${r.nights}</td><td>${num(r.brier, 3)}</td><td>${num(r.brier_skill_vs_climatology, 2)}</td><td>${num(r.auc, 2)}</td><td>${r.hit_rate ? pct(r.hit_rate) : t.na}</td><td>${pct(r.false_alarm_ratio)}</td></tr>`));
 
+    Charts.reliability($("chart-reliability"), e.reliability, t);
+    const cal = e.calibration_check && e.calibration_check.full;
+    $("reliability-text").textContent = cal ? fill(t.reliability_text, { raw: num(cal.brier_raw, 4), iso: num(cal.brier_isotonic, 4) }) : "";
+
+    // Which inputs matter most (permutation importance on the test years), as a share of the total.
+    const share = { format: (v) => Math.round(v * 100) + " %" };
+    const impRows = (rows) => rows.map((r) => ({ label: (t.features[r.feature] || [r.feature])[0], value: r.share, model: true }));
+    Charts.skillBars($("chart-imp-closure"), impRows(e.importance.closure), t, { ...share, aria: t.importance_closure });
+    Charts.skillBars($("chart-imp-seeing"), impRows(e.importance.seeing), t, { ...share, aria: t.importance_seeing });
+
     Charts.nightsChart($("chart-recent"), e.recent, t);
     const fmtDay = (dt, long) => dt.toLocaleDateString(locale(), { day: "numeric", month: "short", ...(long ? { year: "numeric" } : {}), timeZone: "UTC" });
     const recent = e.recent.map((n) => ({ ...n, t: new Date(n.night + "T00:00:00Z") }));
@@ -154,8 +184,13 @@
   }
 
   // ---------------------------------------------------------------- wiring
+  function renderFlow() {
+    $("flow").innerHTML = T().flow.map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("");
+  }
+
   function render() {
     applyTexts();
+    renderFlow();
     if (state.evaluation) renderEvaluation(state.evaluation);
     if (state.tonight) renderTonight(state.tonight);
   }

@@ -20,13 +20,14 @@ to be lost to weather.
 | Tonight's forecast, live (same models, current Open-Meteo forecast + NOT station) | done |
 | FIWARE entities (`WeatherObserved`, `WeatherForecast`) in Orion + QuantumLeap + Grafana (ES/EN) | done (local) |
 | Bilingual (ES/EN) web page with tonight's forecast and the evaluation | done (local); GitHub Pages when public |
+| Jet-stream wind (GFS 200 hPa) for seeing; closure recalibration tested and rejected; Moon and dark time on the page | done |
 
 ## Results (test years 2024–2026, never used for training or tuning)
 
 | Forecast | Best reference method | Model |
 |---|---|---|
 | Dome closure (≥ 1 h closed by the humidity rule) | precasting: Brier 0.082, skill 0.45 | gradient boosting: Brier **0.067**, skill **0.55**, AUC 0.96 |
-| Median seeing of the night | climatology: RMSE 0.350″ | gradient boosting: RMSE **0.286″** (−18 %) |
+| Median seeing of the night | climatology: RMSE 0.350″ | gradient boosting (+ jet-stream wind): RMSE **0.284″** (−19 %) |
 | WHT hours lost to weather (2026, reliable log) | climatology: RMSE 2.99 h; persistence: MAE 1.42 h | calibrated closure forecast: RMSE **2.65 h**, MAE **1.36 h** |
 
 Skill is against monthly climatology. The models use only what is known at the start of the night:

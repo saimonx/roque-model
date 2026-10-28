@@ -54,7 +54,10 @@ def reliability() -> list[dict]:
 
 
 def importance(name: str, top: int = 8) -> list[dict]:
-    return pd.read_csv(RESULTS / f"{name}_importance.csv").head(top).to_dict(orient="records")
+    """Most important inputs, with each one's share of the total (negative drops count as 0)."""
+    table = pd.read_csv(RESULTS / f"{name}_importance.csv")
+    table["share"] = table["importance"].clip(lower=0) / table["importance"].clip(lower=0).sum()
+    return table.head(top).to_dict(orient="records")
 
 
 def read_jsonl(path) -> pd.DataFrame:
@@ -87,6 +90,7 @@ def build() -> dict:
         "seeing": metric_rows("seeing", ["nights", "rmse", "mae", "rmse_skill_vs_climatology"]),
         "lost_hours": metric_rows("lost_hours", ["nights", "rmse", "mae"]),
         "reliability": reliability(),
+        "calibration_check": json.loads((RESULTS / "settings.json").read_text())["closure_calibration_check"],
         "importance": {"closure": importance("closure"), "seeing": importance("seeing")},
         "recent": recent_nights(),
         "track_record": track_record(),

@@ -25,6 +25,25 @@ window.I18N = {
     lost_of: "de {h} h de noche",
     lost_ref: "Lo normal en {month} (WHT 2010–2018): {clim} h",
     lost_help: "Equivalente en la contabilidad nocturna del telescopio WHT (ING): 0,85 × horas de cierre previstas.",
+    moon_text: "Luna {pct} iluminada ({phase}). {when}. Noche oscura sin Luna: {dark} de {total} h.",
+    moon_rises: "Sale a las {time}", moon_sets: "Se pone a las {time}",
+    moon_all_night: "Está sobre el horizonte toda la noche", moon_none: "No sale durante la noche",
+    moon_phases: { new: "luna nueva", waxing_crescent: "creciente", first_quarter: "cuarto creciente", waxing_gibbous: "gibosa creciente",
+      full: "luna llena", waning_gibbous: "gibosa menguante", last_quarter: "cuarto menguante", waning_crescent: "menguante" },
+    moon_help: "La Luna no cambia el riesgo de cierre ni el seeing, pero ilumina el cielo: los objetos débiles necesitan noche oscura. Cálculo propio de su posición (precisión ~0,3°).",
+    importance_closure: "Qué pesa más: cierre de cúpula",
+    importance_seeing: "Qué pesa más: seeing",
+    importance_text: "Importancia por permutación en las noches de prueba (2024–2026): cuánto empeora el modelo si se barajan los valores de una entrada, como parte del total. Las 8 entradas principales.",
+    eval_reliability: "¿Las probabilidades son fiables?",
+    reliability_text: "Noches de prueba agrupadas por la probabilidad dada (de 10 en 10 %). Si el modelo dice 70 %, la cúpula debería cerrarse unas 7 de cada 10 de esas noches. Se probó a recalibrarlas (regresión isotónica) con una validación cruzada por años en 2017–2023: el Brier pasó de {raw} a {iso}, es decir, no mejoró, así que no se aplica. En 2024–2026, entre el 40 % y el 90 %, la cúpula se cerró algo menos de lo que decía el modelo: se vigila con el historial en directo.",
+    rel_x: "Probabilidad pronosticada", rel_y: "Se cerró de verdad", rel_model: "Gradient boosting (noches de prueba)", rel_perfect: "Calibración perfecta",
+    flow: [
+      ["Datos reales", "Meteo del NOT minuto a minuto desde 1997, seeing R2D2, contabilidad del WHT y pronósticos archivados (ECMWF y GFS)."],
+      ["Una fila por noche", "Solo lo que se sabía al empezar la noche: pronóstico, estación 2 h antes, lo de anoche y la época del año."],
+      ["Modelos", "Gradient boosting entrenado con 2017–2022 y ajustado con 2023."],
+      ["Prueba honesta", "Noches 2024–2026 nunca vistas, frente a climatología, persistencia y precasting."],
+      ["En directo", "Cada hora: pronóstico de esta noche, entidades FIWARE, Grafana y esta web."],
+    ],
     why_title: "En qué se basa",
     why_text: "Las entradas del modelo para esta noche. La más influyente, cuando está disponible, es la humedad de la estación justo antes de la noche.",
     hourly_title: "Pronóstico hora a hora",
@@ -56,7 +75,7 @@ window.I18N = {
     how_title: "Cómo funciona",
     how_text: `<ul>
 <li><b>Etiquetas:</b> la cúpula «se cierra» con la regla pública del NOT (humedad ≥ 90 %, reabrir tras 20 min por debajo), reconstruida minuto a minuto desde 1997; el seeing es la mediana nocturna del monitor R2D2 del ING; las horas perdidas son las de la contabilidad nocturna del WHT.</li>
-<li><b>Entradas:</b> el pronóstico ECMWF de la noche, la estación del NOT en las 2 h previas, lo que pasó anoche y la época del año. Nada que no se supiera al empezar la noche.</li>
+<li><b>Entradas:</b> el pronóstico ECMWF de la noche, la estación del NOT en las 2 h previas, lo que pasó anoche y la época del año; para el seeing, además, el viento a 200 hPa (~12 km, la corriente en chorro) del modelo GFS, archivado desde marzo de 2021. Nada que no se supiera al empezar la noche.</li>
 <li><b>Modelos:</b> gradient boosting (scikit-learn) para la probabilidad de cierre, las horas de cierre y el seeing (en escala logarítmica); una recta calibrada convierte horas de cierre en horas perdidas del WHT.</li>
 <li><b>Referencias:</b> climatología (lo normal del mes), persistencia (igual que anoche) y «precasting» (las condiciones justo antes de la noche). Si un modelo no las bate, no aporta.</li>
 <li><b>Límites:</b> la etiqueta de cierre solo mira la humedad (no viento, polvo ni hielo) y ninguna etiqueta son decisiones reales de operación del GTC.</li>
@@ -67,7 +86,7 @@ window.I18N = {
 <li>Meteo del NOT (Nordic Optical Telescope), archivo minuto a minuto: <a href="https://www.not.iac.es/weather/">not.iac.es/weather</a></li>
 <li>Seeing R2D2 y contabilidad nocturna del WHT, Isaac Newton Group: <a href="https://astro.ing.iac.es/seeing/">astro.ing.iac.es/seeing</a></li>
 <li>Estación meteorológica del GTC: <a href="https://atmosportal.gtc.iac.es/">atmosportal.gtc.iac.es</a></li>
-<li>Pronóstico ECMWF IFS y su archivo: <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0)</li>
+<li>Pronósticos ECMWF IFS y NOAA GFS y sus archivos: <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0)</li>
 <li>Abárzuza et al. 2025, RNAAS 9(2) — random forest para el seeing del Roque. de Sepibus, Masciadri et al. 2026, arXiv:2607.12900 — métodos de referencia. Lombardi et al. 2007, arXiv:astro-ph/0702570.</li>
 </ul>`,
     updated: "Pronóstico emitido: {time} hora canaria. Evaluación generada: {eval}.",
@@ -84,6 +103,7 @@ window.I18N = {
       "logistic regression": "Regresión logística",
       "linear regression": "Regresión lineal (log)",
       "gradient boosting, forecast only": "Gradient boosting, solo pronóstico",
+      "gradient boosting, no jet stream": "Gradient boosting, sin corriente en chorro",
       "calibrated closure forecast": "Pronóstico de cierre calibrado (nuestro modelo)",
     },
     sets: { "reliable test year (2026)": "2026 (fiable)", "suspect years 2024-2025 (comparison only)": "2024–2025 (dudoso, solo comparación)" },
@@ -94,7 +114,7 @@ window.I18N = {
       fc_wind_max: ["Viento previsto (máx.)", "m/s"], fc_wind_u: ["Viento hacia el este", "m/s"],
       fc_wind_v: ["Viento hacia el norte", "m/s"], fc_cloud_mean: ["Nubes previstas (media)", "%"],
       fc_cloud_max: ["Nubes previstas (máx.)", "%"], fc_precip_sum: ["Precipitación prevista", "mm"],
-      fc_pressure_mean: ["Presión prevista", "hPa"],
+      fc_pressure_mean: ["Presión prevista", "hPa"], fc_jet_mean: ["Corriente en chorro (200 hPa)", "m/s"],
       pre_humidity_mean: ["Humedad NOT, 2 h antes (media)", "%"], pre_humidity_max: ["Humedad NOT, 2 h antes (máx.)", "%"],
       pre_wind_mean: ["Viento NOT, 2 h antes", "m/s"], pre_pressure_mean: ["Presión NOT, 2 h antes", "hPa"],
       prev_dome_closed_frac: ["Cúpula cerrada anoche", "%"], prev_seeing_median: ["Seeing de anoche", "″"],
@@ -126,6 +146,25 @@ window.I18N = {
     lost_of: "of a {h} h night",
     lost_ref: "Usual for {month} (WHT 2010–2018): {clim} h",
     lost_help: "As booked in the nightly log of the WHT telescope (ING): 0.85 × forecast closure hours.",
+    moon_text: "Moon {pct} lit ({phase}). {when}. Dark time without the Moon: {dark} of {total} h.",
+    moon_rises: "Rises at {time}", moon_sets: "Sets at {time}",
+    moon_all_night: "Above the horizon all night", moon_none: "Does not rise during the night",
+    moon_phases: { new: "new Moon", waxing_crescent: "waxing crescent", first_quarter: "first quarter", waxing_gibbous: "waxing gibbous",
+      full: "full Moon", waning_gibbous: "waning gibbous", last_quarter: "last quarter", waning_crescent: "waning crescent" },
+    moon_help: "The Moon does not change the closure risk or the seeing, but it brightens the sky: faint targets need dark time. Own computation of its position (~0.3° accuracy).",
+    importance_closure: "What matters most: dome closure",
+    importance_seeing: "What matters most: seeing",
+    importance_text: "Permutation importance on the test nights (2024–2026): how much worse the model gets when one input is shuffled, as a share of the total. Top 8 inputs.",
+    eval_reliability: "Can the probabilities be trusted?",
+    reliability_text: "Test nights grouped by the probability given (10 % bins). When the model says 70 %, the dome should close on about 7 in 10 of those nights. Recalibration (isotonic regression) was tried with a year-by-year cross-validation on 2017–2023: the Brier score went from {raw} to {iso}, no improvement, so it is not applied. In 2024–2026, between 40 % and 90 %, the dome closed somewhat less often than the model said: the live track record keeps an eye on it.",
+    rel_x: "Forecast probability", rel_y: "Actually closed", rel_model: "Gradient boosting (test nights)", rel_perfect: "Perfect calibration",
+    flow: [
+      ["Real data", "NOT weather minute by minute since 1997, R2D2 seeing, the WHT night log and archived forecasts (ECMWF and GFS)."],
+      ["One row per night", "Only what was known when the night started: forecast, station 2 h before, last night and the time of year."],
+      ["Models", "Gradient boosting trained on 2017–2022 and tuned on 2023."],
+      ["Honest test", "Unseen 2024–2026 nights, against climatology, persistence and precasting."],
+      ["Live", "Every hour: tonight's forecast, FIWARE entities, Grafana and this page."],
+    ],
     why_title: "What it is based on",
     why_text: "The model inputs for tonight. When available, the most influential is the station humidity just before the night.",
     hourly_title: "Hour-by-hour forecast",
@@ -157,7 +196,7 @@ window.I18N = {
     how_title: "How it works",
     how_text: `<ul>
 <li><b>Labels:</b> the dome "closes" by the NOT's public rule (humidity ≥ 90 %, reopen after 20 min below), rebuilt minute by minute since 1997; seeing is the nightly median of the ING R2D2 monitor; hours lost come from the WHT nightly log.</li>
-<li><b>Inputs:</b> the ECMWF forecast for the night, the NOT station in the 2 h before it, last night's outcome and the time of year. Nothing that was not known when the night started.</li>
+<li><b>Inputs:</b> the ECMWF forecast for the night, the NOT station in the 2 h before it, last night's outcome and the time of year; for the seeing, also the 200 hPa wind (~12 km, the jet stream) from the GFS model, archived since March 2021. Nothing that was not known when the night started.</li>
 <li><b>Models:</b> gradient boosting (scikit-learn) for the closure probability, the closure hours and the seeing (on a log scale); a calibrated line turns closure hours into WHT hours lost.</li>
 <li><b>References:</b> climatology (the usual for the month), persistence (same as last night) and precasting (the conditions just before the night). A model that does not beat them adds nothing.</li>
 <li><b>Limits:</b> the closure label only looks at humidity (not wind, dust or ice), and none of the labels are real GTC operating decisions.</li>
@@ -168,7 +207,7 @@ window.I18N = {
 <li>NOT (Nordic Optical Telescope) weather archive, minute by minute: <a href="https://www.not.iac.es/weather/">not.iac.es/weather</a></li>
 <li>R2D2 seeing and WHT nightly log, Isaac Newton Group: <a href="https://astro.ing.iac.es/seeing/">astro.ing.iac.es/seeing</a></li>
 <li>GTC weather station: <a href="https://atmosportal.gtc.iac.es/">atmosportal.gtc.iac.es</a></li>
-<li>ECMWF IFS forecast and archive: <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0)</li>
+<li>ECMWF IFS and NOAA GFS forecasts and archives: <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0)</li>
 <li>Abárzuza et al. 2025, RNAAS 9(2) — random forest for Roque seeing. de Sepibus, Masciadri et al. 2026, arXiv:2607.12900 — reference methods. Lombardi et al. 2007, arXiv:astro-ph/0702570.</li>
 </ul>`,
     updated: "Forecast issued: {time} Canary time. Evaluation generated: {eval}.",
@@ -185,6 +224,7 @@ window.I18N = {
       "logistic regression": "Logistic regression",
       "linear regression": "Linear regression (log)",
       "gradient boosting, forecast only": "Gradient boosting, forecast only",
+      "gradient boosting, no jet stream": "Gradient boosting, without the jet stream",
       "calibrated closure forecast": "Calibrated closure forecast (our model)",
     },
     sets: { "reliable test year (2026)": "2026 (reliable)", "suspect years 2024-2025 (comparison only)": "2024–2025 (suspect, comparison only)" },
@@ -195,7 +235,7 @@ window.I18N = {
       fc_wind_max: ["Forecast wind (max)", "m/s"], fc_wind_u: ["Wind towards the east", "m/s"],
       fc_wind_v: ["Wind towards the north", "m/s"], fc_cloud_mean: ["Forecast cloud (mean)", "%"],
       fc_cloud_max: ["Forecast cloud (max)", "%"], fc_precip_sum: ["Forecast precipitation", "mm"],
-      fc_pressure_mean: ["Forecast pressure", "hPa"],
+      fc_pressure_mean: ["Forecast pressure", "hPa"], fc_jet_mean: ["Jet stream (200 hPa)", "m/s"],
       pre_humidity_mean: ["NOT humidity, 2 h before (mean)", "%"], pre_humidity_max: ["NOT humidity, 2 h before (max)", "%"],
       pre_wind_mean: ["NOT wind, 2 h before", "m/s"], pre_pressure_mean: ["NOT pressure, 2 h before", "hPa"],
       prev_dome_closed_frac: ["Dome closed last night", "%"], prev_seeing_median: ["Last night's seeing", "″"],

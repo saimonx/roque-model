@@ -59,12 +59,30 @@
           <p class="muted small" data-i18n="lost_help"></p>
         </article>
       </div>
+      <div class="moon" id="moon">
+        <svg id="moon-icon" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"></svg>
+        <div>
+          <p id="moon-text"></p>
+          <p class="muted small" data-i18n="moon_help"></p>
+        </div>
+      </div>
     </section>
 
     <section>
       <h2 data-i18n="why_title"></h2>
       <p class="muted" data-i18n="why_text"></p>
       <dl class="inputs" id="inputs"></dl>
+      <div class="two">
+        <div>
+          <h3 data-i18n="importance_closure"></h3>
+          <div class="chart bars" id="chart-imp-closure"></div>
+        </div>
+        <div>
+          <h3 data-i18n="importance_seeing"></h3>
+          <div class="chart bars" id="chart-imp-seeing"></div>
+        </div>
+      </div>
+      <p class="muted small" data-i18n="importance_text"></p>
     </section>
 
     <section>
@@ -90,6 +108,10 @@
       <div class="chart bars" id="chart-skill"></div>
       <div class="table-wrap"><table id="table-closure"></table></div>
 
+      <h3 data-i18n="eval_reliability"></h3>
+      <p class="muted small" id="reliability-text"></p>
+      <div class="chart square" id="chart-reliability"></div>
+
       <h3 data-i18n="eval_recent"></h3>
       <p class="muted small" data-i18n="eval_recent_text"></p>
       <div class="chart" id="chart-recent"></div>
@@ -109,6 +131,7 @@
 
     <section>
       <h2 data-i18n="how_title"></h2>
+      <ol class="flow" id="flow"></ol>
       <div class="prose" data-i18n-html="how_text"></div>
     </section>
 

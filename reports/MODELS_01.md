@@ -73,11 +73,17 @@ The real skill lies between the two results.
 |---|---|---|---|
 | Climatology (month) | 0.350 | 0.227 | 0 |
 | Persistence (last night) | 0.415 | 0.278 | −0.19 |
-| **Gradient boosting** | **0.286** | **0.198** | **0.18** |
-| Linear regression (log) | 0.289 | 0.203 | 0.18 |
-| Gradient boosting, forecast only | 0.312 | 0.223 | 0.11 |
+| **Gradient boosting** (with the jet-stream wind) | **0.284** | **0.197** | **0.19** |
+| Gradient boosting, without the jet-stream wind | 0.286 | 0.198 | 0.18 |
+| Linear regression (log) | 0.288 | 0.202 | 0.18 |
+| Gradient boosting, forecast only | 0.310 | 0.219 | 0.11 |
 
-- **24-hour-old forecasts:** 0.306″ against 0.378″ for climatology (skill 0.19).
+- **24-hour-old forecasts:** 0.303″ against 0.378″ for climatology (skill 0.20).
+- **Jet-stream wind (added 28 Oct 2026).** Turbulence high up blurs the stars even when the ground is calm.
+  The ECMWF archive has no pressure levels, so the 200 hPa wind (~12 km) comes from the NOAA GFS archive,
+  which starts in March 2021; older nights have no value (gradient boosting handles gaps natively). It was
+  accepted on the validation year only (RMSE 0.347″ → 0.340″ on 2023). On the test years the gain is small
+  but holds in both archives (0.286″ → 0.284″; 24 h old: 0.306″ → 0.303″). The dome models do not use it.
 - **Strongest input:** the station wind before the night, then temperature and season. This matches
   Abárzuza et al. 2025.
 - **Limit:** a linear model is almost as good. Most of the turbulence is in layers the ground station does
@@ -113,9 +119,12 @@ model. Instead, the closure-hours forecast is converted with one factor fitted o
   it, and none of the labels are the GTC's own operating decisions.
 - **One forecast model at one grid point.** The grid point is 4 km away, on smoothed terrain, and is usually
   wetter and calmer than the summit. The model learns to correct that.
-- **Possible improvements:**
-  - calibrate the closure probabilities (isotonic regression);
-  - add forecast pressure-level winds (jet stream at 200 hPa) for seeing;
-  - an hourly version for the decision during the night.
-- **Next in the project:** the forecast for tonight, served live (web page and FIWARE/Grafana panel), using the
-  same features from the current Open-Meteo forecast and the NOT archive.
+- **Closure recalibration, tested and rejected (28 Oct 2026).** Isotonic regression was checked without
+  touching the test years: out-of-fold probabilities for each year 2017–2023 (model trained on the other six),
+  then a nested leave-one-year-out fit of the isotonic curve. Brier 0.0517 raw against 0.0521 recalibrated
+  (forecast-only model: 0.0922 against 0.0933), so it is not applied. The check runs on every training
+  (`train.calibration_check`, saved in `results/settings.json`). On the test years the model is somewhat
+  over-confident between 40 % and 90 %; with ~250 nights in those bins this may be noise or a change in the
+  climate of the last years, and the live track record is where to watch it.
+- **Possible improvements:** an hourly version for the decision during the night; a longer archive of
+  pressure-level forecasts for the jet stream (training now has it only from 2021).
