@@ -1,0 +1,7 @@
+inputs,method,kind,nights,rmse,mae,rmse_skill_vs_climatology
+reliable test year (2026),"climatology (month, 2010-2018)",baseline,299,2.9859,2.0855,0.0000
+reliable test year (2026),persistence (last night),baseline,299,3.2321,1.4213,-0.0824
+reliable test year (2026),calibrated closure forecast,model,299,2.6508,1.3634,0.1122
+suspect years 2024-2025 (comparison only),"climatology (month, 2010-2018)",baseline,725,2.6515,2.0853,0.0000
+suspect years 2024-2025 (comparison only),persistence (last night),baseline,725,2.8665,1.2077,-0.0811
+suspect years 2024-2025 (comparison only),calibrated closure forecast,model,725,2.9320,1.5464,-0.1058

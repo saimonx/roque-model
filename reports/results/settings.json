@@ -1,0 +1,14 @@
+{
+  "closure": {
+    "learning_rate": 0.03,
+    "max_leaf_nodes": 7,
+    "min_samples_leaf": 20
+  },
+  "lost_hours_slope": 0.849,
+  "train_years": [
+    2017,
+    2022
+  ],
+  "validation_year": 2023,
+  "test_from": "2024-01-01"
+}

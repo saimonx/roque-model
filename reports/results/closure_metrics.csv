@@ -1,0 +1,15 @@
+inputs,method,kind,nights,brier,brier_skill_vs_climatology,auc,hit_rate,false_alarm_ratio
+forecast archive,climatology (month),baseline,1025,0.1490,0.0000,0.7014,0.0000,
+forecast archive,persistence (last night),baseline,1025,0.1308,0.1219,0.7237,0.5592,0.4354
+forecast archive,precasting (humidity before night >= 90 %),baseline,1025,0.0816,0.4524,0.8340,0.7062,0.1722
+forecast archive,forecast rule (forecast humidity >= 95 %),baseline,1025,0.1526,-0.0242,0.6373,0.0000,
+forecast archive,gradient boosting,model,1025,0.0670,0.5504,0.9582,0.7915,0.2511
+forecast archive,logistic regression,model,1025,0.0775,0.4796,0.9448,0.7773,0.2679
+forecast archive,"gradient boosting, forecast only",model,1025,0.0943,0.3673,0.9138,0.6825,0.3333
+24 h old forecast,climatology (month),baseline,398,0.1695,0.0000,0.6717,0.0000,
+24 h old forecast,persistence (last night),baseline,398,0.1444,0.1481,0.7268,0.5789,0.4086
+24 h old forecast,precasting (humidity before night >= 90 %),baseline,398,0.0941,0.4445,0.8295,0.7053,0.1728
+24 h old forecast,forecast rule (forecast humidity >= 95 %),baseline,398,0.1766,-0.0421,0.5929,0.0000,
+24 h old forecast,gradient boosting,model,398,0.0744,0.5612,0.9452,0.7789,0.1778
+24 h old forecast,logistic regression,model,398,0.0881,0.4800,0.9354,0.7368,0.2553
+24 h old forecast,"gradient boosting, forecast only",model,398,0.1156,0.3180,0.8806,0.6316,0.3258

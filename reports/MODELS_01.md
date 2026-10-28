@@ -1,0 +1,121 @@
+# Models 01 — Forecasting tonight at the Roque de los Muchachos
+
+> **Independent project**, not affiliated with GRANTECAN or any observatory. All data are real and public.
+> Notebook: [`notebooks/02_models.ipynb`](../notebooks/02_models.ipynb). Code: `src/roque_forecast/features.py`,
+> `src/roque_forecast/train.py`. Metrics: [`reports/results/`](results/).
+
+## The question
+
+At the start of the night, using only what is known at that moment:
+1. **Will the dome have to close?** The label is the NOT humidity rule (≥ 90 %, reopen after 20 min
+   below) closing it for at least 1 hour. That happens on about 1 night in 5.
+2. **How good will the seeing be?** The label is the median R2D2 DIMM seeing of the night.
+3. **How many hours will be lost to weather?** The label is the WHT nightly accounting.
+
+## Inputs (all available before the night starts)
+
+| Group | Inputs | Source |
+|---|---|---|
+| Forecast for the night | humidity (mean, max), dew-point spread, temperature and its drop, wind (mean, max, east–west and north–south parts), cloud cover, precipitation, pressure | ECMWF IFS HRES 9 km through the [Open-Meteo](https://open-meteo.com) forecast archives (CC BY 4.0) |
+| Station before the night | humidity (mean, max), wind and pressure in the 2 h before astronomical night | NOT weather archive |
+| Persistence | last night's closure fraction and median seeing | NOT, R2D2 |
+| Season | sine and cosine of the day of the year | — |
+
+Real forecasts, not measured weather, are what make the evaluation honest. Two archives are used:
+- **Training and main test:** first hours of each model run, from 2017. This is slightly *better* than the
+  afternoon forecast.
+- **Check:** the forecasts issued 24 h earlier, from 2025. These are slightly *worse* than the afternoon
+  forecast.
+
+The real skill lies between the two results.
+
+## Method
+
+- **Time split:** train 2017–2022 (2,191 nights), choose settings on 2023 (365), test on 2024–Oct 2026 (1,031).
+  The test years were never used for any choice.
+- **Models:** gradient boosting (scikit-learn `HistGradientBoosting`; a 2×2×2 grid chosen on 2023), with a
+  linear or logistic regression as a simpler alternative. Seeing is modelled on a log scale.
+- **Reference methods:** each is turned into a probability using the training years only.
+  - climatology: the usual value for the month;
+  - persistence: same as last night;
+  - precasting: the conditions at the station just before the night;
+  - for closure only, a plain rule on the forecast humidity.
+
+## Results on the test years (2024–2026)
+
+### 1. Dome closure (1,025 nights)
+
+| Method | Brier ↓ | Brier skill vs climatology ↑ | AUC ↑ | Closures warned | False alarms |
+|---|---|---|---|---|---|
+| Climatology (month) | 0.149 | 0 | 0.70 | — | — |
+| Persistence (last night) | 0.131 | 0.12 | 0.72 | 56 % | 44 % |
+| Precasting (humidity ≥ 90 % before the night) | 0.082 | 0.45 | 0.83 | 71 % | 17 % |
+| Forecast rule (forecast humidity ≥ 95 %) | 0.153 | −0.02 | 0.64 | — | — |
+| **Gradient boosting** | **0.067** | **0.55** | **0.96** | **79 %** | 25 % |
+| Logistic regression | 0.078 | 0.48 | 0.95 | 78 % | 27 % |
+| Gradient boosting, forecast only | 0.094 | 0.37 | 0.91 | 68 % | 33 % |
+
+- **Best model:** gradient boosting cuts the Brier score by 18 % against the best reference (precasting).
+- **24-hour-old forecasts** (398 nights in 2025–2026): skill 0.56, against 0.44 for precasting. The result
+  holds when the forecast is older.
+- **Strongest input:** the station humidity just before the night. The model refines that reading with the
+  forecast wind and precipitation.
+- **Forecast only:** without the station readings (for example, planning tomorrow night) the forecast is still
+  far better than climatology or persistence. It does not reach precasting.
+- **Calibration:** probabilities between 40 % and 90 % are somewhat too high (reliability diagram in the
+  notebook).
+
+![Closure skill](figures/06_closure_skill.png)
+
+### 2. Seeing (780 nights with R2D2 data)
+
+| Method | RMSE (″) ↓ | MAE (″) ↓ | RMSE skill vs climatology ↑ |
+|---|---|---|---|
+| Climatology (month) | 0.350 | 0.227 | 0 |
+| Persistence (last night) | 0.415 | 0.278 | −0.19 |
+| **Gradient boosting** | **0.286** | **0.198** | **0.18** |
+| Linear regression (log) | 0.289 | 0.203 | 0.18 |
+| Gradient boosting, forecast only | 0.312 | 0.223 | 0.11 |
+
+- **24-hour-old forecasts:** 0.306″ against 0.378″ for climatology (skill 0.19).
+- **Strongest input:** the station wind before the night, then temperature and season. This matches
+  Abárzuza et al. 2025.
+- **Limit:** a linear model is almost as good. Most of the turbulence is in layers the ground station does
+  not see, so the remaining error is large.
+
+### 3. Hours lost to weather (WHT)
+
+**Why a calibration line.** Only three years combine a forecast archive with a reliable WHT log: 2017, 2018
+and 2023. Section 6 of the EDA explains which years are reliable. Those three years are too few for their own
+model. Instead, the closure-hours forecast is converted with one factor fitted on those years:
+`lost = 0.85 × predicted closed hours`.
+
+- The predicted hours used for the fit come from models that had not seen that year ("out of fold").
+- A free intercept was rejected on the same years, before looking at 2026. It added 0.6 h to every clear
+  night.
+
+| Test set | Method | RMSE (h) ↓ | MAE (h) ↓ |
+|---|---|---|---|
+| **2026** (reliable, 299 nights) | Climatology (month, 2010–2018) | 2.99 | 2.09 |
+| | Persistence (last night) | 3.23 | 1.42 |
+| | **Calibrated closure forecast** | **2.65** | **1.36** |
+| 2024–2025 (suspect log, comparison only) | Climatology | 2.65 | 2.09 |
+| | Persistence | 2.87 | 1.21 |
+| | Calibrated closure forecast | 2.93 | 1.55 |
+
+- **2026:** the forecast beats both references on both scores.
+- **2024–2025:** it does not, because in those years the log books many closed nights as observed. The model
+  is right about the weather and the label is not. This is why those years are excluded from fitting.
+
+## Limitations and next steps
+
+- **Proxy labels.** The closure label is a rule rebuilt from humidity. Wind, dust and ice closures are not in
+  it, and none of the labels are the GTC's own operating decisions.
+- **One forecast model at one grid point.** The grid point is 4 km away, on smoothed terrain, and is usually
+  wetter and calmer than the summit. The model learns to correct that.
+- **Possible improvements:**
+  - calibrate the closure probabilities (isotonic regression);
+  - add forecast pressure-level winds (jet stream at 200 hPa) for seeing;
+  - an hourly version for the decision during the night.
+- **Next in the project:** the forecast for tonight, served live (web page and FIWARE/Grafana panel), using the
+  same features from the current Open-Meteo forecast and the NOT archive.

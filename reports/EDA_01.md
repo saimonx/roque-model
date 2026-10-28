@@ -90,7 +90,6 @@ Night-by-night correlation drops from **0.74** (2007–2018) to **0.46** (2019�
 reported, never hidden.
 
 ## Next steps
-1. Decide how to handle the suspect WHT nights (drop the nights, or train on 2007–2018 + 2023).
-2. Archived weather forecasts (Open-Meteo historical forecast API) as model inputs for "tonight".
-3. Models (logistic/linear → random forest / gradient boosting) with a time-based split
-   (train ≤ 2023, validate 2024, test 2025–26), always reported against the baselines above.
+Done in the modelling step ([MODELS_01.md](MODELS_01.md)). The WHT losses are fitted only on years
+with a reliable log (2017, 2018, 2023) and tested on 2026; 2019–2022 and 2024–2025 are shown for
+comparison only.

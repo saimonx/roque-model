@@ -1,0 +1,11 @@
+inputs,method,kind,nights,rmse,mae,rmse_skill_vs_climatology
+forecast archive,climatology (month),baseline,780,0.3500,0.2272,0.0000
+forecast archive,persistence (last night),baseline,780,0.4149,0.2779,-0.1855
+forecast archive,gradient boosting,model,780,0.2859,0.1981,0.1831
+forecast archive,linear regression,model,780,0.2887,0.2034,0.1749
+forecast archive,"gradient boosting, forecast only",model,780,0.3117,0.2227,0.1092
+24 h old forecast,climatology (month),baseline,324,0.3780,0.2453,0.0000
+24 h old forecast,persistence (last night),baseline,324,0.4520,0.3025,-0.1956
+24 h old forecast,gradient boosting,model,324,0.3060,0.2029,0.1905
+24 h old forecast,linear regression,model,324,0.3107,0.2065,0.1781
+24 h old forecast,"gradient boosting, forecast only",model,324,0.3133,0.2122,0.1713
