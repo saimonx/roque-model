@@ -1,0 +1,14 @@
+{
+  "lost": {
+    "learning_rate": 0.03,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 50
+  },
+  "sky": {
+    "learning_rate": 0.03,
+    "max_leaf_nodes": 7,
+    "min_samples_leaf": 20
+  },
+  "dust_warning_threshold": 0.02,
+  "dust_raw_threshold_ugm3": 20
+}

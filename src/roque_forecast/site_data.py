@@ -82,6 +82,12 @@ def hourly_eval() -> list[dict]:
     return rows
 
 
+def seeing_quantiles() -> list[float]:
+    """Percentiles 1-99 of the nightly median seeing (R2D2, all nights): the scale on the page."""
+    nights = pd.read_parquet(config.PROCESSED_DIR / "nights.parquet", columns=["seeing_median"])
+    return [round(float(v), 3) for v in nights["seeing_median"].dropna().quantile(np.arange(1, 100) / 100)]
+
+
 def read_jsonl(path) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
@@ -117,6 +123,10 @@ def build() -> dict:
         "recent": recent_nights(),
         "track_record": track_record(),
         "hourly_eval": hourly_eval(),
+        "seeing_quantiles": seeing_quantiles(),
+        "lt_lost_hours": pd.read_csv(RESULTS / "lt_lost_hours_metrics.csv").to_dict(orient="records"),
+        "sky_dust": pd.read_csv(RESULTS / "sky_dust_metrics.csv").to_dict(orient="records"),
+        "dust_warnings": pd.read_csv(RESULTS / "dust_warnings.csv").to_dict(orient="records"),
     })
 
 

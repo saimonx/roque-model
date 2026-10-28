@@ -21,6 +21,8 @@ All data are **real and public**; nothing in this project is simulated.
 | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather and faults on the WHT, Moon illumination | 2007 → today | real hours lost; only reliable years (2017, 2018, 2023, 2026), other years book closed nights as observed |
 | [Open-Meteo](https://open-meteo.com) archived ECMWF IFS HRES forecasts ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | the hourly forecast at the site as issued at the time (not the weather measured later) | 2017 → today (issued 24 h earlier: 2025 → today) | model inputs |
 | [Open-Meteo](https://open-meteo.com) archived NOAA GFS forecasts | wind at 200 hPa (~12 km, jet stream) and 750 hPa (~2.5 km, summit height) | Mar 2021 → today | seeing input; hourly wind input |
+| [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/) (robotic 2 m telescope on the Roque) | hours observed / lost to weather / lost to faults and a comment with the reason ("high humidity", "ice risk", "calima", "photometric") | 2007 → today | hours lost to weather (all years reliable), photometric sky, dust label |
+| [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) archived CAMS dust forecast | hourly airborne dust (µg/m³) | Aug 2022 → today | choosing the dust-warning threshold |
 
 ### Live (for tonight's forecast)
 
@@ -63,6 +65,9 @@ only use pages linked from the public sites.
 | Dome closure (≥ 1 h closed by the humidity rule) | precasting: Brier 0.082, skill 0.45 | gradient boosting: Brier **0.067**, skill **0.55**, AUC 0.96 |
 | Median seeing of the night | climatology: RMSE 0.350″ | gradient boosting (+ jet-stream wind): RMSE **0.284″** (−19 %) |
 | WHT hours lost to weather (2026, reliable log) | climatology: RMSE 2.99 h; persistence: MAE 1.42 h | calibrated closure forecast: RMSE **2.65 h**, MAE **1.36 h** |
+| Liverpool Telescope hours lost to weather (all reasons) | climatology: RMSE 3.71 h; persistence: MAE 1.92 h | gradient boosting: RMSE **2.52 h** (−32 %), MAE **1.51 h** |
+| Photometric (clear) sky, LT nights observed | persistence: Brier 0.224 | gradient boosting: Brier **0.211**, AUC 0.74 (raw forecast cloud: no skill) |
+| Dust (calima) noted by the LT, 18 test nights | CAMS ≥ 50 µg/m³: catches 3 of 18 | CAMS ≥ 20 µg/m³ (threshold chosen on 2022–2023): catches 12 of 18, 93 % false alarms |
 
 Skill is against monthly climatology. The models use only what is known at the start of the night:
 - the ECMWF forecast, taken from forecast archives and not from the weather measured later;
@@ -102,6 +107,8 @@ uv sync                                          # create .venv and install depe
 .venv/bin/python -m roque_forecast.features      # one row per night: inputs known at sunset + labels
 .venv/bin/python -m roque_forecast.train         # fit, compare with baselines -> reports/results/
 .venv/bin/python -m roque_forecast.hourly        # hour-by-hour models (closure, wind, seeing) -> reports/results/hourly_*
+.venv/bin/python -m roque_forecast.backfill liverpool   # Liverpool Telescope night reports (2007 -> today)
+.venv/bin/python -m roque_forecast.extra_models  # LT hours lost, photometric sky, dust warning -> reports/results/
 ```
 
 ### Tonight's forecast and the web page

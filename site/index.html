@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
   <meta name="description" content="Forecast of tonight's observing conditions at the Roque de los Muchachos Observatory (La Palma), hour by hour: dome-closure risk, seeing and warnings. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=3">
+  <link rel="stylesheet" href="assets/style.css?v=4">
 </head>
 <body>
   <header class="top">
@@ -36,22 +36,29 @@
       <p class="muted small" id="night-window"></p>
       <div class="tiles">
         <div class="tile">
-          <span class="tile-label" data-i18n="tile_closure"></span>
-          <span class="tile-value" id="p-closed"></span>
+          <span class="tile-label" data-i18n="tile_closed"></span>
+          <span class="tile-value" id="closed-h"></span>
           <span id="risk" class="status small"></span>
           <span class="muted small" id="closure-ref"></span>
-        </div>
-        <div class="tile">
-          <span class="tile-label" data-i18n="tile_seeing"></span>
-          <span class="tile-value" id="seeing"></span>
-          <span id="seeing-class" class="status small"></span>
-          <span class="muted small" id="seeing-ref"></span>
         </div>
         <div class="tile">
           <span class="tile-label" data-i18n="tile_lost"></span>
           <span class="tile-value" id="lost"></span>
           <span class="muted small" id="lost-of"></span>
           <span class="muted small" id="lost-ref"></span>
+        </div>
+        <div class="tile">
+          <span class="tile-label" data-i18n="tile_sky"></span>
+          <span class="tile-value" id="sky"></span>
+          <span id="sky-word" class="status small"></span>
+          <span class="muted small" data-i18n="tile_sky_help"></span>
+        </div>
+        <div class="tile">
+          <span class="tile-label" data-i18n="tile_seeing"></span>
+          <span class="tile-value" id="seeing"></span>
+          <div class="scale" id="seeing-scale" aria-hidden="true"><div class="scale-bar"></div><div class="scale-mark" id="seeing-mark"></div></div>
+          <span class="scale-ends small muted"><span>0,4″</span><span id="seeing-class-word"></span><span>2″</span></span>
+          <span class="muted small" id="seeing-ref"></span>
         </div>
         <div class="tile">
           <span class="tile-label" data-i18n="tile_moon"></span>
@@ -94,6 +101,18 @@
       <h3 data-i18n="eval_hourly"></h3>
       <p class="muted small" data-i18n="eval_hourly_text"></p>
       <div class="table-wrap"><table id="table-hourly" class="text"></table></div>
+
+      <h3 data-i18n="eval_lt"></h3>
+      <p class="muted small" data-i18n="eval_lt_text"></p>
+      <div class="table-wrap"><table id="table-lt"></table></div>
+
+      <h3 data-i18n="eval_sky"></h3>
+      <p class="muted small" data-i18n="eval_sky_text"></p>
+      <div class="table-wrap"><table id="table-sky"></table></div>
+
+      <h3 data-i18n="eval_dust"></h3>
+      <p class="muted small" data-i18n="eval_dust_text"></p>
+      <div class="table-wrap"><table id="table-dust" class="text"></table></div>
 
       <h3 data-i18n="eval_closure"></h3>
       <div class="chart bars" id="chart-skill"></div>
@@ -164,8 +183,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=3"></script>
-  <script src="assets/charts.js?v=3"></script>
-  <script src="assets/app.js?v=3"></script>
+  <script src="assets/i18n.js?v=4"></script>
+  <script src="assets/charts.js?v=4"></script>
+  <script src="assets/app.js?v=4"></script>
 </body>
 </html>

@@ -53,7 +53,20 @@ window.I18N = {
       ["Prueba honesta", "Noches 2024–2026 nunca vistas, frente a climatología, persistencia y precasting."],
       ["En directo", "Cada hora: pronóstico de esta noche, entidades FIWARE, Grafana y esta web."],
     ],
-    tile_closure: "Riesgo de cerrar (1 h o más)", tile_seeing: "Seeing (nitidez)", tile_lost: "Horas perdidas", tile_moon: "Luna",
+    tile_closed: "Cúpula cerrada (previsto)", tile_any: "Que cierre en algún momento: {p}",
+    tile_lost_wht: "Solo por humedad (criterio WHT): {h} h",
+    tile_sky: "Cielo despejado (fotométrico)", tile_sky_help: "Probabilidad de cielo limpio de nubes y polvo si se observa",
+    sky_low: "Probable", sky_medium: "Incierto", sky_high: "Poco probable",
+    seeing_better: "Mejor que el {p} % de las noches del Roque",
+    moonlight_yes: "sí ({p})", moonlight_no: "no",
+    eval_lt: "Horas perdidas por meteo (partes del Liverpool Telescope)",
+    eval_lt_text: "Horas de noche perdidas por meteo que anota cada noche el Liverpool Telescope, robótico, en el Roque (cuenta humedad, hielo, viento, nubes y calima). Prueba 2024–2026.",
+    eval_sky: "Cielo fotométrico (despejado)",
+    eval_sky_text: "Noches en que el Liverpool observó: ¿el cielo fue fotométrico (sin nubes ni polvo que alteren el brillo de las estrellas)? Prueba 2024–2026.",
+    eval_dust: "Aviso de calima",
+    eval_dust_text: "Noches de 2024–2026 en que el parte del Liverpool menciona calima o polvo (18). El pronóstico de polvo CAMS solo existe desde agosto de 2022, así que el umbral se eligió con 2022–2023. Hay muy pocos casos: tómalo como orientativo.",
+    dust_raw: "Polvo previsto ≥ {u} µg/m³", dust_chosen: "(umbral elegido con 2022–2023)", dust_model: "Modelo (probabilidad)",
+    tile_closure: "Riesgo de cerrar (1 h o más)", tile_seeing: "Seeing (nitidez)", tile_lost: "Horas perdidas por meteo", tile_moon: "Luna",
     tile_usual: "Lo normal en {month}: {v}",
     moon_tile: "{phase}. {when}. Noche sin Luna: {dark} h",
     note_provisional_short: "provisional hasta las {time}, cuando se añade la estación del NOT",
@@ -66,7 +79,7 @@ window.I18N = {
     sum_nowarn: "Sin avisos de viento, hielo ni calima.",
     hours_title: "Hora a hora",
     hours_text: "<b>Previsión sola</b>: la humedad del modelo meteorológico leída tal cual (≥ 90 % = cerrar); en la cumbre casi siempre sale demasiado húmeda. <b>Nuestro pronóstico</b>: la probabilidad de cerrar por humedad, corregida con 7 años de datos de la cumbre.",
-    col_hour: "Hora", col_raw: "Previsión sola", col_ours: "Nuestro pronóstico", col_seeing_h: "Seeing", col_warn: "Avisos", col_moon: "Luna",
+    col_hour: "Hora", col_raw: "Previsión sola", col_ours: "Nuestro pronóstico", col_seeing_h: "Seeing", col_warn: "Avisos", col_moon: "Luz de Luna",
     raw_closes: "cerraría", raw_opens: "abriría",
     warn_wind: "Viento", warn_ice: "Hielo", warn_dust: "Calima",
     moon_up: "arriba",
@@ -74,13 +87,14 @@ window.I18N = {
     warnings_text: `<ul>
 <li><b>Viento:</b> rachas de más de 80 km/h, el límite de cierre del telescopio INT en el Roque. Lo da un modelo por horas entrenado con el viento medido en la cumbre: en 2024–2026 avisó en 9 de cada 10 horas con viento de cierre, pero 5 de cada 6 avisos fueron falsas alarmas.</li>
 <li><b>Hielo:</b> previsión de 0,5 °C o menos con humedad alta, o hielo en la estación del NOT en las últimas 24 h. Regla sencilla, sin evaluar.</li>
-<li><b>Calima:</b> polvo previsto por el servicio europeo CAMS de 50 µg/m³ o más (el límite diario de PM10 de la UE; no hay un límite público de cierre por polvo). Solo aviso, sin evaluar.</li>
+<li><b>Calima:</b> polvo previsto por el servicio europeo CAMS de {dust} µg/m³ o más. El umbral se eligió comparando el pronóstico de 2022–2023 con los partes del Liverpool Telescope; en 2024–2026 avisó en 2 de cada 3 noches con calima, pero con muchas falsas alarmas.</li>
+<li><b>Luz de Luna:</b> la Luna está sobre el horizonte en esa hora; su luz aclara el cielo y molesta para objetos débiles. No cierra la cúpula.</li>
 <li><b>Seeing:</b> nitidez prevista para cada hora. No cierra la cúpula.</li>
 </ul>`,
     how_short: `<li><b>La previsión sola falla en la cumbre.</b> El modelo meteorológico ve la montaña más baja de lo que es, dentro del mar de nubes: en 2024–2026 dijo «cerrar» 8 de cada 10 noches y solo se cerró 1 de cada 4.</li>
 <li><b>Por eso aprendemos de los datos.</b> Comparando 7 años de previsiones con lo que midió la estación del NOT en la cumbre, el modelo aprende a corregir la previsión. Usa también la estación justo antes de la noche y lo que pasó anoche.</li>
 <li><b>Comprobado con noches que nunca vio (2024–2026).</b> Hora a hora, cuando la previsión sola dice «cerrar» se equivoca 8 de cada 10 veces; nuestro modelo, 1 de cada 4.</li>`,
-    how_note: "La humedad, el viento, el hielo y el polvo cierran la cúpula; el seeing no, solo dice si la noche será buena. El modelo predice el cierre por humedad; viento, hielo y calima son avisos.",
+    how_note: "La humedad, el viento, el hielo y el polvo cierran la cúpula; el seeing no, solo dice si la noche será buena. Las horas perdidas y el cielo despejado se aprenden de los partes del Liverpool Telescope, que cuenta todos los motivos; el cierre por horas, de la humedad. Viento, hielo y calima son avisos.",
     fold_eval: "¿Funciona? La evaluación completa",
     fold_model: "Detalles del modelo",
     fold_live: "La cumbre en directo",
@@ -134,13 +148,16 @@ window.I18N = {
 <tr><td><a href="https://astro.ing.iac.es/seeing/">Monitor de seeing R2D2</a> (Isaac Newton Group)</td><td>Seeing medido cada 15–35 s de noche</td><td>sep 2018 → hoy</td><td>El seeing real de cada noche (mediana)</td></tr>
 <tr><td><a href="https://a.ing.iac.es/weather/archive/">Contabilidad nocturna del WHT</a> (Isaac Newton Group)</td><td>Horas perdidas por meteo y por averías en el telescopio William Herschel</td><td>2007 → hoy</td><td>Las horas perdidas reales. Solo años fiables (2017, 2018, 2023 y 2026): otros años dan por observadas noches con la cúpula cerrada</td></tr>
 <tr><td>Pronósticos archivados del modelo ECMWF IFS (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>El pronóstico hora a hora en el observatorio tal como se emitió entonces (no la meteo que hubo después)</td><td>2017 → hoy (emitidos 24 h antes: 2025 → hoy)</td><td>Entradas de los modelos</td></tr>
-<tr><td>Pronósticos archivados del modelo NOAA GFS (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>Viento a 200 hPa, unos 12 km de altura (corriente en chorro)</td><td>mar 2021 → hoy</td><td>Entrada del modelo de seeing</td></tr>
+<tr><td>Pronósticos archivados del modelo NOAA GFS (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>Viento a 200 hPa (~12 km, corriente en chorro) y a 750 hPa (~2,5 km, altura de la cumbre)</td><td>mar 2021 → hoy</td><td>Seeing y viento por horas</td></tr>
+<tr><td><a href="https://telescope.livjm.ac.uk/Reports/">Partes nocturnos del Liverpool Telescope</a> (robótico, en el Roque)</td><td>Horas observadas, perdidas por meteo y por averías, y el motivo («humedad», «hielo», «calima», «fotométrica»…)</td><td>2007 → hoy</td><td>Horas perdidas por meteo, cielo fotométrico y calima</td></tr>
+<tr><td>Pronóstico archivado de polvo CAMS (<a href="https://open-meteo.com/en/docs/air-quality-api">Open-Meteo</a>)</td><td>Polvo en suspensión hora a hora</td><td>ago 2022 → hoy</td><td>Elegir el umbral del aviso de calima</td></tr>
 </tbody></table></div>
 <h3>En directo: para el pronóstico de esta noche</h3>
 <div class="table-wrap"><table class="text"><thead><tr><th>Fuente</th><th>Cada cuánto</th><th>Para qué se usa</th></tr></thead><tbody>
 <tr><td>Pronóstico de hoy de ECMWF y GFS (Open-Meteo)</td><td>Cada hora</td><td>Entradas del pronóstico de esta noche y gráfica hora a hora</td></tr>
 <tr><td>Estación del NOT, últimas 36 h</td><td>Cada hora</td><td>Las 2 h antes de la noche (pronóstico definitivo), cuánto se cerró anoche y la gráfica de 24 h</td></tr>
 <tr><td>Seeing R2D2 de los últimos días</td><td>Cada hora</td><td>El seeing de anoche</td></tr>
+<tr><td>Polvo previsto hoy (CAMS) y parte de anoche del Liverpool</td><td>Cada hora / una vez al día</td><td>Aviso de calima; horas perdidas y cielo despejado de anoche</td></tr>
 <tr><td><a href="https://atmosportal.gtc.iac.es/">Panel de la estación del GTC</a> (atmosportal)</td><td>Cada 15 min</td><td>Se muestra en la web y en FIWARE/Grafana; no entra en los modelos (solo publica el último mes)</td></tr>
 <tr><td>Series del GTC (30 días) y del <a href="https://tngweb.tng.iac.es/weather">TNG</a> (24 h, polvo por tamaño)</td><td>Cada semana / cada día</td><td>Se guardan para acumular histórico; todavía no entran en los modelos</td></tr>
 </tbody></table></div>
@@ -173,6 +190,7 @@ window.I18N = {
       "gradient boosting, forecast only": "Gradient boosting, solo pronóstico",
       "gradient boosting, no jet stream": "Gradient boosting, sin corriente en chorro",
       "calibrated closure forecast": "Pronóstico de cierre calibrado (nuestro modelo)",
+      "raw forecast, read literally (cloud < 20 %)": "Previsión sola (nubes previstas < 20 %)",
     },
     sets: { "reliable test year (2026)": "2026 (fiable)", "suspect years 2024-2025 (comparison only)": "2024–2025 (dudoso, solo comparación)" },
     features: {
@@ -242,7 +260,20 @@ window.I18N = {
       ["Honest test", "Unseen 2024–2026 nights, against climatology, persistence and precasting."],
       ["Live", "Every hour: tonight's forecast, FIWARE entities, Grafana and this page."],
     ],
-    tile_closure: "Risk of closing (1 h or more)", tile_seeing: "Seeing (sharpness)", tile_lost: "Hours lost", tile_moon: "Moon",
+    tile_closed: "Dome closed (expected)", tile_any: "Closing at some point: {p}",
+    tile_lost_wht: "Humidity only (WHT criterion): {h} h",
+    tile_sky: "Clear sky (photometric)", tile_sky_help: "Probability of a sky free of cloud and dust when observing",
+    sky_low: "Likely", sky_medium: "Uncertain", sky_high: "Unlikely",
+    seeing_better: "Better than {p} % of Roque nights",
+    moonlight_yes: "yes ({p})", moonlight_no: "no",
+    eval_lt: "Hours lost to weather (Liverpool Telescope reports)",
+    eval_lt_text: "Night hours lost to weather as booked every night by the robotic Liverpool Telescope on the Roque (humidity, ice, wind, cloud and dust). Test 2024–2026.",
+    eval_sky: "Photometric (clear) sky",
+    eval_sky_text: "Nights the Liverpool Telescope observed: was the sky photometric (no cloud or dust changing the brightness of the stars)? Test 2024–2026.",
+    eval_dust: "Dust (calima) warning",
+    eval_dust_text: "Nights of 2024–2026 when the Liverpool report mentions calima or dust (18). The CAMS dust forecast only exists since August 2022, so the threshold was chosen on 2022–2023. Very few cases: take it as indicative.",
+    dust_raw: "Forecast dust ≥ {u} µg/m³", dust_chosen: "(threshold chosen on 2022–2023)", dust_model: "Model (probability)",
+    tile_closure: "Risk of closing (1 h or more)", tile_seeing: "Seeing (sharpness)", tile_lost: "Hours lost to weather", tile_moon: "Moon",
     tile_usual: "Usual for {month}: {v}",
     moon_tile: "{phase}. {when}. Moonless night: {dark} h",
     note_provisional_short: "provisional until {time}, when the NOT station is added",
@@ -255,7 +286,7 @@ window.I18N = {
     sum_nowarn: "No wind, ice or dust warnings.",
     hours_title: "Hour by hour",
     hours_text: "<b>Raw forecast</b>: the weather model's humidity read literally (≥ 90 % = close); at the summit it is almost always too wet. <b>Our forecast</b>: the probability of closing for humidity, corrected with 7 years of summit data.",
-    col_hour: "Hour", col_raw: "Raw forecast", col_ours: "Our forecast", col_seeing_h: "Seeing", col_warn: "Warnings", col_moon: "Moon",
+    col_hour: "Hour", col_raw: "Raw forecast", col_ours: "Our forecast", col_seeing_h: "Seeing", col_warn: "Warnings", col_moon: "Moonlight",
     raw_closes: "would close", raw_opens: "would open",
     warn_wind: "Wind", warn_ice: "Ice", warn_dust: "Dust",
     moon_up: "up",
@@ -263,13 +294,14 @@ window.I18N = {
     warnings_text: `<ul>
 <li><b>Wind:</b> gusts above 80 km/h, the closing limit of the INT telescope on the Roque. It comes from an hourly model trained on the wind measured at the summit: in 2024–2026 it warned in 9 of 10 hours with closing wind, but 5 of 6 warnings were false alarms.</li>
 <li><b>Ice:</b> forecast of 0.5 °C or less with high humidity, or ice at the NOT station in the last 24 h. Simple rule, not evaluated.</li>
-<li><b>Dust:</b> dust forecast by the European CAMS service of 50 µg/m³ or more (the EU daily PM10 limit; there is no public dome-closing limit for dust). Warning only, not evaluated.</li>
+<li><b>Dust (calima):</b> dust forecast by the European CAMS service of {dust} µg/m³ or more. The threshold was chosen by comparing the 2022–2023 forecasts with the Liverpool Telescope reports; in 2024–2026 it warned on 2 of 3 nights with calima, but with many false alarms.</li>
+<li><b>Moonlight:</b> the Moon is above the horizon that hour; its light brightens the sky and gets in the way of faint targets. It does not close the dome.</li>
 <li><b>Seeing:</b> forecast sharpness for each hour. It does not close the dome.</li>
 </ul>`,
     how_short: `<li><b>The raw forecast fails at the summit.</b> The weather model sees the mountain lower than it is, inside the sea of clouds: in 2024–2026 it said "close" on 8 of 10 nights and only 1 in 4 closed.</li>
 <li><b>So we learn from the data.</b> Comparing 7 years of forecasts with what the NOT station measured at the summit, the model learns to correct the forecast. It also uses the station just before the night and last night's outcome.</li>
 <li><b>Tested on nights it never saw (2024–2026).</b> Hour by hour, when the raw forecast says "close" it is wrong 8 times in 10; our model, 1 in 4.</li>`,
-    how_note: "Humidity, wind, ice and dust close the dome; seeing does not, it only says how good the night will be. The model predicts closure for humidity; wind, ice and dust are warnings.",
+    how_note: "Humidity, wind, ice and dust close the dome; seeing does not, it only says how good the night will be. Hours lost and clear sky are learnt from the Liverpool Telescope reports, which count every reason; hourly closure, from humidity. Wind, ice and dust are warnings.",
     fold_eval: "Does it work? The full evaluation",
     fold_model: "Model details",
     fold_live: "The summit, live",
@@ -323,13 +355,16 @@ window.I18N = {
 <tr><td><a href="https://astro.ing.iac.es/seeing/">R2D2 seeing monitor</a> (Isaac Newton Group)</td><td>Seeing measured every 15–35 s at night</td><td>Sep 2018 → today</td><td>The real seeing of each night (median)</td></tr>
 <tr><td><a href="https://a.ing.iac.es/weather/archive/">WHT nightly log</a> (Isaac Newton Group)</td><td>Hours lost to weather and to faults on the William Herschel Telescope</td><td>2007 → today</td><td>The real hours lost. Reliable years only (2017, 2018, 2023 and 2026): other years book closed nights as observed</td></tr>
 <tr><td>Archived ECMWF IFS forecasts (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>The hourly forecast at the observatory as it was issued at the time (not the weather that happened)</td><td>2017 → today (issued 24 h earlier: 2025 → today)</td><td>Model inputs</td></tr>
-<tr><td>Archived NOAA GFS forecasts (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>Wind at 200 hPa, about 12 km up (jet stream)</td><td>Mar 2021 → today</td><td>Input of the seeing model</td></tr>
+<tr><td>Archived NOAA GFS forecasts (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>Wind at 200 hPa (~12 km, jet stream) and 750 hPa (~2.5 km, summit height)</td><td>Mar 2021 → today</td><td>Seeing and hourly wind</td></tr>
+<tr><td><a href="https://telescope.livjm.ac.uk/Reports/">Liverpool Telescope night reports</a> (robotic, on the Roque)</td><td>Hours observed, lost to weather and to faults, and the reason ("humidity", "ice", "calima", "photometric"…)</td><td>2007 → today</td><td>Hours lost to weather, photometric sky and dust</td></tr>
+<tr><td>Archived CAMS dust forecast (<a href="https://open-meteo.com/en/docs/air-quality-api">Open-Meteo</a>)</td><td>Hourly airborne dust</td><td>Aug 2022 → today</td><td>Choosing the dust-warning threshold</td></tr>
 </tbody></table></div>
 <h3>Live: for tonight's forecast</h3>
 <div class="table-wrap"><table class="text"><thead><tr><th>Source</th><th>How often</th><th>Used for</th></tr></thead><tbody>
 <tr><td>Today's ECMWF and GFS forecast (Open-Meteo)</td><td>Every hour</td><td>Inputs of tonight's forecast and the hour-by-hour chart</td></tr>
 <tr><td>NOT station, last 36 h</td><td>Every hour</td><td>The 2 h before the night (final forecast), how long the dome was closed last night, and the 24 h chart</td></tr>
 <tr><td>R2D2 seeing of the last days</td><td>Every hour</td><td>Last night's seeing</td></tr>
+<tr><td>Today's dust forecast (CAMS) and last night's Liverpool report</td><td>Every hour / once a day</td><td>Dust warning; last night's hours lost and clear sky</td></tr>
 <tr><td><a href="https://atmosportal.gtc.iac.es/">GTC weather station panel</a> (atmosportal)</td><td>Every 15 min</td><td>Shown on the page and in FIWARE/Grafana; not a model input (it only publishes the last month)</td></tr>
 <tr><td>GTC series (30 days) and <a href="https://tngweb.tng.iac.es/weather">TNG</a> series (24 h, dust by particle size)</td><td>Weekly / daily</td><td>Stored to build up a history; not model inputs yet</td></tr>
 </tbody></table></div>
@@ -362,6 +397,7 @@ window.I18N = {
       "gradient boosting, forecast only": "Gradient boosting, forecast only",
       "gradient boosting, no jet stream": "Gradient boosting, without the jet stream",
       "calibrated closure forecast": "Calibrated closure forecast (our model)",
+      "raw forecast, read literally (cloud < 20 %)": "Raw forecast (forecast cloud < 20 %)",
     },
     sets: { "reliable test year (2026)": "2026 (reliable)", "suspect years 2024-2025 (comparison only)": "2024–2025 (suspect, comparison only)" },
     features: {

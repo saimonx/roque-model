@@ -122,13 +122,18 @@ tr.baseline td:first-child::before { content: ""; display: inline-block; width: 
 .empty { color: var(--text-2); font-style: italic; }
 
 /* Tonight: four compact tiles and a two-sentence summary */
-.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 0.8rem; }
+.tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 0.8rem; }
 .tile { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
 .tile-label { font-size: 0.85rem; color: var(--text-2); font-weight: 600; }
 .tile-value { font-size: 2rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
 .moon-value { display: flex; align-items: center; gap: 8px; }
 .tile .status { margin: 2px 0; }
 .summary { font-size: 1.05rem; margin: 0.9rem 0 0; }
+.scale { position: relative; height: 8px; margin: 8px 0 2px; }
+.scale-bar { position: absolute; inset: 0; border-radius: 4px;
+  background: linear-gradient(90deg, var(--good) 0%, var(--good) 31%, var(--warning) 50%, var(--critical) 100%); opacity: 0.55; }
+.scale-mark { position: absolute; top: -4px; width: 3px; height: 16px; border-radius: 2px; background: var(--text); transform: translateX(-1px); }
+.scale-ends { display: flex; justify-content: space-between; }
 
 /* Hour-by-hour table */
 table.hours td, table.hours th { text-align: left; }
@@ -204,6 +209,10 @@ table.text td:first-child { min-width: 180px; }
 }
 
 /* The five-step flow needs ~1000px in one row; below that it stacks. */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 @media (max-width: 980px) {
   .flow { grid-template-columns: 1fr; gap: 18px; }
   .flow li:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -19px; transform: translateX(-50%); }

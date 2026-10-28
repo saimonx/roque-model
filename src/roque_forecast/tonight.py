@@ -46,7 +46,7 @@ import pandas as pd
 from roque_forecast import astro, config, dome, features, hourly, train
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import not_mast, open_meteo, r2d2
+from roque_forecast.sources import liverpool, not_mast, open_meteo, r2d2
 
 log = logging.getLogger("tonight")
 
@@ -145,6 +145,29 @@ def last_night(minutes: pd.DataFrame, seeing: pd.DataFrame, night: pd.Timestamp)
     return out
 
 
+def liverpool_last_night(session: PoliteSession, now: pd.Timestamp, night: pd.Timestamp) -> dict:
+    """Last night's Liverpool Telescope report: hours lost to weather and photometric sky.
+
+    The report page is downloaded at most once a day (kept in data/raw/tonight/<date>/).
+    Reports appear the morning after; if last night is not there yet, the values stay
+    empty and the models work without them.
+    """
+    out = {"prev_lt_weather_h": None, "prev_lt_photometric": None}
+    path = config.RAW_DIR / "tonight" / f"{now:%Y-%m-%d}" / "liverpool.html"
+    try:
+        if not path.exists():
+            liverpool.download_year(session, now.year, now.date(), path)
+        year = night.year
+        table = liverpool.labels(liverpool.parse(path, year).set_index("night"))
+        if night in table.index:
+            r = table.loc[night]
+            out["prev_lt_weather_h"] = float(r["weather_h"])
+            out["prev_lt_photometric"] = None if pd.isna(r["photometric"]) else float(r["photometric"])
+    except Exception:
+        log.exception("Liverpool report failed")
+    return out
+
+
 def latest_gtc_panel(max_age_h: float = 1.0) -> dict | None:
     """Most recent snapshot of the GTC live panel saved by the 15-minute collector."""
     files = sorted((config.RAW_DIR / "live").glob("*/*.jsonl"))
@@ -189,6 +212,8 @@ def build_inputs(live: dict, window: dict, previous: dict, final: bool) -> pd.Da
             row[column] = np.nan
 
     row["prev_dome_closed_frac"] = previous["dome_closed_frac"]
+    row["prev_lt_weather_h"] = previous.get("prev_lt_weather_h")
+    row["prev_lt_photometric"] = previous.get("prev_lt_photometric")
     row["prev_seeing_median"] = previous["seeing_median"]
     doy = 2 * np.pi * row.index.day_of_year / 365.25
     row["doy_sin"], row["doy_cos"] = np.sin(doy), np.cos(doy)
@@ -241,7 +266,8 @@ def predict(row: pd.DataFrame, window: dict, final: bool) -> dict:
 
     hours = float(np.clip(hours, 0, window["length_h"]))
     lost_h = float(np.clip(lost.predict(pd.DataFrame({"pred_closed_h": [hours]}))[0], 0, window["length_h"]))
-    return {
+    extra = predict_extra(row, window, final)
+    return extra | {
         "p_closed": round(float(p), 3),
         "risk": level(p, RISK_LEVELS),
         "closed_h": round(hours, 2),
@@ -251,10 +277,33 @@ def predict(row: pd.DataFrame, window: dict, final: bool) -> dict:
     }
 
 
+def predict_extra(row: pd.DataFrame, window: dict, final: bool) -> dict:
+    """Hours lost as the Liverpool Telescope would book them, and a photometric (clear) sky."""
+    path = MODELS_DIR / "extra.joblib"
+    if not path.exists():
+        return {}
+    models = joblib.load(path)
+    lost, sky = models["lost"], models["sky"]
+    lost_model, lost_inputs = (lost["model"], lost["features"]) if final else \
+        (lost["model_forecast_only"], lost["forecast_only_features"])
+    sky_model, sky_inputs = (sky["probability"], sky["features"]) if final else \
+        (sky["probability_forecast_only"], sky["forecast_only_features"])
+    lt_lost = float(np.clip(lost_model.predict(row[lost_inputs].astype(float))[0], 0, window["length_h"]))
+    p_sky = float(sky_model.predict_proba(row[sky_inputs].astype(float))[0, 1])
+    return {"lt_lost_h": round(lt_lost, 2), "p_photometric": round(p_sky, 3),
+            "sky": level(1 - p_sky, RISK_LEVELS)}  # low risk of a non-photometric sky = good
+
+
+def dust_threshold() -> float:
+    """Dust warning threshold (ug/m3) chosen on 2022-2023 against the LT reports (extra_models.py)."""
+    path = MODELS_DIR / "extra.joblib"
+    return float(joblib.load(path)["dust"]["raw_threshold_ugm3"]) if path.exists() else DUST_WARNING_UGM3
+
+
 # --------------------------------------------------------------------------
 # Hour by hour
 # --------------------------------------------------------------------------
-DUST_WARNING_UGM3 = 50  # EU daily limit for PM10; there is no public dome-closing limit for dust
+DUST_WARNING_UGM3 = 50  # fallback only (EU daily PM10 limit); the live threshold comes from dust_threshold()
 ICE_TEMP_C = 0.5  # at or below this temperature, wet surfaces can freeze
 
 
@@ -305,6 +354,7 @@ def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: 
     mid = pd.DatetimeIndex(table["hour"]) + pd.Timedelta(minutes=30)
     moon_up = astro.moon_altitude_deg(mid) > 0
     wind_threshold = models["wind"]["warning_thresholds"][mode]
+    dust_limit = dust_threshold()
     out = []
     for i, h in enumerate(table.itertuples()):
         raw_wind = h.h_wind_750 if not np.isnan(h.h_wind_750) else h.h_wind
@@ -319,7 +369,7 @@ def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: 
             "warn_wind": bool(h.p_wind >= wind_threshold),
             "warn_ice": bool(h.h_temp <= ICE_TEMP_C and (h.h_rh >= hourly.HUMIDITY_LIMIT_PCT or ice_from_station)),
             "dust": None if np.isnan(dust_value) else round(float(dust_value)),
-            "warn_dust": bool(not np.isnan(dust_value) and dust_value >= DUST_WARNING_UGM3),
+            "warn_dust": bool(not np.isnan(dust_value) and dust_value >= dust_limit),
             "moon_up": bool(moon_up[i]),
         })
     return out
@@ -366,6 +416,7 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
     final = now >= window["start"]
     live = download_live(session, now, config.RAW_DIR / "tonight" / f"{now:%Y-%m-%d}")
     previous = last_night(live["minutes"], live["seeing"], window["night"] - pd.Timedelta(days=1))
+    previous |= liverpool_last_night(session, now, window["night"] - pd.Timedelta(days=1))
     row = build_inputs(live, window, previous, final)
     forecast = predict(row, window, final)
     used = features.SEEING_FEATURES if final else train.SEEING_FORECAST_ONLY
@@ -392,6 +443,7 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
                         "pressure": last_minute.pressure_hpa},
         "gtc_panel": latest_gtc_panel(),
         "hours": hour_by_hour(live, window, row, final, now),
+        "dust_threshold_ugm3": dust_threshold(),
         "hourly": hourly_curve(live["forecast"], window),
         "station_24h": station_curve(live["minutes"], now),
         "model": {"trained_on": "2017-2023", "tested_on": "2024-2026",

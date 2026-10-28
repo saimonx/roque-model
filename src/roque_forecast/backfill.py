@@ -4,7 +4,8 @@ Usage (from the project folder):
     .venv/bin/python -m roque_forecast.backfill not     # NOT weather, month by month, 1997 -> today
     .venv/bin/python -m roque_forecast.backfill r2d2    # R2D2 seeing, month by month, Sep 2018 -> today
     .venv/bin/python -m roque_forecast.backfill ing     # ING accounting, night by night, 2007 -> yesterday
-    .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts, year by year
+    .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts (+ CAMS dust), year by year
+    .venv/bin/python -m roque_forecast.backfill liverpool  # Liverpool Telescope night reports, year by year
 
 Design choices:
 - **Resumable:** files already on disk are skipped, so the command can be stopped
@@ -24,7 +25,7 @@ from pathlib import Path
 
 from roque_forecast import config
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import ing_nights, not_mast, open_meteo, r2d2
+from roque_forecast.sources import ing_nights, liverpool, not_mast, open_meteo, r2d2
 
 log = logging.getLogger("backfill")
 
@@ -141,11 +142,46 @@ def backfill_forecasts(session: PoliteSession, today: date) -> None:
                 log.exception("Open-Meteo %s %d failed (will retry on next run)", kind, year)
 
 
+DUST_FIRST_DAY = date(2022, 8, 4)  # first day of the CAMS dust archive on Open-Meteo
+LIVERPOOL_FIRST_YEAR = 2007  # the 2004-2006 pages have no per-night table
+
+
+def backfill_dust(session: PoliteSession, today: date) -> None:
+    folder = config.RAW_DIR / "open_meteo" / "dust"
+    for year in range(DUST_FIRST_DAY.year, today.year + 1):
+        final = folder / f"cams_{year}.json"
+        if final.exists() and year != today.year:
+            continue
+        start, end = max(date(year, 1, 1), DUST_FIRST_DAY), min(date(year, 12, 31), today)
+        params = {"latitude": config.SITE_LAT, "longitude": config.SITE_LON, "timezone": "UTC",
+                  "hourly": "dust,pm10", "start_date": start.isoformat(), "end_date": end.isoformat()}
+        try:
+            folder.mkdir(parents=True, exist_ok=True)
+            final.write_text(session.get(open_meteo.AIR_QUALITY_URL, params=params).text, encoding="utf-8")
+            log.info("CAMS dust %d ok", year)
+        except Exception:
+            log.exception("CAMS dust %d failed (will retry on next run)", year)
+
+
+def backfill_liverpool(session: PoliteSession, today: date) -> None:
+    folder = config.RAW_DIR / "liverpool"
+    for year in range(LIVERPOOL_FIRST_YEAR, today.year + 1):
+        final = folder / f"lt_reports_{year}.html"
+        if final.exists() and year != today.year:
+            continue
+        try:
+            liverpool.download_year(session, year, today, final)
+            log.info("Liverpool %d ok", year)
+        except Exception:
+            log.exception("Liverpool %d failed (will retry on next run)", year)
+
+
 SOURCES = {
     "not": (backfill_not, 2.0),
     "r2d2": (backfill_r2d2, 2.0),
     "ing": (backfill_ing, 3.0),
-    "forecasts": (backfill_forecasts, 3.0),
+    "forecasts": (lambda s, t: (backfill_forecasts(s, t), backfill_dust(s, t)), 3.0),
+    "liverpool": (backfill_liverpool, 3.0),
 }
 
 

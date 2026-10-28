@@ -139,6 +139,30 @@ split and the same rule: settings chosen on 2023, results on 2024–2026 (8,577 
 - **Ice and dust** are warnings from simple rules (no label to evaluate them yet; the dust forecast archive
   starts in 2022).
 
+## 5. Liverpool Telescope labels: hours lost, clear sky and dust (added 28 Oct 2026, `extra_models.py`)
+
+The Liverpool Telescope (LT, robotic 2 m on the Roque) publishes one report per night since 2007: hours
+observing, lost to weather, lost to faults, and a comment with the reason. It is filled in the same way
+every year, so unlike the WHT log every year can be used: train 2017–2022, settings on 2023, test 2024–2026.
+The LT is more cautious than a staffed telescope (it closes for ice risk, cloud or dust), so its labels say
+what the LT did, not what the GTC did.
+
+| Forecast (test 2024–2026) | Reference | Model |
+|---|---|---|
+| LT hours lost to weather (1,026 nights) | climatology RMSE 3.71 h, persistence MAE 1.92 h | **RMSE 2.52 h**, MAE 1.51 h (skill 0.32); forecast only 2.74 h |
+| Photometric sky (689 observed nights) | persistence Brier 0.224 (skill 0.12) | **Brier 0.211** (skill 0.17), AUC 0.74 |
+| Dust noted in the report (18 of 1,026 nights) | climatology Brier 0.017 | logistic regression on the CAMS dust forecast: Brier 0.018 (no skill), AUC 0.78 |
+
+- **Dust is used as a warning, not a probability.** The CAMS forecast archive starts in August 2022: 514
+  training nights with only 11 dust events, so the threshold is chosen on those training nights. A forecast
+  dust maximum ≥ 20 µg/m³ catches 12 of the 18 test events (Peirce 0.50) against 3 of 18 with the 50 µg/m³
+  used before (the EU daily PM10 limit). Either way most warnings are false alarms (93 %).
+- **Raw forecast cloud** read literally (mean cloud < 20 % → photometric) has no skill (Brier skill −0.01):
+  the grid-point cloud is the sea of clouds below the summit, the same bias as for humidity.
+- **Sources looked at and not usable:** the ING dust and sky-brightness links are images (PNG plots), not
+  data; the TNG and GTC dust values are only published for the last 24 h / current value (collected since
+  27 Oct 2026); the IAC PWV page did not respond.
+
 ## Limitations and next steps
 
 - **Proxy labels.** The closure label is a rule rebuilt from humidity. Wind, dust and ice closures are not in

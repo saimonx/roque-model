@@ -1,0 +1,9 @@
+target,method,kind,hours,event_rate,brier,brier_skill_vs_climatology,auc,hit_rate,false_alarm_ratio
+photometric sky,climatology (month),baseline,689,0.4731,0.2538,0.0000,0.5830,0.6933,0.4805
+photometric sky,persistence (last night),baseline,689,0.4731,0.2238,0.1180,0.6846,0.7117,0.3862
+photometric sky,"raw forecast, read literally (cloud < 20 %)",baseline,689,0.4731,0.2575,-0.0147,0.5137,1.0000,0.5269
+photometric sky,gradient boosting,model,689,0.4731,0.2110,0.1686,0.7409,0.7209,0.3943
+photometric sky,"gradient boosting, forecast only",model,689,0.4731,0.2167,0.1461,0.7248,0.6963,0.3979
+calima,climatology (month),baseline,1026,0.0175,0.0173,0.0000,,0.0000,
+calima,"raw forecast, read literally (dust max >= 50 ug/m3)",baseline,1026,0.0175,0.0173,-0.0033,0.5332,0.0000,
+calima,logistic regression,model,1026,0.0175,0.0178,-0.0298,0.7803,0.0000,

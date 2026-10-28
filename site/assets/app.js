@@ -31,7 +31,8 @@
   function applyTexts() {
     document.documentElement.lang = state.lang;
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = T()[n.dataset.i18n] || ""; });
-    document.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = T()[n.dataset.i18nHtml] || ""; });
+    const dustLimit = state.tonight && state.tonight.dust_threshold_ugm3 != null ? Math.round(state.tonight.dust_threshold_ugm3) : 20;
+    document.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = fill(T()[n.dataset.i18nHtml] || "", { dust: dustLimit }); });
     document.querySelectorAll("[data-i18n-title]").forEach((n) => { n.title = T()[n.dataset.i18nTitle]; });
     document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
   }
@@ -48,16 +49,27 @@
       + " · " + fill(d.mode === "final" ? t.note_final_short : t.note_provisional_short, { time: timeLocal(n.final_from_utc) });
     $("mode-note").textContent = fill(d.mode === "final" ? t.note_final : t.note_provisional, { time: timeLocal(n.final_from_utc) });
 
-    // Four tiles: closure, seeing, hours lost, Moon.
-    $("p-closed").textContent = pct(f.p_closed);
-    status($("risk"), f.risk, t["risk_" + f.risk]);
+    // Tiles. Closed hours = sum of the hourly probabilities, so the tile and the table agree.
+    const closedH = d.hours ? d.hours.reduce((sum, h) => sum + h.p_closed * h.dark_minutes / 60, 0) : f.closed_h;
+    $("closed-h").textContent = num(closedH) + " h";
+    status($("risk"), f.risk, fill(t.tile_any, { p: pct(f.p_closed) }));
     $("closure-ref").textContent = fill(t.tile_usual, { month, v: pct(r.closure_climatology) });
-    $("seeing").textContent = num(f.seeing_arcsec, 2) + "″";
-    status($("seeing-class"), f.seeing_class, t["seeing_" + f.seeing_class]);
-    $("seeing-ref").textContent = fill(t.tile_usual, { month, v: num(r.seeing_climatology, 2) + "″" });
-    $("lost").textContent = num(f.lost_h) + " h";
+    const lost = f.lt_lost_h != null ? f.lt_lost_h : f.lost_h;
+    $("lost").textContent = num(lost) + " h";
     $("lost-of").textContent = fill(t.lost_of, { h: num(n.length_h) });
-    $("lost-ref").textContent = fill(t.tile_usual, { month, v: num(r.lost_h_climatology) + " h" });
+    $("lost-ref").textContent = fill(t.tile_lost_wht, { h: num(f.lost_h) });
+    if (f.p_photometric != null) {
+      $("sky").textContent = pct(f.p_photometric);
+      const sky = f.p_photometric >= 0.6 ? "low" : f.p_photometric >= 0.4 ? "medium" : "high";
+      status($("sky-word"), sky, t["sky_" + sky]);
+    }
+    $("seeing").textContent = num(f.seeing_arcsec, 2) + "″";
+    const lo = 0.4, hi = 2.0, x = Math.min(1, Math.max(0, (f.seeing_arcsec - lo) / (hi - lo)));
+    $("seeing-mark").style.left = (x * 100).toFixed(1) + "%";
+    $("seeing-class-word").textContent = t["seeing_" + f.seeing_class];
+    const q = state.evaluation && state.evaluation.seeing_quantiles;
+    const better = q ? 100 - q.filter((v) => v < f.seeing_arcsec).length : null;
+    $("seeing-ref").textContent = better != null ? fill(t.seeing_better, { p: better }) : "";
     if (d.moon) renderMoon(d.moon, n);
     if (d.hours) { renderHours(d.hours); $("summary").innerHTML = summary(d); }
 
@@ -106,6 +118,7 @@
   // One row per hour: the raw forecast read literally, our forecast, seeing, warnings, Moon.
   function renderHours(hours) {
     const t = T();
+    const moonPct = state.tonight && state.tonight.moon ? pct(state.tonight.moon.illumination) : "";
     const chip = (cls, text) => `<span class="chip ${cls}">${text}</span>`;
     const rows = hours.map((h) => {
       const raw = `${Math.round(h.raw.rh)} % → ${h.raw.closes ? chip("raw-closed", t.raw_closes) : chip("raw-open", t.raw_opens)}`;
@@ -113,7 +126,7 @@
       const warns = [h.warn_wind && chip("warn", t.warn_wind), h.warn_ice && chip("warn", t.warn_ice),
         h.warn_dust && chip("warn", `${t.warn_dust} ${h.dust}`)].filter(Boolean).join(" ") || `<span class="muted">${t.na}</span>`;
       const see = `<span class="dot see-${h.seeing_class}"></span>${num(h.seeing, 2)}″`;
-      return `<tr><td>${h.local}</td><td>${raw}</td><td>${ours}</td><td>${see}</td><td>${warns}</td><td>${h.moon_up ? t.moon_up : t.na}</td></tr>`;
+      return `<tr><td>${h.local}</td><td>${raw}</td><td>${ours}</td><td>${see}</td><td>${warns}</td><td>${h.moon_up ? fill(t.moonlight_yes, { p: moonPct }) : t.moonlight_no}</td></tr>`;
     });
     $("hours").innerHTML = `<thead><tr><th>${t.col_hour}</th><th>${t.col_raw}</th><th>${t.col_ours}</th><th>${t.col_seeing_h}</th><th>${t.col_warn}</th><th>${t.col_moon}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
   }
@@ -174,6 +187,19 @@
       const label = { raw: t.raw_alone, final: t.model_final, provisional: t.model_provisional };
       table($("table-hourly"), [t.col_event, t.col_method, t.col_hits, t.col_far2],
         e.hourly_eval.map((r) => `<tr class="${r.method === "raw" ? "baseline" : "model"}"><td>${t.events[r.target]}</td><td>${label[r.method]}</td><td>${pct(r.hit_rate)}</td><td>${pct(r.false_alarm_ratio)}</td></tr>`));
+    }
+    if (e.lt_lost_hours) {
+      table($("table-lt"), [t.col_method, t.col_nights, t.col_rmse, t.col_mae, t.col_skill],
+        e.lt_lost_hours.map((r) => `<tr class="${r.kind}"><td>${name(r.method)}</td><td>${r.nights}</td><td>${num(r.rmse, 2)} h</td><td>${num(r.mae, 2)} h</td><td>${num(r.rmse_skill_vs_climatology, 2)}</td></tr>`));
+    }
+    if (e.sky_dust) {
+      const sky = e.sky_dust.filter((r) => r.target === "photometric sky");
+      table($("table-sky"), [t.col_method, t.col_nights, t.col_brier, t.col_skill, t.col_auc],
+        sky.map((r) => `<tr class="${r.kind}"><td>${name(r.method)}</td><td>${r.hours}</td><td>${num(r.brier, 3)}</td><td>${num(r.brier_skill_vs_climatology, 2)}</td><td>${num(r.auc, 2)}</td></tr>`));
+    }
+    if (e.dust_warnings) {
+      table($("table-dust"), [t.col_method, t.col_hits, t.col_far2],
+        e.dust_warnings.map((r) => `<tr><td>${r.warning.startsWith("raw") ? fill(t.dust_raw, { u: r.warning.match(/>= (\d+)/)[1] }) + (r.warning.includes("chosen") ? " " + t.dust_chosen : "") : t.dust_model}</td><td>${pct(r.hit_rate)} (${Math.round(r.hit_rate * r.event_hours)}/${r.event_hours})</td><td>${pct(r.false_alarm_ratio)}</td></tr>`));
     }
     const closure = e.closure.filter((r) => r.inputs === "forecast archive");
     Charts.skillBars($("chart-skill"), closure.map((r) => ({ label: name(r.method), value: r.brier_skill_vs_climatology, model: r.kind === "model" })), t);

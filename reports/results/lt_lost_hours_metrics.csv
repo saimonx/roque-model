@@ -1,0 +1,5 @@
+target,method,kind,nights,rmse,mae,rmse_skill_vs_climatology
+lt hours lost,climatology (month),baseline,1026,3.7137,2.9725,0.0000
+lt hours lost,persistence (last night),baseline,1026,3.6996,1.9189,0.0038
+lt hours lost,gradient boosting,model,1026,2.5231,1.5111,0.3206
+lt hours lost,"gradient boosting, forecast only",model,1026,2.7426,1.7911,0.2615
