@@ -5,8 +5,8 @@ Three kinds of evidence, kept apart on the page:
 1. **How well the two forecasts work** on 2024-2026 (nights never used for training
    or for any choice), against the simplest references, in plain words and in the
    usual technical scores (reports/results/hourly_scores.csv, seeing_metrics.csv).
-2. **Whether the closure label reflects reality**: the checks against the GTC
-   archive, the Liverpool Telescope and the WHT (validate.py, validation.json).
+2. **Whether the closure label reflects reality**: the check against the Liverpool
+   Telescope night reports, year by year (validate.py, validation.json).
 3. **Live track record**: every forecast issued by tonight.py next to what really
    happened that night. For each night the scored forecast is the FIRST final one
    (issued right after the night starts); later runs use newer weather forecasts

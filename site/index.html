@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
   <meta name="description" content="Tonight at the Roque de los Muchachos Observatory (La Palma), hour by hour: will the dome be open, and how sharp will the stars be. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=11">
+  <link rel="stylesheet" href="assets/style.css?v=12">
 </head>
 <body>
   <header class="top">
@@ -74,11 +74,12 @@
     <!-- Everything else, folded -->
     <details class="fold">
       <summary><h2 data-i18n="fold_real"></h2></summary>
-      <p class="muted" data-i18n="real_intro"></p>
+      <p class="muted" data-i18n-html="real_intro"></p>
       <ul class="checks" id="checks"></ul>
       <h3 data-i18n="years_title"></h3>
       <div class="table-wrap"><table id="table-years" class="small"></table></div>
       <p class="muted small" data-i18n="years_note"></p>
+      <p class="muted small" data-i18n-html="why_one"></p>
     </details>
 
     <details class="fold">
@@ -134,8 +135,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=11"></script>
-  <script src="assets/charts.js?v=11"></script>
-  <script src="assets/app.js?v=11"></script>
+  <script src="assets/i18n.js?v=12"></script>
+  <script src="assets/charts.js?v=12"></script>
+  <script src="assets/app.js?v=12"></script>
 </body>
 </html>

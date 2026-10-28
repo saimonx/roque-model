@@ -1,296 +1,104 @@
 {
-  "gtc": [
-    {
-      "year": 2024,
-      "exposures": 8710,
-      "first_month": "2024-01",
-      "last_month": "2024-12",
-      "instruments": [
-        "HiPERCAM",
-        "MEGARA",
-        "OSIRIS"
-      ],
-      "exposing_hours": 884.2,
-      "exposing_when_label_closed": 0.0113,
-      "label_closed_hours": 495.3,
-      "nights_fully_closed": 26,
-      "nights_fully_closed_with_gtc_data": 0
-    },
-    {
-      "year": 2025,
-      "exposures": 4544,
-      "first_month": "2025-01",
-      "last_month": "2025-09",
-      "instruments": [
-        "HiPERCAM",
-        "OSIRIS"
-      ],
-      "exposing_hours": 614.4,
-      "exposing_when_label_closed": 0.0021,
-      "label_closed_hours": 556.5,
-      "nights_fully_closed": 35,
-      "nights_fully_closed_with_gtc_data": 0
-    }
-  ],
   "liverpool": {
-    "nights": 3322,
     "first": "2017-01-01",
     "last": "2026-10-27",
+    "nights": 3322,
     "correlation": 0.74,
     "label_closed_nights": 355,
-    "label_closed_also_lost": 0.986,
+    "label_closed_lt_lost": 0.986,
     "mean_closed_h_label": 1.61,
-    "mean_lost_h": 2.75,
-    "by_year": {
-      "2017": 0.67,
-      "2018": 0.83,
-      "2019": 0.78,
-      "2020": 0.73,
-      "2021": 0.52,
-      "2022": 0.82,
-      "2023": 0.81,
-      "2024": 0.69,
-      "2025": 0.79,
-      "2026": 0.83
-    }
-  },
-  "tng": {
-    "nights": 366,
-    "first": "2025-10-27",
-    "last": "2026-10-27",
-    "correlation": 0.9,
-    "label_closed_nights": 44,
-    "label_closed_also_lost": 1.0,
-    "mean_closed_h_label": 1.81,
-    "mean_lost_h": 2.61,
-    "by_year": {
-      "2025": 0.91,
-      "2026": 0.9
-    }
-  },
-  "wht": [
-    {
-      "year": 2010,
-      "nights": 354,
-      "correlation": 0.79,
-      "closed_all_night_but_no_wht_loss": 2
-    },
-    {
-      "year": 2011,
-      "nights": 365,
-      "correlation": 0.8,
-      "closed_all_night_but_no_wht_loss": 3
-    },
-    {
-      "year": 2012,
-      "nights": 366,
-      "correlation": 0.75,
-      "closed_all_night_but_no_wht_loss": 4
-    },
-    {
-      "year": 2013,
-      "nights": 365,
-      "correlation": 0.75,
-      "closed_all_night_but_no_wht_loss": 5
-    },
-    {
-      "year": 2014,
-      "nights": 363,
-      "correlation": 0.7,
-      "closed_all_night_but_no_wht_loss": 8
-    },
-    {
-      "year": 2015,
-      "nights": 365,
-      "correlation": 0.71,
-      "closed_all_night_but_no_wht_loss": 4
-    },
-    {
-      "year": 2016,
-      "nights": 363,
-      "correlation": 0.75,
-      "closed_all_night_but_no_wht_loss": 4
-    },
-    {
-      "year": 2017,
-      "nights": 364,
-      "correlation": 0.63,
-      "closed_all_night_but_no_wht_loss": 7
-    },
-    {
-      "year": 2018,
-      "nights": 356,
-      "correlation": 0.68,
-      "closed_all_night_but_no_wht_loss": 13
-    },
-    {
-      "year": 2019,
-      "nights": 361,
-      "correlation": 0.66,
-      "closed_all_night_but_no_wht_loss": 11
-    },
-    {
-      "year": 2020,
-      "nights": 355,
-      "correlation": 0.45,
-      "closed_all_night_but_no_wht_loss": 19
-    },
-    {
-      "year": 2021,
-      "nights": 361,
-      "correlation": 0.43,
-      "closed_all_night_but_no_wht_loss": 17
-    },
-    {
-      "year": 2022,
-      "nights": 355,
-      "correlation": 0.32,
-      "closed_all_night_but_no_wht_loss": 33
-    },
-    {
-      "year": 2023,
-      "nights": 362,
-      "correlation": 0.65,
-      "closed_all_night_but_no_wht_loss": 9
-    },
-    {
-      "year": 2024,
-      "nights": 363,
-      "correlation": 0.15,
-      "closed_all_night_but_no_wht_loss": 22
-    },
-    {
-      "year": 2025,
-      "nights": 365,
-      "correlation": 0.41,
-      "closed_all_night_but_no_wht_loss": 25
-    },
-    {
-      "year": 2026,
-      "nights": 299,
-      "correlation": 0.66,
-      "closed_all_night_but_no_wht_loss": 15
-    }
-  ],
-  "by_year": [
-    {
-      "year": 2010,
-      "gtc": null,
-      "liverpool": null,
-      "tng": null,
-      "wht": 0.79
-    },
-    {
-      "year": 2011,
-      "gtc": null,
-      "liverpool": null,
-      "tng": null,
-      "wht": 0.8
-    },
-    {
-      "year": 2012,
-      "gtc": null,
-      "liverpool": null,
-      "tng": null,
-      "wht": 0.75
-    },
-    {
-      "year": 2013,
-      "gtc": null,
-      "liverpool": null,
-      "tng": null,
-      "wht": 0.75
-    },
-    {
-      "year": 2014,
-      "gtc": null,
-      "liverpool": null,
-      "tng": null,
-      "wht": 0.7
-    },
-    {
-      "year": 2015,
-      "gtc": null,
-      "liverpool": null,
-      "tng": null,
-      "wht": 0.71
-    },
-    {
-      "year": 2016,
-      "gtc": null,
-      "liverpool": null,
-      "tng": null,
-      "wht": 0.75
-    },
-    {
-      "year": 2017,
-      "gtc": null,
-      "liverpool": 0.67,
-      "tng": null,
-      "wht": 0.63
-    },
-    {
-      "year": 2018,
-      "gtc": null,
-      "liverpool": 0.83,
-      "tng": null,
-      "wht": 0.68
-    },
-    {
-      "year": 2019,
-      "gtc": null,
-      "liverpool": 0.78,
-      "tng": null,
-      "wht": 0.66
-    },
-    {
-      "year": 2020,
-      "gtc": null,
-      "liverpool": 0.73,
-      "tng": null,
-      "wht": 0.45
-    },
-    {
-      "year": 2021,
-      "gtc": null,
-      "liverpool": 0.52,
-      "tng": null,
-      "wht": 0.43
-    },
-    {
-      "year": 2022,
-      "gtc": null,
-      "liverpool": 0.82,
-      "tng": null,
-      "wht": 0.32
-    },
-    {
-      "year": 2023,
-      "gtc": null,
-      "liverpool": 0.81,
-      "tng": null,
-      "wht": 0.65
-    },
-    {
-      "year": 2024,
-      "gtc": 0.0113,
-      "liverpool": 0.69,
-      "tng": null,
-      "wht": 0.15
-    },
-    {
-      "year": 2025,
-      "gtc": 0.0021,
-      "liverpool": 0.79,
-      "tng": 0.91,
-      "wht": 0.41
-    },
-    {
-      "year": 2026,
-      "gtc": null,
-      "liverpool": 0.83,
-      "tng": 0.9,
-      "wht": 0.66
-    }
-  ]
+    "mean_lost_h_lt": 2.75,
+    "by_year": [
+      {
+        "year": 2017,
+        "nights": 350,
+        "correlation": 0.67,
+        "label_closed_nights": 27,
+        "label_closed_lt_lost": 0.926,
+        "mean_closed_h_label": 1.25,
+        "mean_lost_h_lt": 2.21
+      },
+      {
+        "year": 2018,
+        "nights": 358,
+        "correlation": 0.83,
+        "label_closed_nights": 49,
+        "label_closed_lt_lost": 1.0,
+        "mean_closed_h_label": 2.02,
+        "mean_lost_h_lt": 2.79
+      },
+      {
+        "year": 2019,
+        "nights": 341,
+        "correlation": 0.78,
+        "label_closed_nights": 27,
+        "label_closed_lt_lost": 0.963,
+        "mean_closed_h_label": 1.05,
+        "mean_lost_h_lt": 1.59
+      },
+      {
+        "year": 2020,
+        "nights": 350,
+        "correlation": 0.73,
+        "label_closed_nights": 38,
+        "label_closed_lt_lost": 0.974,
+        "mean_closed_h_label": 1.55,
+        "mean_lost_h_lt": 2.79
+      },
+      {
+        "year": 2021,
+        "nights": 357,
+        "correlation": 0.52,
+        "label_closed_nights": 36,
+        "label_closed_lt_lost": 1.0,
+        "mean_closed_h_label": 1.5,
+        "mean_lost_h_lt": 4.15
+      },
+      {
+        "year": 2022,
+        "nights": 346,
+        "correlation": 0.82,
+        "label_closed_nights": 46,
+        "label_closed_lt_lost": 0.978,
+        "mean_closed_h_label": 1.83,
+        "mean_lost_h_lt": 2.81
+      },
+      {
+        "year": 2023,
+        "nights": 316,
+        "correlation": 0.81,
+        "label_closed_nights": 35,
+        "label_closed_lt_lost": 1.0,
+        "mean_closed_h_label": 1.98,
+        "mean_lost_h_lt": 2.94
+      },
+      {
+        "year": 2024,
+        "nights": 314,
+        "correlation": 0.69,
+        "label_closed_nights": 25,
+        "label_closed_lt_lost": 1.0,
+        "mean_closed_h_label": 1.48,
+        "mean_lost_h_lt": 2.72
+      },
+      {
+        "year": 2025,
+        "nights": 317,
+        "correlation": 0.79,
+        "label_closed_nights": 38,
+        "label_closed_lt_lost": 1.0,
+        "mean_closed_h_label": 1.76,
+        "mean_lost_h_lt": 2.9
+      },
+      {
+        "year": 2026,
+        "nights": 273,
+        "correlation": 0.83,
+        "label_closed_nights": 34,
+        "label_closed_lt_lost": 1.0,
+        "mean_closed_h_label": 1.7,
+        "mean_lost_h_lt": 2.48
+      }
+    ]
+  }
 }

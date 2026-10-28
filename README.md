@@ -9,7 +9,7 @@ dome be open, and how sharp will the stars be?**
 
 ![Web page, Spanish version (28 Oct 2026)](reports/figures/13_web_es.jpg)
 
-## What it forecasts: two models, one label checked four ways
+## What it forecasts: two models, one label checked against a telescope
 
 | Question | Forecast | Learnt from |
 |---|---|---|
@@ -39,21 +39,31 @@ included: there is no reliable public summit record of them for every year.
 
 ### Is the label real?
 
-There is no public record of when the GTC closes, so the label is checked against four independent public
-sources (`validate.py`). Each year is checked by the sources that cover it:
+There is no public record of when the GTC closes, so the label is checked against **one source for every
+year**: the night reports of the **Liverpool Telescope** (robotic 2 m on the same mountain), which book the
+hours lost to weather every night since 2007, always in the same way (`validate.py`).
 
-- **GTC public archive (Jan 2024 – Sep 2025):** every science image of the sky carries its time, so in those
-  minutes the dome was certainly open. Of the 1,499 hours the GTC was taking images, the label says "closed"
-  0.8 % of the time (2024: 1.1 %, 2025: 0.2 %); on the 61 nights it calls fully closed, the GTC took no
-  images at all. It works one way only (a night without images may be a technical night). GTC data become
-  public one year after they are taken, so **from October 2025 the label is checked with the Liverpool
-  Telescope and the TNG instead**.
-- **Liverpool Telescope night reports (2017–2026):** its hours lost to weather follow the label
-  (correlation 0.74; 0.52–0.83 by year); of the 355 nights the label closes fully, the LT lost 99 %.
-- **TNG weather downtime (Oct 2025 – Oct 2026):** hours lost to weather each night of the last year, from
-  the TNG public weather page: correlation 0.90; it lost all 44 nights the label closes fully.
-- **WHT nightly accounting (2010–2026):** correlation 0.70–0.80 in the reliable years, falling in the years
-  whose log books closed nights as observed (2019–2022, 2024–2025).
+| Year | Nights | Correlation | Nights the label closes fully | …and the LT also lost |
+|---|---|---|---|---|
+| 2026 | 273 | 0.83 | 34 | 100 % |
+| 2025 | 317 | 0.79 | 38 | 100 % |
+| 2024 | 314 | 0.69 | 25 | 100 % |
+| 2023 | 316 | 0.81 | 35 | 100 % |
+| 2022 | 346 | 0.82 | 46 | 98 % |
+| 2021 | 357 | 0.52 | 36 | 100 % |
+| 2020 | 350 | 0.73 | 38 | 97 % |
+| 2019 | 341 | 0.78 | 27 | 96 % |
+| 2018 | 358 | 0.83 | 49 | 100 % |
+| 2017 | 350 | 0.67 | 27 | 93 % |
+| **2017–2026** | **3,322** | **0.74** | **355** | **99 %** |
+
+The LT is more cautious than the label (it also closes for cloud or dust): 2.75 h lost per night on average
+against 1.61 h closed by the label.
+
+**Why only one source?** So the check means the same thing every year. Not used: the GTC public archive
+(exposure times show when the GTC was open, but data become public one year later and only 2024–2025 were
+available), the TNG weather downtime (only the last year is published) and the WHT accounting (some years
+book nights with the dome closed as observed).
 
 ## Results (test years 2024–2026, never used for training or for any choice)
 
@@ -82,10 +92,8 @@ All data are **real and public**; nothing in this project is simulated.
 | Label (what happened) | [ING R2D2 seeing monitor](https://astro.ing.iac.es/seeing/) | Sep 2018 → today |
 | Inputs (what was known) | [Open-Meteo](https://open-meteo.com) archived ECMWF IFS HRES forecasts ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), as issued at the time | 2017 → today |
 | Inputs (what was known) | Open-Meteo archived NOAA GFS: wind at 750 hPa (summit height) and 200 hPa (jet stream) | Mar 2021 → today |
-| Checking the label | [GTC public archive](https://gtc.sdc.cab.inta-csic.es/gtc/index.jsp) (CAB, CSIC-INTA): science exposure start/end times (public one year after) | Jan 2024 → Sep 2025 |
-| Checking the label | [TNG weather](https://tngweb.tng.iac.es/weather): hours lost to weather per night (last 365 days, kept by the daily collector) | Oct 2025 → today |
-| Checking the label | [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/) | 2007 → today |
-| Checking the label | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) (WHT hours lost) | 2007 → today |
+| Checking the label | [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/): hours lost to weather per night | 2007 → today |
+| Nightly study only | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) (WHT hours lost) | 2007 → today |
 | Live, shown only | [GTC atmosportal](https://atmosportal.gtc.iac.es/) panel; [TNG weather](https://tngweb.tng.iac.es/weather) (stored for later) | live |
 
 Downloads identify themselves with a descriptive User-Agent, wait between requests and only use pages
@@ -129,7 +137,6 @@ uv sync                                          # create .venv and install depe
 .venv/bin/python -m roque_forecast.train         # fit, compare with baselines -> reports/results/
 .venv/bin/python -m roque_forecast.hourly        # hourly closure model -> reports/results/hourly_scores.csv
 .venv/bin/python -m roque_forecast.backfill liverpool    # Liverpool Telescope night reports (2007 -> today)
-.venv/bin/python -m roque_forecast.backfill gtc_archive  # GTC public archive, 2024 -> a year ago (slow server)
 .venv/bin/python -m roque_forecast.validate      # label checks -> reports/results/validation.json
 ```
 
@@ -201,7 +208,7 @@ src/roque_forecast/
   features.py        modelling table: forecast + pre-night station + persistence + season, and labels
   train.py           nightly models: seeing (used live), closure and WHT hours (study only)
   hourly.py          hourly closure model, provisional and final, against baselines
-  validate.py        checks the label against the GTC archive, Liverpool Telescope, TNG and WHT
+  validate.py        checks the label against the Liverpool Telescope night reports, year by year
   plotting.py        shared figure style (colour-blind-safe palette)
   tonight.py         tonight's forecast from live data (provisional / final modes)
   site_data.py       evaluation and live track record for the web page

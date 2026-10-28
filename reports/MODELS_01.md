@@ -156,29 +156,22 @@ beats every reference.
 
 ### Does the label reflect reality? (`validate.py`, `results/validation.json`)
 
-Four independent public sources; each year is checked by the ones that cover it (`by_year`).
+Checked against **one source for every year**, so the check means the same thing every year: the
+**Liverpool Telescope** night reports (2017–2026, 3,322 nights with a report), which book the hours lost to
+weather every night in the same way.
 
-| Year | GTC: exposing time labelled closed | Liverpool (r) | TNG (r) | WHT (r) |
-|---|---|---|---|---|
-| 2026 | — (not public yet) | 0.83 | 0.90 | 0.66 |
-| 2025 | 0.2 % (Jan–Sep) | 0.79 | 0.91 (Oct–Dec) | 0.41 ⚠ |
-| 2024 | 1.1 % | 0.69 | — | 0.15 ⚠ |
-| 2017–2023 | — | 0.52–0.83 | — | 0.32–0.68 |
-| 2010–2016 | — | — | — | 0.70–0.80 |
+- Correlation between the LT hours lost and the label's closed hours: **0.74** overall, 0.52–0.83 by year
+  (lowest in 2021, when the LT lost 4.15 h per night on average, cloud and dust included).
+- Of the 355 nights the label closes (almost) fully, the LT lost at least half of the night on **98.6 %**
+  (93–100 % by year).
+- The LT is more cautious: 2.75 h lost per night on average against 1.61 h closed by the label.
 
-- **GTC public archive, Jan 2024 – Sep 2025** (OSIRIS, MEGARA, HiPERCAM science exposures, each with RA/Dec
-  and airmass, i.e. images of the sky; 1,499 hours exposing): the label calls "closed" 0.8 % of those
-  minutes, and on the 61 nights it calls fully closed the GTC took no images. The archive shows when the GTC
-  was certainly open, not when it closed (no data ≠ closed). Data become public one year after they are
-  taken, so later months are checked with the LT and the TNG.
-- **Liverpool Telescope, 2017–2026** (3,322 nights): correlation 0.74 with its hours lost to weather; of the
-  355 nights the label closes fully, the LT lost 98.6 %. The LT is more cautious (2.75 h lost on average
-  against 1.61 h closed by the label): it also closes for cloud, dust and ice risk.
-- **TNG weather downtime, Oct 2025 – Oct 2026** (366 nights, the TNG public weather page keeps one year;
-  the daily collector stores it): correlation 0.90, and the TNG lost all 44 nights the label closes fully.
-  The day in the TNG series is the date the night starts (correlation 0.90 against 0.50 shifted one day).
-- **WHT, 2010–2026:** correlation 0.70–0.80 per year until 2016, lower in the years whose log books record
-  closed nights as observed (⚠).
+Sources looked at and not used, because they do not cover every year in the same way:
+- **GTC public archive** (CAB): science exposure times show when the GTC was certainly open (Jan 2024 – Sep
+  2025: 1,499 h exposing, label "closed" in 0.8 % of those minutes), but data become public one year later
+  and the archive cannot show closures.
+- **TNG weather downtime**: only the last 365 days are published (Oct 2025 – Oct 2026: correlation 0.90).
+- **WHT nightly accounting**: some years book nights with the dome closed as observed (EDA, section 6).
 
 ### Tried and dropped
 

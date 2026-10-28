@@ -29,15 +29,13 @@ window.I18N = {
     how2: "<b>Por eso aprendemos de los datos.</b> Comparamos 7 años de previsiones con lo que pasó de verdad en la cumbre, medido minuto a minuto por la estación del NOT: cúpula cerrada por humedad, viento o hielo. El modelo aprende a corregir la previsión.",
     how3: "<b>Comprobado con noches que nunca vio (2024–2026).</b> Cuando dice «cerrar», acierta {r} de cada 10. Las horas cerradas de la noche las acierta con un error medio de {err} h (lo normal del mes falla {clim} h).",
     fold_real: "¿Refleja la realidad la etiqueta de cierre?",
-    real_intro: "No hay un registro público de cuándo cierra el GTC. Nuestra etiqueta (humedad, viento o hielo, medidos en la cumbre) se comprueba con cuatro fuentes públicas independientes:",
-    check_gtc: "<b>Archivo público del GTC ({from} a {to}).</b> Cada imagen científica del cielo lleva su hora: en esos minutos la cúpula estaba abierta seguro. El GTC estuvo tomando imágenes {h} horas y solo el {p} % de ese tiempo nuestra etiqueta decía «cerrada». En las {n} noches que la etiqueta da como cerradas enteras, el GTC no tomó ninguna imagen. Solo sirve en un sentido: una noche sin imágenes puede ser técnica, no cerrada.",
-    check_gtc_gap: "<b>Desde {after}, sin datos del GTC:</b> el archivo los hace públicos un año después. Esos meses se comprueban con el Liverpool y el TNG.",
-    check_tng: "<b>Telescopio Nazionale Galileo ({from} a {to}).</b> Publica las horas perdidas por meteo de cada noche del último año. Siguen a las nuestras (correlación {r}) y perdió el {p} % de las {n} noches que la etiqueta cierra enteras.",
-    check_lt: "<b>Partes del Liverpool Telescope ({from} a {to}).</b> Sus horas perdidas por meteo siguen a las nuestras (correlación {r}). De las {n} noches que la etiqueta cierra enteras, el Liverpool también perdió el {p} %. Es más prudente: pierde de media {lt} h por noche frente a nuestras {lab} h.",
-    check_wht: "<b>Contabilidad del telescopio WHT (2010 en adelante).</b> Cuadra en los años fiables y se hunde en los años en que da por observadas noches con la cúpula cerrada (⚠).",
-    years_title: "Año por año: con qué se comprueba cada año",
-    years_note: "GTC: parte del tiempo observando en que la etiqueta decía «cerrada» (lo ideal es 0 %). Resto: correlación entre sus horas perdidas por meteo y nuestras horas cerradas (1 = cuadran del todo). «—» = esa fuente no tiene datos de ese año.",
-    col_year: "Año", col_gtc: "GTC", col_lt: "Liverpool", col_tng: "TNG", col_wht: "WHT",
+    real_intro: "No hay un registro público de cuándo cierra el GTC. Nuestra etiqueta (humedad, viento o hielo, medidos en la cumbre) se compara con una sola fuente para todos los años: los partes del <b>Liverpool Telescope</b>, en la misma montaña. Cada noche, desde 2007 y siempre de la misma forma, apuntan las horas perdidas por meteo.",
+    check_lt: "<b>{from}–{to}, {nights} noches.</b> Las horas perdidas del Liverpool suben y bajan con las nuestras (correlación {r}). De las {n} noches que la etiqueta cierra enteras, el Liverpool también perdió el {p} %. Es más prudente (cierra también por nubes o polvo): pierde de media {lt} h por noche frente a nuestras {lab} h.",
+    why_one: "<b>¿Por qué solo el Liverpool?</b> Para que la comprobación signifique lo mismo todos los años, se usa una sola fuente que tenga datos de todos los años. No se usan el <b>archivo público del GTC</b> (sus datos se publican un año después y solo había de 2024–2025), el <b>TNG</b> (solo publica el último año) ni el <b>WHT</b> (algunos años da por observadas noches con la cúpula cerrada).",
+    years_title: "Año por año",
+    years_cols: ["Año", "Noches", "Correlación", "Noches que la etiqueta cierra enteras", "…y el Liverpool también perdió"],
+    years_note: "Correlación: 1 = sus horas perdidas y nuestras horas cerradas suben y bajan a la vez; 0 = no tienen nada que ver.",
+    col_year: "Año",
     rules_title: "Cuándo cuenta como cerrada",
     rules_intro: "Lo mide minuto a minuto la estación meteorológica del NOT, en la cumbre. La cúpula cuenta como cerrada si se cumple cualquiera de estas tres cosas:",
     rules_cols: ["Motivo", "Se cierra cuando…", "Se vuelve a abrir cuando…", "De dónde sale el valor"],
@@ -82,7 +80,7 @@ window.I18N = {
 <tr><td><b>Aprender qué pasó:</b> nitidez (seeing) de cada noche</td><td><a href="https://astro.ing.iac.es/seeing/">Monitor R2D2</a> (Isaac Newton Group)</td><td>2018 → hoy</td></tr>
 <tr><td><b>Entradas:</b> lo que se pronosticó en su momento (no lo que pasó después)</td><td>Pronósticos archivados ECMWF y GFS (viento en altura) vía <a href="https://open-meteo.com/">Open-Meteo</a></td><td>2017 → hoy (GFS desde 2021)</td></tr>
 <tr><td><b>Entradas:</b> la estación 2 h antes de la noche y lo que pasó anoche</td><td>Estación del NOT y R2D2</td><td>en directo</td></tr>
-<tr><td><b>Comprobar la etiqueta</b></td><td><a href="https://gtc.sdc.cab.inta-csic.es/gtc/index.jsp">Archivo público del GTC</a> (CAB), <a href="https://telescope.livjm.ac.uk/Reports/">partes del Liverpool Telescope</a>, <a href="https://a.ing.iac.es/weather/archive/">contabilidad del WHT</a></td><td>2024 · 2007 → hoy · 2007 → hoy</td></tr>
+<tr><td><b>Comprobar la etiqueta</b></td><td><a href="https://telescope.livjm.ac.uk/Reports/">partes del Liverpool Telescope</a> (horas perdidas por meteo)</td><td>2007 → hoy</td></tr>
 <tr><td><b>Solo se muestra</b></td><td><a href="https://atmosportal.gtc.iac.es/">Panel de la estación del GTC</a></td><td>en directo</td></tr>
 <tr><td><b>Calculado aquí</b></td><td>Noche astronómica y Luna (fórmulas astronómicas propias)</td><td>—</td></tr>
 </tbody></table></div>
@@ -136,15 +134,13 @@ window.I18N = {
     how2: "<b>So we learn from the data.</b> We compare 7 years of forecasts with what really happened at the summit, measured minute by minute by the NOT weather station: dome closed for humidity, wind or ice. The model learns to correct the forecast.",
     how3: "<b>Tested on nights it never saw (2024–2026).</b> When it says \"close\", it is right {r} times in 10. It gets the night's closed hours with an average error of {err} h (the usual for the month misses by {clim} h).",
     fold_real: "Does the closure label reflect reality?",
-    real_intro: "There is no public record of when the GTC closes. Our label (humidity, wind or ice, measured at the summit) is checked against four independent public sources:",
-    check_gtc: "<b>GTC public archive ({from} to {to}).</b> Every science image of the sky carries its time: in those minutes the dome was certainly open. The GTC was taking images for {h} hours, and only {p} % of that time did our label say \"closed\". On the {n} nights the label calls fully closed, the GTC took no images at all. It works one way only: a night without images may be a technical night, not a closed one.",
-    check_gtc_gap: "<b>From {after}, no GTC data:</b> the archive makes them public one year later. Those months are checked with the Liverpool and the TNG.",
-    check_tng: "<b>Telescopio Nazionale Galileo ({from} to {to}).</b> It publishes the hours lost to weather each night of the last year. They follow ours (correlation {r}) and it lost {p} % of the {n} nights the label closes fully.",
-    check_lt: "<b>Liverpool Telescope reports ({from} to {to}).</b> Its hours lost to weather follow ours (correlation {r}). Of the {n} nights the label closes fully, the Liverpool also lost {p} %. It is more cautious: it loses {lt} h per night on average against our {lab} h.",
-    check_wht: "<b>WHT telescope accounting (2010 on).</b> It agrees in the reliable years and drops in the years when it books nights with the dome closed as observed (⚠).",
-    years_title: "Year by year: what checks each year",
-    years_note: "GTC: share of its observing time when the label said \"closed\" (ideally 0 %). Others: correlation between their hours lost to weather and our closed hours (1 = full agreement). \"—\" = no data from that source that year.",
-    col_year: "Year", col_gtc: "GTC", col_lt: "Liverpool", col_tng: "TNG", col_wht: "WHT",
+    real_intro: "There is no public record of when the GTC closes. Our label (humidity, wind or ice, measured at the summit) is compared with a single source for every year: the night reports of the <b>Liverpool Telescope</b>, on the same mountain. Every night since 2007, always in the same way, they book the hours lost to weather.",
+    check_lt: "<b>{from}–{to}, {nights} nights.</b> The Liverpool's hours lost rise and fall with ours (correlation {r}). Of the {n} nights the label closes fully, the Liverpool also lost {p} %. It is more cautious (it also closes for cloud or dust): it loses {lt} h per night on average against our {lab} h.",
+    why_one: "<b>Why only the Liverpool?</b> So that the check means the same every year, it uses a single source with data for every year. Not used: the <b>GTC public archive</b> (its data become public one year later and only 2024–2025 were available), the <b>TNG</b> (it publishes only the last year) and the <b>WHT</b> (some years book nights with the dome closed as observed).",
+    years_title: "Year by year",
+    years_cols: ["Year", "Nights", "Correlation", "Nights the label closes fully", "…and the Liverpool also lost"],
+    years_note: "Correlation: 1 = its hours lost and our closed hours rise and fall together; 0 = no relation at all.",
+    col_year: "Year",
     rules_title: "When it counts as closed",
     rules_intro: "Measured minute by minute by the NOT weather station at the summit. The dome counts as closed if any of these three things happens:",
     rules_cols: ["Reason", "Closes when…", "Reopens when…", "Where the value comes from"],
@@ -189,7 +185,7 @@ window.I18N = {
 <tr><td><b>Learning what happened:</b> sharpness (seeing) of each night</td><td><a href="https://astro.ing.iac.es/seeing/">R2D2 monitor</a> (Isaac Newton Group)</td><td>2018 → today</td></tr>
 <tr><td><b>Inputs:</b> what was forecast at the time (not what happened later)</td><td>Archived ECMWF and GFS (upper-air wind) forecasts via <a href="https://open-meteo.com/">Open-Meteo</a></td><td>2017 → today (GFS from 2021)</td></tr>
 <tr><td><b>Inputs:</b> the station 2 h before the night and last night</td><td>NOT station and R2D2</td><td>live</td></tr>
-<tr><td><b>Checking the label</b></td><td><a href="https://gtc.sdc.cab.inta-csic.es/gtc/index.jsp">GTC public archive</a> (CAB), <a href="https://telescope.livjm.ac.uk/Reports/">Liverpool Telescope reports</a>, <a href="https://a.ing.iac.es/weather/archive/">WHT accounting</a></td><td>2024 · 2007 → today · 2007 → today</td></tr>
+<tr><td><b>Checking the label</b></td><td><a href="https://telescope.livjm.ac.uk/Reports/">Liverpool Telescope night reports</a> (hours lost to weather)</td><td>2007 → today</td></tr>
 <tr><td><b>Shown only</b></td><td><a href="https://atmosportal.gtc.iac.es/">GTC weather station panel</a></td><td>live</td></tr>
 <tr><td><b>Computed here</b></td><td>Astronomical night and Moon (own astronomical formulas)</td><td>—</td></tr>
 </tbody></table></div>

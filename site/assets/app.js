@@ -156,35 +156,15 @@
     table($("table-rules"), t.rules_cols, t.rules_rows.map((r) => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`));
   }
 
-  // "Mon YYYY" for a "YYYY-MM" or "YYYY-MM-DD" string.
-  function monthYear(s) {
-    return new Date(s.slice(0, 7) + "-15T12:00:00Z").toLocaleDateString(locale(), { month: "short", year: "numeric", timeZone: "UTC" });
-  }
-
+  // One source for every year: the Liverpool Telescope night reports.
   function renderChecks(v) {
-    const t = T(), items = [];
-    const g = v.gtc || [], lt = v.liverpool, tn = v.tng;
-    if (g.length) {
-      const h = g.reduce((a, x) => a + x.exposing_hours, 0);
-      // Share of all GTC exposing minutes labelled closed, pooled over the years.
-      const p = g.reduce((a, x) => a + x.exposing_when_label_closed * x.exposing_hours, 0) / h;
-      const last = g[g.length - 1].last_month;
-      items.push(fill(t.check_gtc, { from: monthYear(g[0].first_month), to: monthYear(last), h: Math.round(h),
-        p: num(p * 100, 1), n: g.reduce((a, x) => a + x.nights_fully_closed, 0) }));
-      const next = new Date(last + "-15T12:00:00Z"); next.setUTCMonth(next.getUTCMonth() + 1);
-      items.push(fill(t.check_gtc_gap, { after: monthYear(next.toISOString()) }));
-    }
-    if (lt) items.push(fill(t.check_lt, { from: lt.first.slice(0, 4), to: lt.last.slice(0, 4), r: num(lt.correlation, 2),
-      n: lt.label_closed_nights, p: Math.round(lt.label_closed_also_lost * 100), lab: num(lt.mean_closed_h_label, 1), lt: num(lt.mean_lost_h, 1) }));
-    if (tn) items.push(fill(t.check_tng, { from: monthYear(tn.first), to: monthYear(tn.last), r: num(tn.correlation, 2),
-      n: tn.label_closed_nights, p: Math.round(tn.label_closed_also_lost * 100) }));
-    items.push(t.check_wht);
-    $("checks").innerHTML = items.map((i) => `<li>${i}</li>`).join("");
-
-    const suspect = [2019, 2020, 2021, 2022, 2024, 2025];
-    const cell = (x) => (x == null ? `<td class="muted">—</td>` : `<td>${num(x, 2)}</td>`);
-    table($("table-years"), [t.col_year, t.col_gtc, t.col_lt, t.col_tng, t.col_wht],
-      v.by_year.slice().reverse().map((r) => `<tr><td>${r.year}</td>${r.gtc == null ? `<td class="muted">—</td>` : `<td>${num(r.gtc * 100, 1)} %</td>`}${cell(r.liverpool)}${cell(r.tng)}${r.wht == null ? `<td class="muted">—</td>` : `<td>${num(r.wht, 2)}${suspect.includes(r.year) ? " ⚠" : ""}</td>`}</tr>`));
+    const t = T(), lt = v.liverpool;
+    const share = (x) => (x == null ? "—" : Math.round(x * 100) + " %");
+    $("checks").innerHTML = `<li>${fill(t.check_lt, { from: lt.first.slice(0, 4), to: lt.last.slice(0, 4), nights: lt.nights,
+      r: num(lt.correlation, 2), n: lt.label_closed_nights, p: share(lt.label_closed_lt_lost).replace(" %", ""),
+      lab: num(lt.mean_closed_h_label, 1), lt: num(lt.mean_lost_h_lt, 1) })}</li>`;
+    table($("table-years"), t.years_cols, lt.by_year.slice().reverse().map((r) =>
+      `<tr><td>${r.year}</td><td>${r.nights}</td><td>${num(r.correlation, 2)}</td><td>${r.label_closed_nights}</td><td>${share(r.label_closed_lt_lost)}</td></tr>`));
   }
 
   function renderEvaluation(e) {

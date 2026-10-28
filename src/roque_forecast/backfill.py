@@ -6,7 +6,6 @@ Usage (from the project folder):
     .venv/bin/python -m roque_forecast.backfill ing     # ING accounting, night by night, 2007 -> yesterday
     .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts, year by year
     .venv/bin/python -m roque_forecast.backfill liverpool  # Liverpool Telescope night reports (to check the label)
-    .venv/bin/python -m roque_forecast.backfill gtc_archive  # GTC public archive, 2024 -> a year ago (to check the label; slow)
 
 Design choices:
 - **Resumable:** files already on disk are skipped, so the command can be stopped
@@ -26,7 +25,7 @@ from pathlib import Path
 
 from roque_forecast import config
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import gtc_archive, ing_nights, liverpool, not_mast, open_meteo, r2d2
+from roque_forecast.sources import ing_nights, liverpool, not_mast, open_meteo, r2d2
 
 log = logging.getLogger("backfill")
 
@@ -36,7 +35,6 @@ ING_FIRST_NIGHT = date(2007, 1, 1)  # earlier pages are empty (checked 2005); 20
 # First year of each forecast archive for ECMWF IFS HRES (checked 28 Oct 2026; the
 # day-1 archive is empty before late 2025, empty hours are dropped when parsing).
 # "upper" is the GFS 200 hPa wind (jet stream), archived since March 2021.
-GTC_ARCHIVE_FIRST_MONTH = date(2024, 1, 1)  # used only to check the label, not to train
 FORECAST_FIRST_YEAR = {"historical": 2017, "previous_day1": 2025, "upper": 2021}
 
 
@@ -160,32 +158,12 @@ def backfill_liverpool(session: PoliteSession, today: date) -> None:
             log.exception("Liverpool %d failed (will retry on next run)", year)
 
 
-def backfill_gtc_archive(session: PoliteSession, today: date) -> None:
-    """Light-instrument exposures of the GTC public archive, month by month, from 2024.
-
-    GTC data become public one year after they are taken, so only months that ended
-    more than a year ago are complete; later months are left for a later run.
-    """
-    s = gtc_archive.session()
-    public_until = today - timedelta(days=366)
-    for first in months(GTC_ARCHIVE_FIRST_MONTH, public_until):
-        last = next_month(first) - timedelta(days=1)
-        if last > public_until:
-            break
-        try:
-            gtc_archive.download_month(s, first, last, config.RAW_DIR / "gtc_archive" / str(first.year))
-            log.info("GTC archive %s ok", first.strftime("%Y-%m"))
-        except Exception:
-            log.exception("GTC archive %s failed (will retry on next run)", first.strftime("%Y-%m"))
-
-
 SOURCES = {
     "not": (backfill_not, 2.0),
     "r2d2": (backfill_r2d2, 2.0),
     "ing": (backfill_ing, 3.0),
     "forecasts": (backfill_forecasts, 3.0),
     "liverpool": (backfill_liverpool, 3.0),
-    "gtc_archive": (backfill_gtc_archive, 3.0),
 }
 
 
