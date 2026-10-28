@@ -156,15 +156,29 @@ beats every reference.
 
 ### Does the label reflect reality? (`validate.py`, `results/validation.json`)
 
-- **GTC public archive, 2024** (OSIRIS, MEGARA, HiPERCAM; 8,710 exposures, 884 hours exposing): the label
-  calls "closed" only 1.1 % of the minutes the GTC was exposing, and on the 26 nights it calls fully closed
-  the GTC took no data. The archive cannot show closures (no data ≠ closed), only that the label does not
-  close when the GTC is open.
+Four independent public sources; each year is checked by the ones that cover it (`by_year`).
+
+| Year | GTC: exposing time labelled closed | Liverpool (r) | TNG (r) | WHT (r) |
+|---|---|---|---|---|
+| 2026 | — (not public yet) | 0.83 | 0.90 | 0.66 |
+| 2025 | 0.2 % (Jan–Sep) | 0.79 | 0.91 (Oct–Dec) | 0.41 ⚠ |
+| 2024 | 1.1 % | 0.69 | — | 0.15 ⚠ |
+| 2017–2023 | — | 0.52–0.83 | — | 0.32–0.68 |
+| 2010–2016 | — | — | — | 0.70–0.80 |
+
+- **GTC public archive, Jan 2024 – Sep 2025** (OSIRIS, MEGARA, HiPERCAM science exposures, each with RA/Dec
+  and airmass, i.e. images of the sky; 1,499 hours exposing): the label calls "closed" 0.8 % of those
+  minutes, and on the 61 nights it calls fully closed the GTC took no images. The archive shows when the GTC
+  was certainly open, not when it closed (no data ≠ closed). Data become public one year after they are
+  taken, so later months are checked with the LT and the TNG.
 - **Liverpool Telescope, 2017–2026** (3,322 nights): correlation 0.74 with its hours lost to weather; of the
   355 nights the label closes fully, the LT lost 98.6 %. The LT is more cautious (2.75 h lost on average
   against 1.61 h closed by the label): it also closes for cloud, dust and ice risk.
+- **TNG weather downtime, Oct 2025 – Oct 2026** (366 nights, the TNG public weather page keeps one year;
+  the daily collector stores it): correlation 0.90, and the TNG lost all 44 nights the label closes fully.
+  The day in the TNG series is the date the night starts (correlation 0.90 against 0.50 shifted one day).
 - **WHT, 2010–2026:** correlation 0.70–0.80 per year until 2016, lower in the years whose log books record
-  closed nights as observed (0.15 in 2024).
+  closed nights as observed (⚠).
 
 ### Tried and dropped
 

@@ -1,28 +1,72 @@
 {
-  "gtc": {
-    "available": true,
-    "year": 2024,
-    "exposures": 8710,
-    "instruments": [
-      "HiPERCAM",
-      "MEGARA",
-      "OSIRIS"
-    ],
-    "exposing_hours": 884.2,
-    "exposing_when_label_closed": 0.0113,
-    "label_closed_hours": 495.3,
-    "nights_fully_closed": 26,
-    "nights_fully_closed_with_gtc_data": 0
-  },
+  "gtc": [
+    {
+      "year": 2024,
+      "exposures": 8710,
+      "first_month": "2024-01",
+      "last_month": "2024-12",
+      "instruments": [
+        "HiPERCAM",
+        "MEGARA",
+        "OSIRIS"
+      ],
+      "exposing_hours": 884.2,
+      "exposing_when_label_closed": 0.0113,
+      "label_closed_hours": 495.3,
+      "nights_fully_closed": 26,
+      "nights_fully_closed_with_gtc_data": 0
+    },
+    {
+      "year": 2025,
+      "exposures": 4544,
+      "first_month": "2025-01",
+      "last_month": "2025-09",
+      "instruments": [
+        "HiPERCAM",
+        "OSIRIS"
+      ],
+      "exposing_hours": 614.4,
+      "exposing_when_label_closed": 0.0021,
+      "label_closed_hours": 556.5,
+      "nights_fully_closed": 35,
+      "nights_fully_closed_with_gtc_data": 0
+    }
+  ],
   "liverpool": {
     "nights": 3322,
+    "first": "2017-01-01",
+    "last": "2026-10-27",
     "correlation": 0.74,
     "label_closed_nights": 355,
-    "label_closed_lt_also_lost": 0.986,
-    "lt_lost_nights": 941,
-    "lt_lost_label_closed_some": 0.679,
+    "label_closed_also_lost": 0.986,
     "mean_closed_h_label": 1.61,
-    "mean_lost_h_lt": 2.75
+    "mean_lost_h": 2.75,
+    "by_year": {
+      "2017": 0.67,
+      "2018": 0.83,
+      "2019": 0.78,
+      "2020": 0.73,
+      "2021": 0.52,
+      "2022": 0.82,
+      "2023": 0.81,
+      "2024": 0.69,
+      "2025": 0.79,
+      "2026": 0.83
+    }
+  },
+  "tng": {
+    "nights": 366,
+    "first": "2025-10-27",
+    "last": "2026-10-27",
+    "correlation": 0.9,
+    "label_closed_nights": 44,
+    "label_closed_also_lost": 1.0,
+    "mean_closed_h_label": 1.81,
+    "mean_lost_h": 2.61,
+    "by_year": {
+      "2025": 0.91,
+      "2026": 0.9
+    }
   },
   "wht": [
     {
@@ -126,6 +170,127 @@
       "nights": 299,
       "correlation": 0.66,
       "closed_all_night_but_no_wht_loss": 15
+    }
+  ],
+  "by_year": [
+    {
+      "year": 2010,
+      "gtc": null,
+      "liverpool": null,
+      "tng": null,
+      "wht": 0.79
+    },
+    {
+      "year": 2011,
+      "gtc": null,
+      "liverpool": null,
+      "tng": null,
+      "wht": 0.8
+    },
+    {
+      "year": 2012,
+      "gtc": null,
+      "liverpool": null,
+      "tng": null,
+      "wht": 0.75
+    },
+    {
+      "year": 2013,
+      "gtc": null,
+      "liverpool": null,
+      "tng": null,
+      "wht": 0.75
+    },
+    {
+      "year": 2014,
+      "gtc": null,
+      "liverpool": null,
+      "tng": null,
+      "wht": 0.7
+    },
+    {
+      "year": 2015,
+      "gtc": null,
+      "liverpool": null,
+      "tng": null,
+      "wht": 0.71
+    },
+    {
+      "year": 2016,
+      "gtc": null,
+      "liverpool": null,
+      "tng": null,
+      "wht": 0.75
+    },
+    {
+      "year": 2017,
+      "gtc": null,
+      "liverpool": 0.67,
+      "tng": null,
+      "wht": 0.63
+    },
+    {
+      "year": 2018,
+      "gtc": null,
+      "liverpool": 0.83,
+      "tng": null,
+      "wht": 0.68
+    },
+    {
+      "year": 2019,
+      "gtc": null,
+      "liverpool": 0.78,
+      "tng": null,
+      "wht": 0.66
+    },
+    {
+      "year": 2020,
+      "gtc": null,
+      "liverpool": 0.73,
+      "tng": null,
+      "wht": 0.45
+    },
+    {
+      "year": 2021,
+      "gtc": null,
+      "liverpool": 0.52,
+      "tng": null,
+      "wht": 0.43
+    },
+    {
+      "year": 2022,
+      "gtc": null,
+      "liverpool": 0.82,
+      "tng": null,
+      "wht": 0.32
+    },
+    {
+      "year": 2023,
+      "gtc": null,
+      "liverpool": 0.81,
+      "tng": null,
+      "wht": 0.65
+    },
+    {
+      "year": 2024,
+      "gtc": 0.0113,
+      "liverpool": 0.69,
+      "tng": null,
+      "wht": 0.15
+    },
+    {
+      "year": 2025,
+      "gtc": 0.0021,
+      "liverpool": 0.79,
+      "tng": 0.91,
+      "wht": 0.41
+    },
+    {
+      "year": 2026,
+      "gtc": null,
+      "liverpool": 0.83,
+      "tng": 0.9,
+      "wht": 0.66
     }
   ]
 }

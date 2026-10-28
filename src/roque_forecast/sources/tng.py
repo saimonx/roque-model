@@ -69,3 +69,14 @@ def parse_current(raw: bytes | str) -> list[dict]:
         for name, item in payload.items()
         if isinstance(item, dict)
     ]
+
+
+def parse_downtime(raw: bytes | str) -> pd.DataFrame:
+    """{"series": [{"name": "Weather", "data": [[epoch_ms, hours], ...]}, {"name": "Technical", ...}]}
+    -> one row per day: weather_h, technical_h (index: the day, midnight UTC)."""
+    payload = json.loads(raw)
+    columns = {}
+    for serie in payload["series"]:
+        values = pd.Series({pd.to_datetime(t, unit="ms"): h for t, h in serie["data"]})
+        columns[f"{serie['name'].lower()}_h"] = values
+    return pd.DataFrame(columns).sort_index()

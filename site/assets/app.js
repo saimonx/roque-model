@@ -47,7 +47,7 @@
     $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: timeLocal(d.issued_utc) });
 
     const right = hourRight(state.evaluation);
-    $("mode").textContent = d.mode === "final" ? t.mode_final : t.mode_provisional;
+    $("mode").textContent = fill(d.mode === "final" ? t.mode_final : t.mode_provisional, { time: timeLocal(n.final_from_utc) });
     $("mode").className = d.mode;
     $("mode-text").innerHTML = fill(d.mode === "final" ? t.mode_final_text : t.mode_provisional_text,
       { time: timeLocal(n.final_from_utc), prov: pct(right.provisional), fin: pct(right.final) });
@@ -151,18 +151,40 @@
     node.innerHTML = `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
   }
 
+  function renderRules() {
+    const t = T();
+    table($("table-rules"), t.rules_cols, t.rules_rows.map((r) => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`));
+  }
+
+  // "Mon YYYY" for a "YYYY-MM" or "YYYY-MM-DD" string.
+  function monthYear(s) {
+    return new Date(s.slice(0, 7) + "-15T12:00:00Z").toLocaleDateString(locale(), { month: "short", year: "numeric", timeZone: "UTC" });
+  }
+
   function renderChecks(v) {
-    const t = T(), g = v.gtc, l = v.liverpool;
-    const items = [];
-    if (g && g.available) items.push(fill(t.check_gtc, { year: g.year, h: Math.round(g.exposing_hours),
-      p: num(g.exposing_when_label_closed * 100, 1), n: g.nights_fully_closed, k: g.nights_fully_closed_with_gtc_data }));
-    if (l) items.push(fill(t.check_lt, { r: num(l.correlation, 2), n: l.label_closed_nights, p: Math.round(l.label_closed_lt_also_lost * 100),
-      lab: num(l.mean_closed_h_label, 1), lt: num(l.mean_lost_h_lt, 1) }));
+    const t = T(), items = [];
+    const g = v.gtc || [], lt = v.liverpool, tn = v.tng;
+    if (g.length) {
+      const h = g.reduce((a, x) => a + x.exposing_hours, 0);
+      // Share of all GTC exposing minutes labelled closed, pooled over the years.
+      const p = g.reduce((a, x) => a + x.exposing_when_label_closed * x.exposing_hours, 0) / h;
+      const last = g[g.length - 1].last_month;
+      items.push(fill(t.check_gtc, { from: monthYear(g[0].first_month), to: monthYear(last), h: Math.round(h),
+        p: num(p * 100, 1), n: g.reduce((a, x) => a + x.nights_fully_closed, 0) }));
+      const next = new Date(last + "-15T12:00:00Z"); next.setUTCMonth(next.getUTCMonth() + 1);
+      items.push(fill(t.check_gtc_gap, { after: monthYear(next.toISOString()) }));
+    }
+    if (lt) items.push(fill(t.check_lt, { from: lt.first.slice(0, 4), to: lt.last.slice(0, 4), r: num(lt.correlation, 2),
+      n: lt.label_closed_nights, p: Math.round(lt.label_closed_also_lost * 100), lab: num(lt.mean_closed_h_label, 1), lt: num(lt.mean_lost_h, 1) }));
+    if (tn) items.push(fill(t.check_tng, { from: monthYear(tn.first), to: monthYear(tn.last), r: num(tn.correlation, 2),
+      n: tn.label_closed_nights, p: Math.round(tn.label_closed_also_lost * 100) }));
     items.push(t.check_wht);
     $("checks").innerHTML = items.map((i) => `<li>${i}</li>`).join("");
+
     const suspect = [2019, 2020, 2021, 2022, 2024, 2025];
-    table($("table-wht"), [t.col_year, t.col_corr, t.col_booked],
-      v.wht.map((r) => `<tr class="${suspect.includes(r.year) ? "suspect" : ""}"><td>${r.year}${suspect.includes(r.year) ? " ⚠" : ""}</td><td>${num(r.correlation, 2)}</td><td>${r.closed_all_night_but_no_wht_loss}</td></tr>`));
+    const cell = (x) => (x == null ? `<td class="muted">—</td>` : `<td>${num(x, 2)}</td>`);
+    table($("table-years"), [t.col_year, t.col_gtc, t.col_lt, t.col_tng, t.col_wht],
+      v.by_year.slice().reverse().map((r) => `<tr><td>${r.year}</td>${r.gtc == null ? `<td class="muted">—</td>` : `<td>${num(r.gtc * 100, 1)} %</td>`}${cell(r.liverpool)}${cell(r.tng)}${r.wht == null ? `<td class="muted">—</td>` : `<td>${num(r.wht, 2)}${suspect.includes(r.year) ? " ⚠" : ""}</td>`}</tr>`));
   }
 
   function renderEvaluation(e) {
@@ -186,7 +208,7 @@
       table($("table-track"), [t.col_night], [`<tr><td class="empty">${t.track_empty}</td></tr>`]);
     } else {
       table($("table-track"), [t.col_night, t.col_mode, t.col_fc_h, t.col_real_h, t.col_fc_seeing, t.col_real_seeing],
-        e.track_record.map((r) => `<tr><td>${r.night}</td><td>${r.mode === "final" ? t.mode_final : t.mode_provisional}</td><td>${num(r.closed_h)} h</td><td>${r.dome_closed_h != null ? num(r.dome_closed_h) + " h" : t.na}</td><td>${num(r.seeing_arcsec, 2)}″</td><td>${r.seeing_median != null ? num(r.seeing_median, 2) + "″" : t.na}</td></tr>`));
+        e.track_record.map((r) => `<tr><td>${r.night}</td><td>${r.mode === "final" ? t.final_word : t.provisional_word}</td><td>${num(r.closed_h)} h</td><td>${r.dome_closed_h != null ? num(r.dome_closed_h) + " h" : t.na}</td><td>${num(r.seeing_arcsec, 2)}″</td><td>${r.seeing_median != null ? num(r.seeing_median, 2) + "″" : t.na}</td></tr>`));
     }
 
     const tech = [
@@ -201,6 +223,7 @@
   // ---------------------------------------------------------------- wiring
   function render() {
     applyTexts();
+    renderRules();
     if (state.evaluation) renderEvaluation(state.evaluation);
     if (state.tonight) renderTonight(state.tonight);
   }

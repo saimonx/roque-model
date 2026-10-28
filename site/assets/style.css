@@ -252,3 +252,11 @@ table.plain td { vertical-align: top; }
 }
 .legend { margin-bottom: 0.9rem; }
 .legend span { white-space: nowrap; display: inline-flex; align-items: center; }
+
+/* The closure rules table: the reason in the first column, values in bold. */
+table.rules th[scope="row"] { text-align: left; font-weight: 600; white-space: nowrap; }
+table.rules th, table.rules td { text-align: left; white-space: normal; vertical-align: top; }
+table.rules th[scope="row"] { color: var(--text); }
+table.rules td:last-child { color: var(--text-2); }
+#rules h2 { margin-bottom: .25rem; }
+@media (max-width: 600px) { table.rules th, table.rules td { padding: 6px 5px; } }
