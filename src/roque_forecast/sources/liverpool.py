@@ -10,8 +10,10 @@ Why it is useful here:
 - It is filled in the same way every night by a robotic system, with no years booked
   wrongly (unlike the WHT log, see the EDA).
 - It runs to the present day, so models can be tested on 2024-2026.
-- The comment says WHY a night was lost, and whether the sky was photometric (clear
-  enough for precise brightness measurements): labels for the clear-sky and dust models.
+- The comment says WHY a night was lost (it confirmed the ice closures that the
+  humidity rule alone missed, see dome.py).
+
+Here it is used only to CHECK the project's closure label (validate.py).
 
 It is a different telescope with its own, more cautious limits (a robotic telescope
 closes for cloud, dust or ice risk that a staffed one may tolerate): the labels say

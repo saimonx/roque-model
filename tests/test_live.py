@@ -21,12 +21,13 @@ def test_tonight_is_the_running_night_or_the_next_one():
     assert window["start"] > afternoon
 
 
-def test_last_night_counts_closure_with_the_humidity_rule():
+def test_last_night_counts_closure_with_the_full_label():
     window = tonight.tonight_window(pd.Timestamp("2026-10-27 12:00", tz="UTC"))
     minutes = pd.DataFrame({"time_utc": pd.date_range(window["start"], window["end"], freq="min")})
     # Humid (>= 90 %) during the first quarter of the night, dry afterwards.
     quarter = window["start"] + (window["end"] - window["start"]) / 4
     minutes["humidity_pct"] = np.where(minutes["time_utc"] < quarter, 95.0, 50.0)
+    minutes["wind_speed_ms"], minutes["temp_c"] = 5.0, 5.0  # calm and above freezing: humidity only
     seeing = pd.DataFrame({"time_utc": pd.date_range(window["start"], periods=60, freq="2min"),
                            "seeing_arcsec": 0.8})
     out = tonight.last_night(minutes, seeing, pd.Timestamp("2026-10-27"))
@@ -70,17 +71,20 @@ def test_dashboards_are_the_same_in_both_languages():
 
 def test_track_record_scores_the_first_final_forecast_of_each_night(tmp_path, monkeypatch):
     monkeypatch.setattr(site_data, "FORECASTS_DIR", tmp_path)
+    v = tonight.MODEL_VERSION
     issued = [
-        {"issued_utc": "2026-10-28T15:00Z", "night": "2026-10-28", "mode": "provisional", "p_closed": 0.4,
-         "closed_h": 2, "seeing_arcsec": 0.7, "lost_h": 1.7},
-        {"issued_utc": "2026-10-28T20:05Z", "night": "2026-10-28", "mode": "final", "p_closed": 0.9,
-         "closed_h": 8, "seeing_arcsec": 0.8, "lost_h": 6.8},
-        {"issued_utc": "2026-10-28T23:05Z", "night": "2026-10-28", "mode": "final", "p_closed": 0.95,
-         "closed_h": 9, "seeing_arcsec": 0.8, "lost_h": 7.6},
+        {"issued_utc": "2026-10-28T15:00Z", "night": "2026-10-28", "mode": "provisional", "model": v,
+         "closed_h": 2, "seeing_arcsec": 0.7},
+        {"issued_utc": "2026-10-28T20:05Z", "night": "2026-10-28", "mode": "final", "model": v,
+         "closed_h": 8, "seeing_arcsec": 0.8},
+        {"issued_utc": "2026-10-28T23:05Z", "night": "2026-10-28", "mode": "final", "model": v,
+         "closed_h": 9, "seeing_arcsec": 0.8},
+        {"issued_utc": "2026-10-28T20:00Z", "night": "2026-10-28", "mode": "final", "model": "old",
+         "closed_h": 1, "seeing_arcsec": 0.8},  # an earlier model version is never scored
     ]
     (tmp_path / "issued.jsonl").write_text("".join(json.dumps(r) + "\n" for r in issued))
     (tmp_path / "outcomes.jsonl").write_text(json.dumps(
         {"night": "2026-10-28", "dome_closed_frac": 0.8, "dome_closed_h": 8.1, "seeing_median": None}) + "\n")
     record = site_data.track_record()
     # The first final forecast (20:05), not a later one issued in the middle of the night.
-    assert len(record) == 1 and record[0]["mode"] == "final" and record[0]["p_closed"] == 0.9
+    assert len(record) == 1 and record[0]["mode"] == "final" and record[0]["closed_h"] == 8

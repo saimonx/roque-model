@@ -1,32 +1,30 @@
-"""Tonight hour by hour: one row per (night, hour) instead of one row per night.
+"""Forecast 1 of the project, hour by hour: will the dome be closed?
 
-Why a second set of models? The nightly models answer "how much of tonight is
-lost?". An observer also wants to know WHEN: is the first half good and the
-second half wet? Here every astronomical-night hour gets its own forecast:
+For each night hour: the probability that the dome is closed for at least half of
+that hour, for humidity, wind or ice (dome.closed: the NOT humidity rule, the INT
+wind limit and an ice rule, rebuilt minute by minute from the NOT weather station).
+The night's expected closed hours are the sum of the hourly probabilities, so the
+table and the total always agree.
 
-1. **Dome closed by humidity** in that hour (the NOT rule, as in the nightly label).
-2. **Wind above the closing limit** in that hour: the INT, also on the Roque,
-   closes when gusts exceed 80 km/h (22.2 m/s) for more than 10 s (ING public
-   procedure). The NOT station gives one wind value per minute, so the label is
-   "at least one minute at or above 22.2 m/s".
-3. **Seeing** of that hour (median of the R2D2 measurements).
-
-For each hour we also keep what the weather forecast says ON ITS OWN, read
-literally (forecast humidity >= 90 % -> "closed"; forecast wind >= 22.2 m/s ->
-"too windy"). The page shows both side by side: the raw forecast is almost
-always wetter and calmer than the summit (the model grid point sits inside the
-cloud layer, below the real summit), which is exactly what the models learn to
-correct.
+(Forecast 2, the seeing, is one number per night: see train.py. An hourly seeing
+model was tried and dropped: on 2024-2026 its error was barely below the monthly
+climatology, and the night's seeing derived from it was worse than the nightly
+model, mean error 0.215" against 0.196".)
 
 Inputs of each hour (all known before the night starts, as in features.py):
-- the forecast for that hour (humidity, dew-point margin, temperature, wind,
-  cloud, rain, pressure; jet-stream wind for the seeing);
-- the forecast summary for the whole night and the station in the 2 hours
-  before the night (only in final mode, as for the nightly models);
-- last night, the time of year and the position of the hour in the night.
+- the weather forecast valid at mid-hour (ECMWF: humidity, dew-point margin,
+  temperature, cloud, rain, pressure; GFS: wind at 750 hPa, summit height);
+- the forecast summary for the whole night, the NOT station in the 2 hours before
+  the night (only in the "final" mode, see below), last night and the time of year;
+- the position of the hour in the night.
 
-Evaluation as in train.py: train 2017-2022, choose settings on 2023, report
-2024-2026, always against reference methods.
+Two modes, because the station readings "just before the night" only exist once the
+night starts: "provisional" (forecast-only twin models, used in the afternoon) and
+"final" (full models, from the start of astronomical night).
+
+Evaluation as in train.py: train 2017-2022, choose settings on 2023, report on
+2024-2026, always against simple reference methods, hour by hour and for the
+night's closed hours.
 
 Usage:
     .venv/bin/python -m roque_forecast.hourly
@@ -39,24 +37,25 @@ import sys
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.metrics import brier_score_loss, roc_auc_score, root_mean_squared_error
+from sklearn.metrics import (
+    brier_score_loss,
+    mean_absolute_error,
+    roc_auc_score,
+    root_mean_squared_error,
+)
 
-from roque_forecast import config, features, train
+from roque_forecast import config, dome, features, train
 
 log = logging.getLogger("hourly")
 
-WIND_LIMIT_MS = 22.2  # 80 km/h, INT dome-closing limit for gusts (ING observer alert procedure)
-HUMIDITY_LIMIT_PCT = 90.0  # same number as the NOT closing rule
 MIN_DARK_MINUTES = 30  # an hour belongs to the night if at least half of it is astronomical night
-MIN_SEEING_POINTS = 30  # R2D2 points needed for an hourly seeing value (~15-30 min of data)
+MIN_LABEL_MINUTES = 45  # the station must have measured most of the hour
 
 # Inputs that describe the hour itself (the forecast valid at mid-hour).
 HOUR_FEATURES = ["h_rh", "h_dew_spread", "h_temp", "h_wind", "h_wind_u", "h_wind_v", "h_cloud", "h_precip",
                  "h_pressure", "h_wind_750", "hour_of_night", "night_fraction"]
 CLOSURE_FEATURES = HOUR_FEATURES + features.FEATURES
 CLOSURE_FORECAST_ONLY = HOUR_FEATURES + train.FORECAST_ONLY
-SEEING_FEATURES = HOUR_FEATURES + ["h_jet"] + features.SEEING_FEATURES
-SEEING_FORECAST_ONLY = HOUR_FEATURES + ["h_jet"] + train.SEEING_FORECAST_ONLY
 
 RESULTS_DIR = train.RESULTS_DIR
 MODELS_DIR = train.MODELS_DIR
@@ -68,8 +67,8 @@ MODELS_DIR = train.MODELS_DIR
 def hour_forecast(hourly: pd.DataFrame, upper: pd.DataFrame | None = None) -> pd.DataFrame:
     """Forecast valid at the middle of each UTC hour: mean of the values at h and h+1.
 
-    `hourly` is open_meteo.parse() output (one row per forecast hour). The result is
-    indexed by the start of each hour (UTC).
+    `hourly` is open_meteo.parse() output (one row per forecast hour), `upper` the GFS
+    pressure-level winds. The result is indexed by the start of each hour (UTC).
     """
     h = hourly.set_index("time_utc").sort_index()
     mid = (h + h.shift(-1)) / 2  # value at h:30, interpolated between h and h+1
@@ -96,254 +95,165 @@ def hour_forecast(hourly: pd.DataFrame, upper: pd.DataFrame | None = None) -> pd
     return out
 
 
+def label_minutes(minutes: pd.DataFrame) -> pd.DataFrame:
+    """Add the full closure label (humidity, wind or ice) to the minute table."""
+    minutes = minutes.sort_values("time_utc").reset_index(drop=True)
+    minutes["closed"] = dome.closed(minutes)
+    return minutes
+
+
 def hour_slots(minutes: pd.DataFrame) -> pd.DataFrame:
     """Every UTC hour with at least MIN_DARK_MINUTES of astronomical night, and what happened in it.
 
-    `minutes` is the NOT minute table (time_utc, is_night, night, dome_closed, humidity_pct,
-    wind_speed_ms). Returns one row per hour: night, hour start, dark minutes, the
-    position of the hour in the night and the labels (closed / windy) when measured.
+    `minutes` is the NOT minute table with the full closure label (column `closed`,
+    see label_minutes). Returns one row per hour with its position in the night and
+    the label `closed` (missing when the station did not measure most of the hour).
     """
     dark = minutes[minutes["is_night"]].copy()
     dark["hour"] = dark["time_utc"].dt.floor("h")
+    dark["measured"] = dark["humidity_pct"].notna() & dark["wind_speed_ms"].notna()
     g = dark.groupby(["night", "hour"])
-    slots = pd.DataFrame({
-        "dark_minutes": g.size(),
-        "humidity_minutes": g["humidity_pct"].count(),
-        "wind_minutes": g["wind_speed_ms"].count(),
-        "closed_frac": g["dome_closed"].mean(),
-        "wind_max": g["wind_speed_ms"].max(),
-    }).reset_index()
+    slots = pd.DataFrame({"dark_minutes": g.size(), "measured_minutes": g["measured"].sum(),
+                          "closed_frac": g["closed"].mean()}).reset_index()
     slots = slots[slots["dark_minutes"] >= MIN_DARK_MINUTES]
     slots["night"] = pd.to_datetime(slots["night"])
-    # Position in the night: 0 for the first hour, and as a fraction of the night's hours.
     slots["hour_of_night"] = slots.groupby("night").cumcount()
     slots["night_fraction"] = slots["hour_of_night"] / slots.groupby("night")["hour"].transform("size")
-    # Labels only where the station measured most of the hour (otherwise missing).
-    slots["closed"] = np.where(slots["humidity_minutes"] >= 45, (slots["closed_frac"] >= 0.5).astype(float), np.nan)
-    slots["windy"] = np.where(slots["wind_minutes"] >= 45, (slots["wind_max"] >= WIND_LIMIT_MS).astype(float),
-                              np.nan)
-    # "Shut": the dome would be closed that hour for humidity OR for wind. This is the number
-    # the page shows for each hour (one probability that covers both reasons).
-    either = (slots["closed"] == 1) | (slots["windy"] == 1)
-    both_known = slots["closed"].notna() & slots["windy"].notna()
-    slots["shut"] = np.where(either, 1.0, np.where(both_known, 0.0, np.nan))
+    slots["closed"] = np.where(slots["measured_minutes"] >= MIN_LABEL_MINUTES,
+                               (slots["closed_frac"] >= 0.5).astype(float), np.nan)
     return slots
-
-
-def hourly_seeing(points: pd.DataFrame) -> pd.Series:
-    """Median R2D2 seeing per UTC hour (hours with enough measurements only)."""
-    hour = points["time_utc"].dt.floor("h")
-    g = points.groupby(hour)["seeing_arcsec"]
-    median = g.median()
-    return median[g.size() >= MIN_SEEING_POINTS].rename("seeing")
 
 
 def build_table() -> pd.DataFrame:
     minutes = pd.read_parquet(
         config.PROCESSED_DIR / "not_minutes.parquet",
-        columns=["time_utc", "is_night", "night", "dome_closed", "humidity_pct", "wind_speed_ms"],
-        filters=[("time_utc", ">=", features.FIRST_NIGHT.tz_localize("UTC"))],
+        columns=["time_utc", "is_night", "night", "humidity_pct", "wind_speed_ms", "temp_c"],
+        filters=[("time_utc", ">=", features.FIRST_NIGHT.tz_localize("UTC") - pd.Timedelta(days=2))],
     )
-    slots = hour_slots(minutes)
+    slots = hour_slots(label_minutes(minutes))
     forecast = hour_forecast(features.load_forecasts("historical"), features.load_upper())
-    seeing = hourly_seeing(pd.read_parquet(config.PROCESSED_DIR / "r2d2_points.parquet"))
     nightly = pd.read_parquet(config.PROCESSED_DIR / "model_table.parquet")
 
-    table = slots.join(forecast, on="hour").join(seeing, on="hour")
+    # Last night with the full label (the nightly table's persistence input is humidity only).
+    previous = slots.groupby("night")["closed_frac"].mean()
+    previous.index = previous.index + pd.Timedelta(days=1)
+    nightly = nightly.drop(columns=["prev_dome_closed_frac"]).join(previous.rename("prev_dome_closed_frac"))
+
+    table = slots.join(forecast, on="hour")
     keep = [*features.SEEING_FEATURES, "month", "year"]
     table = table.join(nightly[keep], on="night", how="inner")  # nights with a forecast archive
     table = table.dropna(subset=["h_rh"])
     return table.set_index(["night", "hour"]).sort_index()
 
 
-# --------------------------------------------------------------------------
-# Models
-# --------------------------------------------------------------------------
 def split(table: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """Time split on the night, with the same years as train.py."""
     nights = table.index.get_level_values("night")
     return {"train": table[table["year"].isin(train.TRAIN_YEARS)],
             "validation": table[table["year"] == train.VALIDATION_YEAR],
             "test": table[nights >= train.TEST_START]}
 
 
-def rate_by(fit: pd.DataFrame, condition_fit: pd.Series, condition_eval: pd.Series, target: str) -> np.ndarray:
-    """Turn a yes/no rule into a probability with the TRAINING years (as train.conditional_rate)."""
-    return train.conditional_rate(fit, condition_fit, condition_eval, target)
+# --------------------------------------------------------------------------
+# Scores, in technical and in plain terms
+# --------------------------------------------------------------------------
+def event_scores(y: pd.Series, p: np.ndarray, reference_brier: float) -> dict:
+    """Probability scores, and the plain reading of the yes/no call "closed if p >= 50 %":
+    right = share of the "closed" calls that were right; caught = share of the closed
+    hours that were called."""
+    p = np.asarray(p, dtype=float)
+    brier = brier_score_loss(y, p)
+    said = p >= 0.5
+    event = y.to_numpy() == 1
+    return {"n": len(y), "event_rate": float(event.mean()), "brier": brier,
+            "brier_skill": 1 - brier / reference_brier,
+            "auc": roc_auc_score(y, p) if len(np.unique(p)) > 1 else np.nan,
+            "right": float(event[said].mean()) if said.any() else np.nan,
+            "caught": float(said[event].mean()) if event.any() else np.nan}
 
 
-def event_baselines(fit: pd.DataFrame, frame: pd.DataFrame, target: str, raw_rule) -> dict[str, np.ndarray]:
-    month_rate = fit.groupby("month")[target].mean()
-    out = {
-        "climatology (month)": frame["month"].map(month_rate).to_numpy(),
-        # The raw forecast turned into a probability: how often the event happened, in the
-        # training years, when the forecast read literally said yes (and when it said no).
-        "raw forecast, read literally": rate_by(fit, raw_rule(fit), raw_rule(frame), target),
+def number_scores(y: pd.Series, pred: np.ndarray, reference_mae: float) -> dict:
+    mae = mean_absolute_error(y, pred)
+    return {"n": len(y), "mae": mae, "rmse": root_mean_squared_error(y, pred), "mae_skill": 1 - mae / reference_mae}
+
+
+# --------------------------------------------------------------------------
+# 1. Dome closed
+# --------------------------------------------------------------------------
+def raw_literal(frame: pd.DataFrame) -> pd.Series:
+    """The weather forecast read literally with the label's three rules: humidity >= 90 %,
+    wind >= 22.2 m/s (750 hPa where available) or freezing with high humidity."""
+    wind = frame["h_wind_750"].fillna(frame["h_wind"])
+    humid = frame["h_rh"] >= dome.HUMIDITY_LIMIT_PCT
+    return humid | (wind >= dome.WIND_LIMIT_MS) | ((frame["h_temp"] <= dome.ICE_TEMP_C) & humid)
+
+
+def train_closure(sets: dict) -> tuple[dict, list, pd.DataFrame]:
+    target = "closed"
+    data = {k: v.dropna(subset=[target]) for k, v in sets.items()}
+
+    def make(settings):
+        return train.gradient_boosting("classifier", **settings)
+
+    def scorer(inputs):
+        return lambda model, frame: brier_score_loss(frame[target], model.predict_proba(frame[inputs])[:, 1])
+
+    settings = train.choose_settings(make, data, target, scorer(CLOSURE_FEATURES), CLOSURE_FEATURES)
+    settings_fo = train.choose_settings(make, data, target, scorer(CLOSURE_FORECAST_ONLY), CLOSURE_FORECAST_ONLY)
+    fit_on = pd.concat([data["train"], data["validation"]])
+    final = make(settings).fit(fit_on[CLOSURE_FEATURES], fit_on[target])
+    provisional = make(settings_fo).fit(fit_on[CLOSURE_FORECAST_ONLY], fit_on[target])
+
+    test = data["test"]
+    y = test[target]
+
+    def rate(condition_fit, condition_test):
+        return train.conditional_rate(fit_on, condition_fit, condition_test, target)
+
+    p = {
+        "climatology": test["month"].map(fit_on.groupby("month")[target].mean()).to_numpy(),
+        "raw forecast": raw_literal(test).astype(float).to_numpy(),
+        "persistence": rate(fit_on["prev_dome_closed_frac"] >= 0.5, test["prev_dome_closed_frac"] >= 0.5),
+        "precasting": rate(fit_on["pre_humidity_max"] >= 90, test["pre_humidity_max"] >= 90),
+        "model, provisional": provisional.predict_proba(test[CLOSURE_FORECAST_ONLY])[:, 1],
+        "model, final": final.predict_proba(test[CLOSURE_FEATURES])[:, 1],
     }
-    if target in ("closed", "shut"):  # last night and the station before the night are about humidity
-        out["persistence (last night)"] = rate_by(fit, fit["prev_dome_closed_frac"] >= 0.5,
-                                                  frame["prev_dome_closed_frac"] >= 0.5, target)
-        out["precasting (humidity before night >= 90 %)"] = rate_by(
-            fit, fit["pre_humidity_max"] >= 90, frame["pre_humidity_max"] >= 90, target)
+    clim = brier_score_loss(y, p["climatology"])
+    rows = [{"forecast": "hour closed", "method": name} | event_scores(y, prob, clim) for name, prob in p.items()]
+    predictions = test[["closed", "dark_minutes", "month"]].assign(
+        p_final=p["model, final"], p_provisional=p["model, provisional"], raw=p["raw forecast"],
+        climatology=p["climatology"])
+    model = {"final": final, "final_features": CLOSURE_FEATURES, "provisional": provisional,
+             "provisional_features": CLOSURE_FORECAST_ONLY, "settings": settings,
+             "settings_provisional": settings_fo}
+    return model, rows, predictions
+
+
+# --------------------------------------------------------------------------
+# 2. The night's closed hours, derived from the hours
+# --------------------------------------------------------------------------
+def closed_hours_by_night(hours: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    """Sum over each night of (probability or label) x (dark hours in that slot)."""
+    weight = hours["dark_minutes"] / 60
+    out = hours[columns].mul(weight, axis=0).groupby(level="night").sum()
+    out["month"] = hours["month"].groupby(level="night").first()
     return out
 
 
-def train_event(sets: dict, target: str, full: list[str], forecast_only: list[str], raw_rule) -> tuple[dict, list]:
-    data = {k: v.dropna(subset=[target]) for k, v in sets.items()}
-    log.info("%s: %d training hours, event rate %.3f", target, len(data["train"]), data["train"][target].mean())
-
-    def score(model, frame):
-        return brier_score_loss(frame[target], model.predict_proba(frame[full])[:, 1])
-
-    def score_forecast_only(model, frame):
-        return brier_score_loss(frame[target], model.predict_proba(frame[forecast_only])[:, 1])
-
-    make = lambda st: train.gradient_boosting("classifier", **st)
-    settings = train.choose_settings(make, data, target, score, full)
-    # The forecast-only twin gets its own settings: with fewer inputs it needs different
-    # regularisation (with the full model's settings the wind twin was worse than climatology).
-    settings_fo = train.choose_settings(make, data, target, score_forecast_only, forecast_only)
-    fit_on = pd.concat([data["train"], data["validation"]])
-    models = {"gradient boosting": (make(settings), full),
-              "gradient boosting, forecast only": (make(settings_fo), forecast_only)}
-    for model, inputs in models.values():
-        model.fit(fit_on[inputs], fit_on[target])
-
-    test = data["test"]
-    y = test[target]
-    refs = event_baselines(fit_on, test, target, raw_rule)
-    clim = brier_score_loss(y, refs["climatology (month)"])
-    rows = []
-    for name, p in refs.items():
-        rows.append({"target": target, "method": name, "kind": "baseline"} | event_metrics(y, p, clim))
-    for name, (model, inputs) in models.items():
-        rows.append({"target": target, "method": name, "kind": "model"}
-                    | event_metrics(y, model.predict_proba(test[inputs])[:, 1], clim))
-    # What the raw forecast says as a plain yes/no, to show how often it is right.
-    literal = raw_rule(test).astype(float)
-    rows.append({"target": target, "method": "raw forecast, yes/no", "kind": "baseline"}
-                | event_metrics(y, literal.to_numpy(), clim))
-    thresholds = {"final": warning_threshold(data, target, full, settings),
-                  "provisional": warning_threshold(data, target, forecast_only, settings_fo)}
-    warnings = [{"target": target, "warning": "raw forecast, read literally"} | warning_scores(y, literal.to_numpy() > 0)]
-    for mode, (model, inputs) in [("final", models["gradient boosting"]),
-                                  ("provisional", models["gradient boosting, forecast only"])]:
-        p = model.predict_proba(test[inputs])[:, 1]
-        warnings.append({"target": target, "warning": f"model, {mode} (threshold {thresholds[mode]:.2f})"}
-                        | warning_scores(y, p >= thresholds[mode]))
-    return {"probability": models["gradient boosting"][0], "features": full, "warning_thresholds": thresholds,
-            "warning_test_scores": warnings,
-            "probability_forecast_only": models["gradient boosting, forecast only"][0],
-            "forecast_only_features": forecast_only, "settings": settings,
-            "settings_forecast_only": settings_fo}, rows
-
-
-WARNING_CANDIDATES = [0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5]
-
-
-def warning_scores(y: pd.Series, warn: np.ndarray) -> dict:
-    """How good a yes/no warning is: share of events warned (hits), share of warnings
-    that were wrong (false alarms) and the Peirce skill score (hits minus false-alarm
-    rate among non-events; 0 = no skill, 1 = perfect)."""
-    event = y.to_numpy() == 1
-    hits = (warn & event).sum() / max(event.sum(), 1)
-    false_alarm_ratio = (warn & ~event).sum() / max(warn.sum(), 1)
-    false_alarm_rate = (warn & ~event).sum() / max((~event).sum(), 1)
-    return {"hit_rate": float(hits), "false_alarm_ratio": float(false_alarm_ratio),
-            "peirce": float(hits - false_alarm_rate), "warned_hours": int(warn.sum()), "event_hours": int(event.sum())}
-
-
-def warning_threshold(data: dict, target: str, inputs: list[str], settings: dict) -> float:
-    """For rare events (strong wind) a probability is badly calibrated, but the ranking
-    is good. So the model drives a yes/no WARNING: the probability threshold with the
-    best Peirce score on the validation year, from a model fitted on the training years only."""
-    model = train.gradient_boosting("classifier", **settings).fit(data["train"][inputs], data["train"][target])
-    p = model.predict_proba(data["validation"][inputs])[:, 1]
-    best = max(WARNING_CANDIDATES, key=lambda th: warning_scores(data["validation"][target], p >= th)["peirce"])
-    log.info("%s warning threshold (validation, %d inputs): %.2f", target, len(inputs), best)
-    return best
-
-
-def event_metrics(y: pd.Series, p: np.ndarray, reference_brier: float) -> dict:
-    brier = brier_score_loss(y, p)
-    said = p >= 0.5
-    return {"hours": len(y), "event_rate": float(y.mean()), "brier": brier,
-            "brier_skill_vs_climatology": 1 - brier / reference_brier,
-            "auc": roc_auc_score(y, p) if len(np.unique(p)) > 1 else np.nan,
-            "hit_rate": float(said[y == 1].mean()) if (y == 1).any() else np.nan,
-            "false_alarm_ratio": float((y[said] == 0).mean()) if said.any() else np.nan}
-
-
-def train_seeing(sets: dict) -> tuple[dict, list]:
-    target = "seeing"
-    data = {k: v.dropna(subset=[target]) for k, v in sets.items()}
-
-    def score(model, frame):
-        return root_mean_squared_error(frame[target], model.predict(frame[SEEING_FEATURES]))
-
-    settings = train.choose_settings(lambda st: train.log_target(train.gradient_boosting("regressor", **st)),
-                                     data, target, score, SEEING_FEATURES)
-    fit_on = pd.concat([data["train"], data["validation"]])
-    models = {"gradient boosting": (train.log_target(train.gradient_boosting("regressor", **settings)),
-                                    SEEING_FEATURES),
-              "gradient boosting, forecast only": (train.log_target(train.gradient_boosting("regressor", **settings)),
-                                                   SEEING_FORECAST_ONLY)}
-    for model, inputs in models.values():
-        model.fit(fit_on[inputs], fit_on[target])
-
-    test = data["test"]
-    y = test[target]
-    month_median = fit_on.groupby("month")[target].median()
-    climatology = test["month"].map(month_median).to_numpy()
-    persistence = test["prev_seeing_median"].fillna(pd.Series(climatology, index=test.index)).to_numpy()
-    clim_rmse = root_mean_squared_error(y, climatology)
-    rows = []
-    for name, kind, pred in [("climatology (month)", "baseline", climatology),
-                             ("persistence (last night's median)", "baseline", persistence)]:
-        rows.append({"target": target, "method": name, "kind": kind} | train.regression_metrics(y, pred, clim_rmse))
-    for name, (model, inputs) in models.items():
-        rows.append({"target": target, "method": name, "kind": "model"}
-                    | train.regression_metrics(y, model.predict(test[inputs]), clim_rmse))
-    return {"model": models["gradient boosting"][0], "features": SEEING_FEATURES,
-            "model_forecast_only": models["gradient boosting, forecast only"][0],
-            "forecast_only_features": SEEING_FORECAST_ONLY, "settings": settings}, rows
-
-
-def humid_literal(frame: pd.DataFrame) -> pd.Series:
-    return frame["h_rh"] >= HUMIDITY_LIMIT_PCT
-
-
-def windy_literal(frame: pd.DataFrame) -> pd.Series:
-    """The forecast wind read literally: the 750 hPa wind (summit height) where it exists,
-    otherwise the 10 m wind of the grid point."""
-    return frame["h_wind_750"].fillna(frame["h_wind"]) >= WIND_LIMIT_MS
-
-
-def combine(p_humidity: np.ndarray, p_wind: np.ndarray) -> np.ndarray:
-    """Probability that the dome is shut for humidity OR wind, from the two separate models:
-    1 - P(not shut for humidity) x P(not shut for wind). It treats the two reasons as
-    independent; on the test hours this scores the same as a single model trained on
-    "humidity or wind" (Brier 0.065 both, final mode) and never falls below the humidity one."""
-    return 1 - (1 - p_humidity) * (1 - p_wind)
-
-
-def combined_metrics(sets: dict, closure: dict, wind: dict) -> list[dict]:
-    fit_on = pd.concat([sets["train"], sets["validation"]]).dropna(subset=["shut"])
-    test = sets["test"].dropna(subset=["shut"])
-    y = test["shut"]
-    # Skill against the same reference as everywhere: the monthly rate of the fitting years.
-    clim = brier_score_loss(y, test["month"].map(fit_on.groupby("month")["shut"].mean()))
-    rows = []
-    for mode, (pk, fk) in {"final": ("probability", "features"),
-                           "provisional": ("probability_forecast_only", "forecast_only_features")}.items():
-        p = combine(closure[pk].predict_proba(test[closure[fk]])[:, 1], wind[pk].predict_proba(test[wind[fk]])[:, 1])
-        rows.append({"target": "shut", "method": f"combined humidity + wind, {mode}", "kind": "model"}
-                    | event_metrics(y, p, clim))
-    return rows
-
-
-def shut_literal(frame: pd.DataFrame) -> pd.Series:
-    """The raw forecast read literally: humidity >= 90 % or wind >= 22.2 m/s."""
-    return humid_literal(frame) | windy_literal(frame)
+def nightly_scores(closure_pred: pd.DataFrame, fit_on: pd.DataFrame) -> tuple[list, pd.DataFrame]:
+    """Expected closed hours (sum of hourly probabilities), scored against what happened
+    and against simple references for the whole night."""
+    nights = closed_hours_by_night(closure_pred, ["closed", "p_final", "p_provisional", "raw"])
+    fit_nights = closed_hours_by_night(fit_on.dropna(subset=["closed"]), ["closed"])
+    nights["climatology"] = nights["month"].map(fit_nights.groupby("month")["closed"].mean())
+    consecutive = nights.index.to_series().diff() == pd.Timedelta(days=1)
+    nights["persistence"] = nights["closed"].shift(1).where(consecutive).fillna(nights["climatology"])
+    clim = mean_absolute_error(nights["closed"], nights["climatology"])
+    labels = {"climatology": "climatology", "persistence": "persistence", "raw": "raw forecast",
+              "p_provisional": "model, provisional", "p_final": "model, final"}
+    rows = [{"forecast": "night closed hours", "method": label} | number_scores(nights["closed"], nights[col], clim)
+            for col, label in labels.items()]
+    return rows, nights
 
 
 def main() -> int:
@@ -352,29 +262,22 @@ def main() -> int:
                         handlers=[logging.FileHandler(config.LOG_DIR / "hourly.log"), logging.StreamHandler(sys.stdout)])
     table = build_table()
     table.to_parquet(config.PROCESSED_DIR / "hour_table.parquet")
-    log.info("hour table: %d hours in %d nights", len(table), table.index.get_level_values("night").nunique())
+    log.info("hour table: %d hours in %d nights, closed %.1f %% of measured hours", len(table),
+             table.index.get_level_values("night").nunique(), 100 * table["closed"].mean())
     sets = split(table)
 
-    closure, closure_rows = train_event(sets, "closed", CLOSURE_FEATURES, CLOSURE_FORECAST_ONLY, humid_literal)
-    wind, wind_rows = train_event(sets, "windy", CLOSURE_FEATURES, CLOSURE_FORECAST_ONLY, windy_literal)
-    shut, shut_rows = train_event(sets, "shut", CLOSURE_FEATURES, CLOSURE_FORECAST_ONLY, shut_literal)
-    pd.DataFrame(closure["warning_test_scores"] + wind["warning_test_scores"]).to_csv(
-        RESULTS_DIR / "hourly_warnings.csv", index=False, float_format="%.3f")
-    seeing, seeing_rows = train_seeing(sets)
-    joblib.dump({"closure": closure, "wind": wind, "shut": shut, "seeing": seeing, "wind_limit_ms": WIND_LIMIT_MS},
-                MODELS_DIR / "hourly.joblib")
+    closure, closure_rows, closure_pred = train_closure(sets)
+    night_rows, nights = nightly_scores(closure_pred, pd.concat([sets["train"], sets["validation"]]))
 
-    combined_rows = combined_metrics(sets, closure, wind)
-    metrics = pd.DataFrame(closure_rows + wind_rows + shut_rows + combined_rows)
-    metrics.to_csv(RESULTS_DIR / "hourly_events_metrics.csv", index=False, float_format="%.4f")
-    pd.DataFrame(seeing_rows).to_csv(RESULTS_DIR / "hourly_seeing_metrics.csv", index=False, float_format="%.4f")
+    joblib.dump({"closure": closure}, MODELS_DIR / "hourly.joblib")
+    scores = pd.DataFrame(closure_rows + night_rows)
+    scores.to_csv(RESULTS_DIR / "hourly_scores.csv", index=False, float_format="%.4f")
+    closure_pred.to_parquet(config.PROCESSED_DIR / "hour_predictions.parquet")
+    nights.to_parquet(config.PROCESSED_DIR / "night_predictions.parquet")
     (RESULTS_DIR / "hourly_settings.json").write_text(json.dumps(
-        {"closure": closure["settings"], "wind": wind["settings"], "shut": shut["settings"],
-         "seeing": seeing["settings"],
-         "wind_limit_ms": WIND_LIMIT_MS}, indent=2))
+        {"closure": closure["settings"], "closure_provisional": closure["settings_provisional"]}, indent=2))
     pd.set_option("display.width", 200)
-    log.info("events\n%s", metrics.to_string(index=False, float_format="%.3f"))
-    log.info("seeing\n%s", pd.DataFrame(seeing_rows).to_string(index=False, float_format="%.3f"))
+    log.info("scores (test 2024-2026)\n%s", scores.to_string(index=False, float_format="%.3f"))
     return 0
 
 

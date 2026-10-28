@@ -27,13 +27,13 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del GTC (atmosportal) y del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). Pronóstico de la noche: modelos propios (ver `reports/MODELS_01.md`). Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."
+    "content": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del GTC (atmosportal) y del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). Pronóstico de la noche: dos modelos propios, cúpula cerrada hora a hora y seeing (ver el README). Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."
    }
   },
   {
    "id": 2,
    "type": "stat",
-   "title": "Riesgo de cierre esta noche",
+   "title": "Horas de cúpula cerrada previstas",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -54,13 +54,13 @@
      "format": "table",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT domeclosureprobability * 100 AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND domeclosureprobability * 100 IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+     "rawSql": "SELECT domeclosedhours AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND domeclosedhours IS NOT NULL ORDER BY time_index DESC LIMIT 1"
     }
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "percent",
-     "decimals": 0,
+     "unit": "h",
+     "decimals": 1,
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -70,11 +70,11 @@
        },
        {
         "color": "#fab219",
-        "value": 20
+        "value": 1
        },
        {
         "color": "#d03b3b",
-        "value": 50
+        "value": 4
        }
       ]
      },
@@ -169,7 +169,7 @@
   {
    "id": 4,
    "type": "stat",
-   "title": "Horas perdidas previstas",
+   "title": "Horas observables previstas",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -190,7 +190,7 @@
      "format": "table",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT hourslostforecast AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND hourslostforecast IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+     "rawSql": "SELECT openhoursforecast AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND openhoursforecast IS NOT NULL ORDER BY time_index DESC LIMIT 1"
     }
    ],
    "fieldConfig": {
@@ -201,16 +201,16 @@
       "mode": "absolute",
       "steps": [
        {
-        "color": "#0ca30c",
+        "color": "#d03b3b",
         "value": null
        },
        {
         "color": "#fab219",
-        "value": 1
+        "value": 4
        },
        {
-        "color": "#d03b3b",
-        "value": 4
+        "color": "#0ca30c",
+        "value": 7
        }
       ]
      },
@@ -768,7 +768,7 @@
   {
    "id": 11,
    "type": "timeseries",
-   "title": "Pronósticos emitidos: probabilidad de cierre (%)",
+   "title": "Pronósticos emitidos: horas de cúpula cerrada",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -789,12 +789,12 @@
      "format": "time_series",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", domeclosureprobability * 100 AS \"p\" FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND $__timeFilter(time_index) AND domeclosureprobability * 100 IS NOT NULL ORDER BY 1"
+     "rawSql": "SELECT time_index AS \"time\", domeclosedhours AS \"h\" FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND $__timeFilter(time_index) AND domeclosedhours IS NOT NULL ORDER BY 1"
     }
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "percent",
+     "unit": "h",
      "custom": {
       "lineWidth": 2,
       "fillOpacity": 0,

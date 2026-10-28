@@ -111,19 +111,6 @@ def download_current_upper(session: PoliteSession, forecast_days: int = 2) -> di
     return session.get(FORECAST_URL, params=params).json()
 
 
-# CAMS dust forecast archive (Copernicus, through Open-Meteo), Aug 2022 -> today. Used only to test
-# a dust warning against the Liverpool reports (extra_models.py); too few events, so not shown live.
-AIR_QUALITY_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
-
-
-def parse_dust(payload: dict | Path) -> pd.DataFrame:
-    if isinstance(payload, Path):
-        payload = json.loads(payload.read_text(encoding="utf-8"))
-    hourly = pd.DataFrame(payload["hourly"])
-    hourly["time_utc"] = pd.to_datetime(hourly.pop("time"), utc=True)
-    return hourly.dropna(subset=["dust"]).reset_index(drop=True)
-
-
 def parse_upper(payload: dict | Path) -> pd.DataFrame:
     """Hourly table: time_utc plus the upper-level wind (empty hours dropped)."""
     if isinstance(payload, Path):

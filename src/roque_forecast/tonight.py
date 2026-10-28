@@ -1,30 +1,28 @@
-"""The forecast for TONIGHT: the trained models applied to today's live data.
+"""The forecast for TONIGHT: the two models applied to today's live data.
 
-This is the step that turns the project from "an evaluation on past nights" into
-something an operator could look at in the afternoon. It downloads, every run:
-
-1. today's ECMWF IFS forecast for the observatory (Open-Meteo, same model and
-   variables as the archive the models were trained on);
-2. the NOT weather station for the last ~36 hours (the archive is updated
-   every minute), for the "2 hours before the night" inputs and last night;
+It downloads, every run:
+1. today's ECMWF and GFS forecasts for the observatory (Open-Meteo, the same
+   models and variables as the archives the models were trained on);
+2. the NOT weather station for the last ~36 hours (for the "2 hours before the
+   night" inputs and last night's closure);
 3. the R2D2 seeing monitor for the last two nights (last night's seeing).
 
-It then builds exactly the same input row as features.py builds for a past
-night, and applies the saved models (data/models/, written by train.py).
+and applies the two forecasts of the project:
+- **dome closed, hour by hour** (hourly.py): for each night hour, the probability
+  that the dome is closed for humidity, wind or ice. The night's expected closed
+  hours are the sum of the hourly probabilities;
+- **seeing of the night** (train.py): one number for the whole night.
 
 Two modes, so the forecast never uses information it could not have:
 - **provisional** (before the night starts): the station window "2 hours before
-  the night" is not complete yet, so the *forecast-only* models are used.
-- **final** (from the start of astronomical night): the full models, with the
-  station readings of the last 2 hours. This is the forecast that was evaluated
-  in reports/MODELS_01.md.
+  the night" does not exist yet, so the forecast-only twin models are used;
+- **final** (from the start of astronomical night): the full models.
 
 Outputs:
-- site/data/tonight.json: everything the web page shows (forecast, inputs, hourly
-  forecast curve, last 24 h at the station, the usual values for the month);
+- site/data/tonight.json: everything the web page shows;
 - data/forecasts/issued.jsonl: one line per run, the record of what was forecast;
-- data/forecasts/outcomes.jsonl: what really happened last night, so the
-  forecasts can be checked against reality as the nights go by (site_data.py).
+- data/forecasts/outcomes.jsonl: what really happened last night, so the forecasts
+  can be checked against reality as the nights go by (site_data.py).
 
 Usage:
     .venv/bin/python -m roque_forecast.tonight              # also updates FIWARE if it is running
@@ -43,10 +41,10 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from roque_forecast import astro, config, dome, features, hourly, train
+from roque_forecast import astro, config, features, hourly, train
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import liverpool, not_mast, open_meteo, r2d2
+from roque_forecast.sources import not_mast, open_meteo, r2d2
 
 log = logging.getLogger("tonight")
 
@@ -55,9 +53,13 @@ SITE_DATA_DIR = config.PROJECT_DIR / "site" / "data"
 FORECASTS_DIR = config.DATA_DIR / "forecasts"
 MODELS_DIR = config.DATA_DIR / "models"
 
-# Risk levels shown on the page. Climatology is ~20 % of nights, so "low" means
-# clearly below a typical night and "high" means more likely closed than open.
-RISK_LEVELS = [(0.2, "low"), (0.5, "medium"), (1.01, "high")]
+# Levels shown on the page. For one hour: the probability that the dome is closed.
+# For the night: the share of the night expected closed.
+HOUR_LEVELS = [(0.2, "low"), (0.5, "medium"), (1.01, "high")]
+NIGHT_LEVELS = [(0.1, "low"), (0.4, "medium"), (1.01, "high")]
+# Written with every issued forecast, so the track record only scores forecasts made by
+# the current models (hourly closure + nightly seeing), not by earlier versions.
+MODEL_VERSION = "hourly-closure-v2"
 # Seeing classes (arcsec). The Roque median is ~0.75-0.8".
 SEEING_CLASSES = [(0.6, "excellent"), (0.9, "good"), (1.2, "average"), (99, "poor")]
 
@@ -115,49 +117,24 @@ def clean_minutes(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def last_night(minutes: pd.DataFrame, seeing: pd.DataFrame, night: pd.Timestamp) -> dict:
-    """What happened on `night` (the night before tonight): dome closure and median seeing.
+    """What happened on `night` (the night before tonight): closed hours (humidity, wind or
+    ice, the same label as in training) and median seeing.
 
-    These are the persistence inputs for tonight, and also the "outcome" used to
-    check the forecast issued for that night.
+    These are the "last night" inputs for tonight, and the outcome used to check the
+    forecast issued for that night.
     """
-    night_minutes = minutes[pd.to_datetime(astro.night_label(minutes["time_utc"])) == night].copy()
-    night_minutes = night_minutes[astro.is_astronomical_night(night_minutes["time_utc"])]
-    out = {"night": str(night.date()), "dome_closed_frac": None, "dome_closed_h": None, "seeing_median": None}
-
     window = tonight_window(night.tz_localize("UTC") + pd.Timedelta(hours=12))  # that night's start/end
-    if not night_minutes.empty:
-        closed = dome.closed_by_humidity(night_minutes.reset_index(drop=True))
-        coverage = night_minutes["time_utc"].dt.floor("10min").nunique() / (window["length_h"] * 6)
+    out = {"night": str(night.date()), "dome_closed_frac": None, "dome_closed_h": None, "seeing_median": None}
+    labelled = hourly.label_minutes(minutes.copy())
+    dark = labelled[(labelled["time_utc"] >= window["start"]) & (labelled["time_utc"] < window["end"])]
+    if not dark.empty:
+        coverage = dark["time_utc"].dt.floor("10min").nunique() / (window["length_h"] * 6)
         if coverage >= MIN_NIGHT_COVERAGE:
-            out["dome_closed_frac"] = round(float(closed.mean()), 4)
-            out["dome_closed_h"] = round(float(closed.mean()) * window["length_h"], 2)
-
+            out["dome_closed_frac"] = round(float(dark["closed"].mean()), 4)
+            out["dome_closed_h"] = round(float(dark["closed"].mean()) * window["length_h"], 2)
     points = seeing[(seeing["time_utc"] >= window["start"]) & (seeing["time_utc"] < window["end"])]
     if len(points) >= MIN_SEEING_POINTS:
         out["seeing_median"] = round(float(points["seeing_arcsec"].median()), 3)
-    return out
-
-
-def liverpool_last_night(session: PoliteSession, now: pd.Timestamp, night: pd.Timestamp) -> dict:
-    """Last night's Liverpool Telescope report: hours lost to weather and photometric sky.
-
-    The report page is downloaded at most once a day (kept in data/raw/tonight/<date>/).
-    Reports appear the morning after; if last night is not there yet, the values stay
-    empty and the models work without them.
-    """
-    out = {"prev_lt_weather_h": None, "prev_lt_photometric": None}
-    path = config.RAW_DIR / "tonight" / f"{now:%Y-%m-%d}" / "liverpool.html"
-    try:
-        if not path.exists():
-            liverpool.download_year(session, now.year, now.date(), path)
-        year = night.year
-        table = liverpool.labels(liverpool.parse(path, year).set_index("night"))
-        if night in table.index:
-            r = table.loc[night]
-            out["prev_lt_weather_h"] = float(r["weather_h"])
-            out["prev_lt_photometric"] = None if pd.isna(r["photometric"]) else float(r["photometric"])
-    except Exception:
-        log.exception("Liverpool report failed")
     return out
 
 
@@ -181,32 +158,26 @@ def latest_gtc_panel(max_age_h: float = 1.0) -> dict | None:
 
 
 # --------------------------------------------------------------------------
-# Inputs and models
+# Inputs
 # --------------------------------------------------------------------------
 def build_inputs(live: dict, window: dict, previous: dict, final: bool) -> pd.DataFrame:
-    """One row with the model inputs for tonight, built with the same functions as in training."""
+    """One row with the night's inputs, built with the same functions as in training."""
     label = window["night"]
     forecast = features.nightly_forecast(live["forecast"])
     if label not in forecast.index:
         raise RuntimeError(f"the live forecast does not cover the night of {label.date()}")
     row = forecast.loc[[label]].copy()
-    # Jet-stream wind for the seeing (empty if the GFS request returned nothing for tonight).
     row = row.join(features.nightly_upper(live["upper"]), how="left") if len(live.get("upper", [])) else row
     for column in features.UPPER_FEATURES:
         if column not in row:
             row[column] = np.nan
-
     if final:
         starts = pd.Series([window["start"]], index=pd.DatetimeIndex([label], name="night"))
-        pre = features.pre_night_observations(live["minutes"], starts)
-        row = row.join(pre, how="left")
+        row = row.join(features.pre_night_observations(live["minutes"], starts), how="left")
     for column in features.OBSERVED_FEATURES:
         if column not in row:
             row[column] = np.nan
-
     row["prev_dome_closed_frac"] = previous["dome_closed_frac"]
-    row["prev_lt_weather_h"] = previous.get("prev_lt_weather_h")
-    row["prev_lt_photometric"] = previous.get("prev_lt_photometric")
     row["prev_seeing_median"] = previous["seeing_median"]
     doy = 2 * np.pi * row.index.day_of_year / 365.25
     row["doy_sin"], row["doy_cos"] = np.sin(doy), np.cos(doy)
@@ -216,83 +187,6 @@ def build_inputs(live: dict, window: dict, previous: dict, final: bool) -> pd.Da
 
 def level(value: float, levels: list[tuple[float, str]]) -> str:
     return next(name for limit, name in levels if value < limit)
-
-
-def references(row: pd.DataFrame, final: bool) -> dict:
-    """The reference methods for tonight, computed exactly as in the evaluation (train.py),
-    from the years the models were fitted on (2017-2023)."""
-    table = pd.read_parquet(config.PROCESSED_DIR / "model_table.parquet")
-    fitted = table[table["year"] <= train.VALIDATION_YEAR]
-    closure = train.closure_baselines(fitted.dropna(subset=["closed"]), row)
-    seeing = train.seeing_baselines(fitted.dropna(subset=["seeing_median"]), row)
-    nights = pd.read_parquet(config.PROCESSED_DIR / "nights.parquet")
-    wht = nights[nights.index.year.isin(train.WHT_CLIMATOLOGY_YEARS) & (nights["wht_has_accounting"] == True)]
-    lost = wht["wht_weather_lost_h"].clip(upper=wht["wht_night_h"]).groupby(wht.index.month).mean()
-    return {
-        "closure_climatology": round(float(closure["climatology (month)"][0]), 3),
-        # Usual closed hours for the month (humidity rule, 2017-2023), for the "dome closed" tile.
-        "closed_h_climatology": round(float(fitted.groupby("month")["dome_closed_h"].mean().get(row["month"].iloc[0])), 2),
-        "closure_persistence": round(float(closure["persistence (last night)"][0]), 3),
-        # Precasting needs the station readings before the night: only in final mode.
-        "closure_precasting": round(float(closure["precasting (humidity before night >= 90 %)"][0]), 3)
-        if final else None,
-        "seeing_climatology": round(float(seeing["climatology (month)"][0]), 3),
-        "lost_h_climatology": round(float(lost.loc[row["month"].iloc[0]]), 2),
-    }
-
-
-def predict(row: pd.DataFrame, window: dict, final: bool) -> dict:
-    closure = joblib.load(MODELS_DIR / "closure.joblib")
-    seeing = joblib.load(MODELS_DIR / "seeing.joblib")
-    lost = joblib.load(MODELS_DIR / "lost_hours.joblib")["line"]
-    if "probability_forecast_only" not in closure:
-        raise SystemExit("models are out of date: run `python -m roque_forecast.train` first")
-
-    if final:
-        inputs = row[closure["features"]]
-        p = closure["probability"].predict_proba(inputs)[0, 1]
-        hours = closure["hours"].predict(inputs)[0]
-        see = seeing["model"].predict(row[seeing["features"]])[0]
-    else:
-        inputs = row[closure["forecast_only_features"]]
-        p = closure["probability_forecast_only"].predict_proba(inputs)[0, 1]
-        hours = closure["hours_forecast_only"].predict(inputs)[0]
-        see = seeing["model_forecast_only"].predict(row[seeing["forecast_only_features"]])[0]
-
-    hours = float(np.clip(hours, 0, window["length_h"]))
-    lost_h = float(np.clip(lost.predict(pd.DataFrame({"pred_closed_h": [hours]}))[0], 0, window["length_h"]))
-    extra = predict_extra(row, window, final)
-    return extra | {
-        "p_closed": round(float(p), 3),
-        "risk": level(p, RISK_LEVELS),
-        "closed_h": round(hours, 2),
-        "seeing_arcsec": round(float(see), 2),
-        "seeing_class": level(see, SEEING_CLASSES),
-        "lost_h": round(lost_h, 2),
-    }
-
-
-def predict_extra(row: pd.DataFrame, window: dict, final: bool) -> dict:
-    """Hours lost as the Liverpool Telescope would book them, and a photometric (clear) sky."""
-    path = MODELS_DIR / "extra.joblib"
-    if not path.exists():
-        return {}
-    models = joblib.load(path)
-    lost, sky = models["lost"], models["sky"]
-    lost_model, lost_inputs = (lost["model"], lost["features"]) if final else \
-        (lost["model_forecast_only"], lost["forecast_only_features"])
-    sky_model, sky_inputs = (sky["probability"], sky["features"]) if final else \
-        (sky["probability_forecast_only"], sky["forecast_only_features"])
-    lt_lost = float(np.clip(lost_model.predict(row[lost_inputs].astype(float))[0], 0, window["length_h"]))
-    p_sky = float(sky_model.predict_proba(row[sky_inputs].astype(float))[0, 1])
-    return {"lt_lost_h": round(lt_lost, 2), "p_photometric": round(p_sky, 3),
-            "sky": level(1 - p_sky, RISK_LEVELS)}  # low risk of a non-photometric sky = good
-
-
-# --------------------------------------------------------------------------
-# Hour by hour
-# --------------------------------------------------------------------------
-ICE_TEMP_C = 0.5  # at or below this temperature, wet surfaces can freeze
 
 
 def tonight_hours(window: dict) -> pd.DataFrame:
@@ -309,55 +203,63 @@ def tonight_hours(window: dict) -> pd.DataFrame:
     return out
 
 
-def recent_ice(minutes: pd.DataFrame, now: pd.Timestamp) -> bool:
-    """Ice risk from the station: in the last 24 h it was freezing while humid (rime, ice)."""
-    recent = minutes[minutes["time_utc"] > now - pd.Timedelta(hours=24)]
-    return bool(((recent["temp_c"] <= ICE_TEMP_C) & (recent["humidity_pct"] >= 90)).any())
-
-
-def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: pd.Timestamp) -> list[dict]:
-    """Each hour of tonight: the raw forecast read literally, our models and the warnings."""
-    models = joblib.load(MODELS_DIR / "hourly.joblib")
-    hours = tonight_hours(window)
-    forecast = hourly.hour_forecast(live["forecast"], live.get("upper"))
-    table = hours.join(forecast, on="hour")
-    night = row.reset_index(drop=True).drop(columns=["hour_of_night", "night_fraction"], errors="ignore")
-    table = table.join(pd.concat([night] * len(table), ignore_index=True))
+# --------------------------------------------------------------------------
+# The two forecasts
+# --------------------------------------------------------------------------
+def forecast_hours(live: dict, window: dict, row: pd.DataFrame, final: bool) -> pd.DataFrame:
+    """Forecast 1: the probability that the dome is closed in each hour of tonight."""
+    model = joblib.load(MODELS_DIR / "hourly.joblib")["closure"]
     mode = "final" if final else "provisional"
-    pick = (lambda m: (m["probability"], m["features"])) if final else \
-        (lambda m: (m["probability_forecast_only"], m["forecast_only_features"]))
-    closure_model, closure_inputs = pick(models["closure"])
-    wind_model, wind_inputs = pick(models["wind"])
-    seeing = models["seeing"]
-    seeing_model, seeing_inputs = (seeing["model"], seeing["features"]) if final else \
-        (seeing["model_forecast_only"], seeing["forecast_only_features"])
-    table = table.astype({c: float for c in set(closure_inputs + wind_inputs + seeing_inputs)})
-    # The hourly % on the page: dome shut for humidity OR wind, combining the two models.
-    table["p_humidity"] = closure_model.predict_proba(table[closure_inputs])[:, 1]
-    table["p_wind"] = wind_model.predict_proba(table[wind_inputs])[:, 1]
-    table["p_closed"] = hourly.combine(table["p_humidity"], table["p_wind"])
-    table["seeing"] = seeing_model.predict(table[seeing_inputs])
-
-    ice_from_station = recent_ice(live["minutes"], now)
+    hours = tonight_hours(window)
+    table = hours.join(hourly.hour_forecast(live["forecast"], live.get("upper")), on="hour")
+    night = row.reset_index(drop=True)
+    table = table.join(pd.concat([night] * len(table), ignore_index=True))
+    inputs = model[f"{mode}_features"]
+    table["p_closed"] = model[mode].predict_proba(table[inputs].astype(float))[:, 1]
+    table["raw_closed"] = hourly.raw_literal(table)
     mid = pd.DatetimeIndex(table["hour"]) + pd.Timedelta(minutes=30)
-    moon_up = astro.moon_altitude_deg(mid) > 0
-    wind_threshold = models["wind"]["warning_thresholds"][mode]
-    out = []
-    for i, h in enumerate(table.itertuples()):
-        raw_wind = h.h_wind_750 if not np.isnan(h.h_wind_750) else h.h_wind
-        out.append({
-            "t": iso(h.hour), "local": h.hour.tz_convert(LOCAL_TZ).strftime("%H:%M"),
-            "dark_minutes": int(h.dark_minutes),
-            "raw": {"rh": h.h_rh, "closes": bool(h.h_rh >= hourly.HUMIDITY_LIMIT_PCT), "wind": raw_wind,
-                    "windy": bool(raw_wind >= hourly.WIND_LIMIT_MS), "temp": h.h_temp, "cloud": h.h_cloud},
-            "p_closed": round(float(h.p_closed), 3), "risk": level(h.p_closed, RISK_LEVELS),
-            "p_humidity": round(float(h.p_humidity), 3), "p_wind": round(float(h.p_wind), 3),
-            "seeing": round(float(h.seeing), 2), "seeing_class": level(h.seeing, SEEING_CLASSES),
-            "warn_wind": bool(h.p_wind >= wind_threshold),
-            "warn_ice": bool(h.h_temp <= ICE_TEMP_C and (h.h_rh >= hourly.HUMIDITY_LIMIT_PCT or ice_from_station)),
-            "moon_up": bool(moon_up[i]),
-        })
-    return out
+    table["moon_up"] = astro.moon_altitude_deg(mid) > 0
+    return table
+
+
+def forecast_seeing(row: pd.DataFrame, final: bool) -> float:
+    """Forecast 2: the median seeing of the night (train.py nightly model)."""
+    seeing = joblib.load(MODELS_DIR / "seeing.joblib")
+    model, inputs = (seeing["model"], seeing["features"]) if final else \
+        (seeing["model_forecast_only"], seeing["forecast_only_features"])
+    return float(model.predict(row[inputs])[0])
+
+
+def usual_for_month(month: int) -> dict:
+    """What is normal for this month (2017-2023): closed hours (full label) and seeing."""
+    table = pd.read_parquet(config.PROCESSED_DIR / "hour_table.parquet")
+    fitted = table[table["year"] <= train.VALIDATION_YEAR].dropna(subset=["closed"])
+    nights = hourly.closed_hours_by_night(fitted, ["closed"])
+    seeing = pd.read_parquet(config.PROCESSED_DIR / "model_table.parquet")
+    seeing = seeing[seeing["year"] <= train.VALIDATION_YEAR]
+    return {"closed_h": round(float(nights.loc[nights["month"] == month, "closed"].mean()), 2),
+            "seeing": round(float(seeing.loc[seeing["month"] == month, "seeing_median"].median()), 3)}
+
+
+def summarise(hours: pd.DataFrame, window: dict, seeing: float, month: int) -> dict:
+    weight = hours["dark_minutes"] / 60
+    closed_h = float((hours["p_closed"] * weight).sum())
+    return {
+        "closed_h": round(closed_h, 2),
+        "open_h": round(window["length_h"] - closed_h, 2),
+        "risk": level(closed_h / window["length_h"], NIGHT_LEVELS),
+        "raw_closed_hours": int(hours["raw_closed"].sum()),
+        "seeing_arcsec": round(seeing, 2),
+        "seeing_class": level(seeing, SEEING_CLASSES),
+        "usual": usual_for_month(month),
+    }
+
+
+def hours_for_page(hours: pd.DataFrame) -> list[dict]:
+    return [{"t": iso(h.hour), "local": h.hour.tz_convert(LOCAL_TZ).strftime("%H:%M"),
+             "dark_minutes": int(h.dark_minutes), "p_closed": round(float(h.p_closed), 3),
+             "level": level(h.p_closed, HOUR_LEVELS), "raw_closed": bool(h.raw_closed), "moon_up": bool(h.moon_up)}
+            for h in hours.itertuples()]
 
 
 # --------------------------------------------------------------------------
@@ -401,11 +303,11 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
     final = now >= window["start"]
     live = download_live(session, now, config.RAW_DIR / "tonight" / f"{now:%Y-%m-%d}")
     previous = last_night(live["minutes"], live["seeing"], window["night"] - pd.Timedelta(days=1))
-    previous |= liverpool_last_night(session, now, window["night"] - pd.Timedelta(days=1))
     row = build_inputs(live, window, previous, final)
-    forecast = predict(row, window, final)
-    used = features.SEEING_FEATURES if final else train.SEEING_FORECAST_ONLY
+    hours = forecast_hours(live, window, row, final)
+    forecast = summarise(hours, window, forecast_seeing(row, final), int(row["month"].iloc[0]))
     last_minute = live["minutes"].dropna(subset=["humidity_pct"]).iloc[-1]
+    used = hourly.CLOSURE_FEATURES if final else hourly.CLOSURE_FORECAST_ONLY
 
     page = {
         "issued_utc": iso(now),
@@ -419,20 +321,16 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
             "final_from_utc": iso(window["start"]),
         },
         "forecast": forecast,
+        "hours": hours_for_page(hours),
         "moon": astro.moon_during(window["start"], window["end"]),
-        "references": references(row, final),
-        "inputs": {name: row[name].iloc[0] for name in used},
+        "inputs": {name: row[name].iloc[0] for name in used if name in row},
         "last_night": previous,
         "station_now": {"time_utc": iso(last_minute.time_utc), "rh": last_minute.humidity_pct,
                         "wind": last_minute.wind_speed_ms, "temp": last_minute.temp_c,
                         "pressure": last_minute.pressure_hpa},
         "gtc_panel": latest_gtc_panel(),
-        "hours": hour_by_hour(live, window, row, final, now),
         "hourly": hourly_curve(live["forecast"], window),
         "station_24h": station_curve(live["minutes"], now),
-        "model": {"trained_on": "2017-2023", "tested_on": "2024-2026",
-                  "inputs": "forecast + station 2 h before the night + last night + season" if final
-                  else "forecast + last night + season (station window not complete yet)"},
     }
     return clean(page)
 
@@ -441,8 +339,9 @@ def save(page: dict) -> None:
     SITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
     (SITE_DATA_DIR / "tonight.json").write_text(json.dumps(page, ensure_ascii=False, indent=1), encoding="utf-8")
     FORECASTS_DIR.mkdir(parents=True, exist_ok=True)
-    issued = {"issued_utc": page["issued_utc"], "night": page["night"]["date"], "mode": page["mode"]} | {
-        k: page["forecast"][k] for k in ("p_closed", "closed_h", "seeing_arcsec", "lost_h")}
+    issued = {"issued_utc": page["issued_utc"], "night": page["night"]["date"], "mode": page["mode"],
+              "model": MODEL_VERSION} | {
+        k: page["forecast"][k] for k in ("closed_h", "seeing_arcsec")}
     with (FORECASTS_DIR / "issued.jsonl").open("a", encoding="utf-8") as f:
         f.write(json.dumps(issued) + "\n")
     # Last night's outcome (rewritten if the same night is seen again: later runs have more data).
@@ -470,9 +369,9 @@ def main(argv: list[str] | None = None) -> int:
     page = run(now, PoliteSession())
     save(page)
     f = page["forecast"]
-    log.info("night %s (%s): closure %.0f %% (%s), %.1f h closed, seeing %.2f\", %.1f h lost",
-             page["night"]["date"], page["mode"], 100 * f["p_closed"], f["risk"], f["closed_h"],
-             f["seeing_arcsec"], f["lost_h"])
+    log.info("night %s (%s): %.1f of %.1f h expected closed (%s), seeing %.2f\"",
+             page["night"]["date"], page["mode"], f["closed_h"], page["night"]["length_h"], f["risk"],
+             f["seeing_arcsec"])
     if not args.no_fiware:
         from roque_forecast import fiware  # optional: only when the local FIWARE stack is running
         fiware.push_forecast(page)

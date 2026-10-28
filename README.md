@@ -1,88 +1,85 @@
 # Roque Night Forecast
 
-Forecasting observing conditions at the **Roque de los Muchachos Observatory** (La Palma, Canary Islands):
-will the dome have to close tonight, how good will the seeing be, and how many hours are likely
-to be lost to weather.
+Tonight at the **Roque de los Muchachos Observatory** (La Palma, Canary Islands), hour by hour: **will the
+dome be open, and how sharp will the stars be?**
 
 > **Independent project.** This is a personal portfolio project. It is **not affiliated with,
-> endorsed by or produced for** GRANTECAN, the IAC, the ING, the NOT, the TNG or any other
-> institution. All data come from their public web pages and are credited below.
+> endorsed by or produced for** GRANTECAN, the IAC, the ING, the NOT, the TNG, the Liverpool Telescope or
+> any other institution. All data come from their public web pages and are credited below.
 
-## Data: what everything is based on
+![Web page, Spanish version (28 Oct 2026)](reports/figures/13_web_es.jpg)
+
+## What it forecasts: two models, one label checked three ways
+
+| Question | Forecast | Learnt from |
+|---|---|---|
+| **Will the dome be open, and when?** | For each night hour, the probability that the dome is closed (`hourly.py`). The night's expected closed hours are the sum of the hours. | The **closure label**: humidity ≥ 90 % (NOT rule, reopen after 20 min), gusts above 80 km/h (INT limit) or ice (≤ 0 °C after saturated air within 24 h), rebuilt minute by minute from the NOT weather station since 1997 (`dome.py`). |
+| **How sharp?** | The median seeing of the night (`train.py`). | The ING R2D2 seeing monitor (2018 →). |
+
+The Moon (phase, rise/set, moonless hours) is computed, not forecast.
+
+**Why a model and not the weather forecast itself?** The weather model sees the mountain lower than it is,
+inside the sea of clouds below the summit: read literally (humidity ≥ 90 % → close) it calls "close" in
+most night hours, and in 2024–2026 only 2 in 10 of those calls were right. The models learn, from 7 years of
+archived forecasts against what happened at the summit, how to correct it.
+
+**Is the label real?** There is no public record of when the GTC closes, so the label is checked against
+three independent public sources (`validate.py`):
+- **GTC public archive (2024):** of the 884 hours the GTC was taking science exposures, the label says
+  "closed" 1.1 % of the time; on the 26 nights it calls fully closed, the GTC took no data at all.
+- **Liverpool Telescope night reports (2017–2026):** its hours lost to weather follow the label
+  (correlation 0.74); of the 355 nights the label closes fully, the LT lost 99 %.
+- **WHT nightly accounting:** correlation 0.70–0.80 in the reliable years, falling in the years whose log
+  books closed nights as observed (2019–2022, 2024–2025).
+
+## Results (test years 2024–2026, never used for training or for any choice)
+
+| Forecast | Simplest references | Our forecast (final) |
+|---|---|---|
+| Dome closed, each hour (8,577 hours) | raw forecast: right 2 in 10 "close" calls; humidity just before the night: right 7 in 10 | **right 7 in 10, catches 7 in 10**; Brier 0.067 (skill 0.51), AUC 0.95 |
+| Closed hours of the night (1,028 nights) | usual for the month: off by 2.0 h; same as last night: 1.3 h; raw forecast: 4.7 h | **off by 0.8 h on average** (provisional, before the night: 1.1 h) |
+| Seeing of the night (780 nights) | usual for the month: off by 0.23″; same as last night: 0.28″ | **off by 0.20″** (RMSE 0.284″ against 0.350″) |
+
+Two modes, so a forecast never uses information it could not have had: **provisional** (afternoon:
+weather forecast, last night, season) and **final** (from the start of astronomical night, adding the NOT
+station in the 2 hours before the night, the input that helps the most).
+
+**Tried and dropped** (documented in [MODELS_01](reports/MODELS_01.md)): separate nightly closure and WHT
+hours-lost models (replaced by the hourly model and its sum), Liverpool hours-lost and clear-sky models (no
+better than "same as last night" for the sky), a CAMS dust warning (too few events), hour-by-hour seeing
+(no better than the nightly model) and isotonic recalibration (no gain).
+
+## Data
 
 All data are **real and public**; nothing in this project is simulated.
 
-### Historical (to train and evaluate the models)
-
-| Source | What it gives | Period | Used for |
-|---|---|---|---|
-| [NOT weather archive](https://www.not.iac.es/weather/archive/met/index.php) (Nordic Optical Telescope, on the Roque) | humidity, temperature, pressure and wind, every minute (every 5 min until 2006) | 1997 → today | when the dome closed (humidity rule, below) and the "2 h before the night" inputs |
-| [ING R2D2 seeing monitor](https://astro.ing.iac.es/seeing/) (Isaac Newton Group) | DIMM seeing every 15–35 s at night | Sep 2018 → today | the real seeing of each night (median) |
-| [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather and faults on the WHT, Moon illumination | 2007 → today | real hours lost; only reliable years (2017, 2018, 2023, 2026), other years book closed nights as observed |
-| [Open-Meteo](https://open-meteo.com) archived ECMWF IFS HRES forecasts ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | the hourly forecast at the site as issued at the time (not the weather measured later) | 2017 → today (issued 24 h earlier: 2025 → today) | model inputs |
-| [Open-Meteo](https://open-meteo.com) archived NOAA GFS forecasts | wind at 200 hPa (~12 km, jet stream) and 750 hPa (~2.5 km, summit height) | Mar 2021 → today | seeing input; hourly wind input |
-| [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/) (robotic 2 m telescope on the Roque) | hours observed / lost to weather / lost to faults and a comment with the reason ("high humidity", "ice risk", "calima", "photometric") | 2007 → today | hours lost to weather (all years reliable), photometric sky, dust label |
-| [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) archived CAMS dust forecast | hourly airborne dust (µg/m³) | Aug 2022 → today | testing a dust warning (too few events; not shown) |
-
-### Live (for tonight's forecast)
-
-| Source | How often | Used for |
+| Use | Source | Period |
 |---|---|---|
-| Today's ECMWF and GFS forecast (Open-Meteo) | hourly | inputs of tonight's forecast, hour-by-hour chart |
-| NOT weather station, last 36 h | hourly | the 2 h before the night (final forecast), last night's closure, 24 h chart |
-| R2D2 seeing, last days | hourly | last night's seeing |
-| Last night's Liverpool Telescope report | once a day | last night's hours lost and clear sky (model inputs) |
-| [GTC atmosportal](https://atmosportal.gtc.iac.es/) live panel (GTC weather station; rain, PM10 dust, warning colours) | every 15 min | shown on the page and as a FIWARE entity; not a model input (the site keeps only the last month) |
-| GTC 30-day series and [TNG weather](https://tngweb.tng.iac.es/weather) (24 h series, dust by particle size, downtime) | weekly / daily | stored to build up a history; not model inputs yet |
+| Label (what happened) | [NOT weather archive](https://www.not.iac.es/weather/archive/met/index.php), minute by minute: humidity, wind, temperature, pressure | 1997 → today |
+| Label (what happened) | [ING R2D2 seeing monitor](https://astro.ing.iac.es/seeing/) | Sep 2018 → today |
+| Inputs (what was known) | [Open-Meteo](https://open-meteo.com) archived ECMWF IFS HRES forecasts ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), as issued at the time | 2017 → today |
+| Inputs (what was known) | Open-Meteo archived NOAA GFS: wind at 750 hPa (summit height) and 200 hPa (jet stream) | Mar 2021 → today |
+| Checking the label | [GTC public archive](https://gtc.sdc.cab.inta-csic.es/gtc/index.jsp) (CAB, CSIC-INTA): exposure start/end times | 2024 |
+| Checking the label | [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/) | 2007 → today |
+| Checking the label | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) (WHT hours lost) | 2007 → today |
+| Live, shown only | [GTC atmosportal](https://atmosportal.gtc.iac.es/) panel; [TNG weather](https://tngweb.tng.iac.es/weather) (stored for later) | live |
 
-### Computed here
-
-- **Dome closure.** There is no public record of when the GTC closes. Closure is rebuilt minute by minute
-  since 1997 from the NOT's public rule: close at humidity ≥ 90 %, reopen after 20 minutes in a row below it.
-- **Astronomical night and the Moon.** Own Sun and Moon formulas (Moon checked against PyEphem).
-
-Downloads identify themselves with a descriptive User-Agent, wait at least 2 s between requests and
-only use pages linked from the public sites.
+Downloads identify themselves with a descriptive User-Agent, wait between requests and only use pages
+linked from the public sites.
 
 ## Status
 
 | Step | State |
 |---|---|
-| Python environment, project layout, polite downloaders for 5 public sources | done |
-| Live collectors (GTC panel every 15 min, TNG 24 h series, GTC 30-day series) | running |
-| Bulk historical download (NOT 1997+, R2D2 2018+, ING nights 2007+) | done |
-| Clean tables (Parquet) and exploratory analysis — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done |
-| Models: dome-closure risk, seeing, hours lost, honest baselines — [report](reports/MODELS_01.md), [notebook](notebooks/02_models.ipynb) | done |
-| Tonight's forecast, live (same models, current Open-Meteo forecast + NOT station) | done |
-| FIWARE entities (`WeatherObserved`, `WeatherForecast`) in Orion + QuantumLeap + Grafana (ES/EN) | done (local) |
-| Bilingual (ES/EN) web page with tonight's forecast and the evaluation | done (local); GitHub Pages when public |
-| Jet-stream wind (GFS 200 hPa) for seeing; closure recalibration tested and rejected; Moon and dark time on the page | done |
-
-## Results (test years 2024–2026, never used for training or tuning)
-
-| Forecast | Best reference method | Model |
-|---|---|---|
-| Dome closure (≥ 1 h closed by the humidity rule) | precasting: Brier 0.082, skill 0.45 | gradient boosting: Brier **0.067**, skill **0.55**, AUC 0.96 |
-| Median seeing of the night | climatology: RMSE 0.350″ | gradient boosting (+ jet-stream wind): RMSE **0.284″** (−19 %) |
-| WHT hours lost to weather (2026, reliable log) | climatology: RMSE 2.99 h; persistence: MAE 1.42 h | calibrated closure forecast: RMSE **2.65 h**, MAE **1.36 h** |
-| Liverpool Telescope hours lost to weather (all reasons) | climatology: RMSE 3.71 h; persistence: MAE 1.92 h | gradient boosting: RMSE **2.52 h** (−32 %), MAE **1.51 h** |
-| Photometric (clear) sky, LT nights observed | persistence: Brier 0.224 | gradient boosting: Brier **0.211**, AUC 0.74 (raw forecast cloud: no skill) |
-| Dust (calima) noted by the LT, 18 test nights — **tested, not shown on the page** | CAMS ≥ 50 µg/m³: catches 3 of 18 | CAMS ≥ 20 µg/m³ (chosen on 2022–2023): 12 of 18, but 93 % false alarms; too few events to trust |
-
-Skill is against monthly climatology. The models use only what is known at the start of the night:
-- the ECMWF forecast, taken from forecast archives and not from the weather measured later;
-- the NOT station in the 2 previous hours;
-- last night's outcome;
-- the season.
-
-The results hold with forecasts issued 24 h earlier. Details and caveats are in the
-[models report](reports/MODELS_01.md).
-
-![Closure skill](reports/figures/06_closure_skill.png)
+| Downloaders, bulk history, clean tables, EDA — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done |
+| Nightly study (closure, seeing, WHT hours lost) — [report](reports/MODELS_01.md), [notebook](notebooks/02_models.ipynb) | done |
+| Closure label with humidity, wind and ice; hourly closure model; checks against GTC, LT and WHT | done |
+| Tonight's forecast, live, every hour; FIWARE entities + Grafana (ES/EN) | done (local) |
+| Bilingual web page | done (local); GitHub Pages when the repo is public |
 
 ## Key findings from the data
 
-- The dome-closure rule rebuilt from humidity tracks the hours the WHT really lost to weather (r = 0.74 in 2007–2018, 90 % agreement on "most of the night lost"), but misses winter losses caused by wind, dust or ice.
+- A closure rule rebuilt from humidity alone tracks the hours the WHT really lost to weather (r = 0.74 in 2007–2018) but misses winter losses; adding strong wind and ice to the label closes most of that gap (see the checks above).
 - The WHT accounting is not equally reliable every year: since 2019 many nights with the domes closed by humidity are reported as fully observed with zero losses. Those years (2019–2022, 2024–2025) are kept out of model fitting and shown only for comparison.
 - Wind is the strongest driver of seeing (Spearman +0.58 with the night's maximum wind); easterly winds give the worst seeing.
 - For seeing, the monthly climatology (RMSE 0.34″) beats "same as last night" (0.41″): that is the bar a model must clear.
@@ -106,9 +103,10 @@ uv sync                                          # create .venv and install depe
 .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts (~30 s)
 .venv/bin/python -m roque_forecast.features      # one row per night: inputs known at sunset + labels
 .venv/bin/python -m roque_forecast.train         # fit, compare with baselines -> reports/results/
-.venv/bin/python -m roque_forecast.hourly        # hour-by-hour models (closure, wind, seeing) -> reports/results/hourly_*
-.venv/bin/python -m roque_forecast.backfill liverpool   # Liverpool Telescope night reports (2007 -> today)
-.venv/bin/python -m roque_forecast.extra_models  # LT hours lost, photometric sky, dust warning -> reports/results/
+.venv/bin/python -m roque_forecast.hourly        # hourly closure model -> reports/results/hourly_scores.csv
+.venv/bin/python -m roque_forecast.backfill liverpool    # Liverpool Telescope night reports (2007 -> today)
+.venv/bin/python -m roque_forecast.backfill gtc_archive  # GTC public archive, 2024 (slow: ~2 min per search)
+.venv/bin/python -m roque_forecast.validate      # label checks -> reports/results/validation.json
 ```
 
 ### Tonight's forecast and the web page
@@ -120,39 +118,9 @@ uv sync                                          # create .venv and install depe
 scripts/update_tonight.sh                       # both steps (hourly job); ROQUE_PUBLISH=1 also publishes
 ```
 
-![Web page, Spanish version (28 Oct 2026)](reports/figures/13_web_es.jpg)
-
-**Hour by hour.** The page shows each hour of the night side by side: what the weather forecast says read
-literally (humidity ≥ 90 % → close), our probability of closing for humidity, the seeing of that hour, and
-warnings for wind and ice (`hourly.py`). On the 2024–2026 test hours:
-
-The hourly % on the page is the chance that the dome is shut for **humidity or wind**: the humidity and
-wind models combined as 1 − (1 − p_humidity)(1 − p_wind). On the test hours this scores the same as a single
-model trained on "humidity or wind" (Brier 0.065), and it never falls below the humidity figure.
-
-| Hour-by-hour call (dome shut for humidity or wind) | Shut hours caught | Wrong "close" calls |
-|---|---|---|
-| Raw forecast, read literally (humidity ≥ 90 % or wind ≥ 22.2 m/s) | 93 % | **78 %** |
-| Our forecast (final), probability ≥ 50 % | 71 % | **26 %** |
-| Our forecast (provisional), probability ≥ 50 % | 58 % | 32 % |
-
-The raw forecast is far too wet at the summit (the 9 km grid point sits inside the cloud layer, below the
-real summit): it says "close" in 6,092 hours, of which 1,350 really closed. The hourly closure model scores
-Brier 0.057 (skill 0.55 against monthly climatology, AUC 0.96). Hourly seeing: RMSE 0.358″ against 0.409″
-for climatology.
-
-Wind and the other warnings are honest about their limits:
-- **Wind** (gusts above 80 km/h, the INT closing limit on the Roque): too rare (1.4 % of hours) for a
-  calibrated probability, so the model drives a warning whose threshold was chosen on 2023. It catches 90 %
-  of the windy hours (final) / 80 % (provisional), but about 5 of 6 warnings are false alarms.
-- **Ice** (forecast ≤ 0.5 °C with high humidity, or freezing and humid at the NOT in the last 24 h) is a
-  simple rule, not evaluated. A **dust** warning was tested against the Liverpool reports (see
-  [MODELS_01](reports/MODELS_01.md), section 5) and left out: too few events to trust it.
-
-Two modes, so a forecast never uses information it could not have had:
-- **provisional** (afternoon): forecast-only models (weather forecast, last night, season);
-- **final** (from the start of astronomical night): the full models, adding the NOT station in the 2 h
-  before the night. This is the forecast evaluated in [MODELS_01](reports/MODELS_01.md).
+The page answers the question first (how many hours should be observable, and which), with the seeing
+and the Moon; the evidence (label checks, scores in plain words, recent nights, reliability, live track
+record, technical scores) is folded below.
 
 Every run is logged in `data/forecasts/issued.jsonl`. Each run also records what really happened the
 night before (`outcomes.jsonl`), so the page builds a **live track record**, scoring the first final
@@ -174,7 +142,7 @@ docker compose -f infra/docker-compose.yml up -d     # Orion :1027, QuantumLeap 
 |---|---|---|
 | `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | `collect live` (every 15 min) |
 | `urn:ngsi-ld:WeatherObserved:ORM-NOT` | `WeatherObserved` | `tonight` (hourly) |
-| `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` (+ closure probability, seeing, hours lost) | `tonight` (hourly) |
+| `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` (+ closed hours, hourly closure probability, seeing) | `tonight` (hourly) |
 
 ![Grafana dashboard, Spanish version (28 Oct 2026)](reports/figures/14_grafana_es.jpg)
 
@@ -205,20 +173,22 @@ src/roque_forecast/
   backfill.py        resumable bulk download of the historical archives
   build_tables.py    raw files -> clean Parquet tables (minutes, R2D2 points, ING nights, nights)
   astro.py           Sun altitude and astronomical night (NOAA formulas, checked against ING)
-  dome.py            dome-closure rule rebuilt from humidity
+  dome.py            closure label rebuilt minute by minute: humidity, strong wind, ice
   features.py        modelling table: forecast + pre-night station + persistence + season, and labels
-  train.py           time-split training, baselines, metrics, permutation importance
+  train.py           nightly models: seeing (used live), closure and WHT hours (study only)
+  hourly.py          hourly closure model, provisional and final, against baselines
+  validate.py        checks the label against the GTC archive, Liverpool Telescope and WHT
   plotting.py        shared figure style (colour-blind-safe palette)
   tonight.py         tonight's forecast from live data (provisional / final modes)
   site_data.py       evaluation and live track record for the web page
   fiware.py          NGSI-v2 entities, Orion updates, QuantumLeap subscription and backfill
   dashboards.py      Grafana dashboards (Spanish and English) from one definition
+  sources/           one module per data source: download + parse
 site/                static bilingual web page (index.html, assets/; data/ is generated)
 infra/               Docker Compose for Orion, QuantumLeap, CrateDB and Grafana
 scripts/             LaunchAgent installer, hourly update and gh-pages publishing
 notebooks/           analysis notebooks (.py source + executed .ipynb)
 reports/             written findings, figures and metric tables (reports/results/)
-  sources/           one module per data source: download + parse
 tests/               parser tests on small real files (tests/fixtures/), time-window and split tests
 launchd/             LaunchAgent templates
 data/                downloaded data (not in git)

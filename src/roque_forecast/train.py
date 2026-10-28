@@ -1,4 +1,9 @@
-"""Train and evaluate the three night forecasts against simple reference methods.
+"""The nightly study: three night forecasts against simple reference methods.
+
+What the live forecast uses from here: the **seeing** model (one number per night).
+The dome-closure forecast moved to hourly.py (hour by hour, closure for humidity,
+wind or ice); the nightly closure and WHT hours-lost models below are the first
+study, kept because reports/MODELS_01.md reports them.
 
     1. Dome closure risk: probability that the humidity rule closes the dome for
        at least 1 hour tonight (plus a second model for the number of hours).

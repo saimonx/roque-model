@@ -4,8 +4,9 @@ Usage (from the project folder):
     .venv/bin/python -m roque_forecast.backfill not     # NOT weather, month by month, 1997 -> today
     .venv/bin/python -m roque_forecast.backfill r2d2    # R2D2 seeing, month by month, Sep 2018 -> today
     .venv/bin/python -m roque_forecast.backfill ing     # ING accounting, night by night, 2007 -> yesterday
-    .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts (+ CAMS dust), year by year
-    .venv/bin/python -m roque_forecast.backfill liverpool  # Liverpool Telescope night reports, year by year
+    .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts, year by year
+    .venv/bin/python -m roque_forecast.backfill liverpool  # Liverpool Telescope night reports (to check the label)
+    .venv/bin/python -m roque_forecast.backfill gtc_archive  # GTC public archive, 2024 (to check the label; slow)
 
 Design choices:
 - **Resumable:** files already on disk are skipped, so the command can be stopped
@@ -25,7 +26,7 @@ from pathlib import Path
 
 from roque_forecast import config
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import ing_nights, liverpool, not_mast, open_meteo, r2d2
+from roque_forecast.sources import gtc_archive, ing_nights, liverpool, not_mast, open_meteo, r2d2
 
 log = logging.getLogger("backfill")
 
@@ -142,25 +143,7 @@ def backfill_forecasts(session: PoliteSession, today: date) -> None:
                 log.exception("Open-Meteo %s %d failed (will retry on next run)", kind, year)
 
 
-DUST_FIRST_DAY = date(2022, 8, 4)  # first day of the CAMS dust archive on Open-Meteo
 LIVERPOOL_FIRST_YEAR = 2007  # the 2004-2006 pages have no per-night table
-
-
-def backfill_dust(session: PoliteSession, today: date) -> None:
-    folder = config.RAW_DIR / "open_meteo" / "dust"
-    for year in range(DUST_FIRST_DAY.year, today.year + 1):
-        final = folder / f"cams_{year}.json"
-        if final.exists() and year != today.year:
-            continue
-        start, end = max(date(year, 1, 1), DUST_FIRST_DAY), min(date(year, 12, 31), today)
-        params = {"latitude": config.SITE_LAT, "longitude": config.SITE_LON, "timezone": "UTC",
-                  "hourly": "dust,pm10", "start_date": start.isoformat(), "end_date": end.isoformat()}
-        try:
-            folder.mkdir(parents=True, exist_ok=True)
-            final.write_text(session.get(open_meteo.AIR_QUALITY_URL, params=params).text, encoding="utf-8")
-            log.info("CAMS dust %d ok", year)
-        except Exception:
-            log.exception("CAMS dust %d failed (will retry on next run)", year)
 
 
 def backfill_liverpool(session: PoliteSession, today: date) -> None:
@@ -176,12 +159,27 @@ def backfill_liverpool(session: PoliteSession, today: date) -> None:
             log.exception("Liverpool %d failed (will retry on next run)", year)
 
 
+def backfill_gtc_archive(session: PoliteSession, today: date) -> None:
+    """Light-instrument exposures of the GTC public archive for 2024, month by month."""
+    s = gtc_archive.session()
+    year = 2024
+    for month in range(1, 13):
+        first = date(year, month, 1)
+        last = (date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)) - timedelta(days=1)
+        try:
+            gtc_archive.download_month(s, first, last, config.RAW_DIR / "gtc_archive" / str(year))
+            log.info("GTC archive %s ok", first.strftime("%Y-%m"))
+        except Exception:
+            log.exception("GTC archive %s failed (will retry on next run)", first.strftime("%Y-%m"))
+
+
 SOURCES = {
     "not": (backfill_not, 2.0),
     "r2d2": (backfill_r2d2, 2.0),
     "ing": (backfill_ing, 3.0),
-    "forecasts": (lambda s, t: (backfill_forecasts(s, t), backfill_dust(s, t)), 3.0),
+    "forecasts": (backfill_forecasts, 3.0),
     "liverpool": (backfill_liverpool, 3.0),
+    "gtc_archive": (backfill_gtc_archive, 3.0),
 }
 
 

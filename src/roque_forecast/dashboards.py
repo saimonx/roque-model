@@ -33,16 +33,16 @@ TEXT = {
     "about": {
         "es": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: "
               "estación del GTC (atmosportal) y del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). "
-              "Pronóstico de la noche: modelos propios (ver `reports/MODELS_01.md`). "
+              "Pronóstico de la noche: dos modelos propios, cúpula cerrada hora a hora y seeing (ver el README). "
               "Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana.",
         "en": "**Independent project, not affiliated with GRANTECAN or any observatory.** Real, public data: "
               "GTC (atmosportal) and NOT weather stations, ECMWF IFS forecast (Open-Meteo, CC BY 4.0). "
-              "Night forecast: our own models (see `reports/MODELS_01.md`). "
+              "Night forecast: two models of our own, dome closed hour by hour and seeing (see the README). "
               "Flow: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana.",
     },
-    "closure": {"es": "Riesgo de cierre esta noche", "en": "Dome-closure risk tonight"},
+    "closure": {"es": "Horas de cúpula cerrada previstas", "en": "Expected hours with the dome closed"},
     "seeing": {"es": "Seeing previsto", "en": "Forecast seeing"},
-    "lost": {"es": "Horas perdidas previstas", "en": "Forecast hours lost"},
+    "lost": {"es": "Horas observables previstas", "en": "Expected observable hours"},
     "mode": {"es": "Tipo de pronóstico", "en": "Forecast type"},
     "rh_now": {"es": "Humedad GTC ahora", "en": "GTC humidity now"},
     "spread_now": {"es": "Margen al punto de rocío (GTC)", "en": "Dew-point margin (GTC)"},
@@ -50,8 +50,8 @@ TEXT = {
                  "en": "Relative humidity (%) — the dome closes at 90 %"},
     "wind": {"es": "Viento (m/s)", "en": "Wind (m/s)"},
     "temp": {"es": "Temperatura y punto de rocío (°C, GTC)", "en": "Temperature and dew point (°C, GTC)"},
-    "fc_history": {"es": "Pronósticos emitidos: probabilidad de cierre (%)",
-                   "en": "Issued forecasts: closure probability (%)"},
+    "fc_history": {"es": "Pronósticos emitidos: horas de cúpula cerrada",
+                   "en": "Issued forecasts: hours with the dome closed"},
     "seeing_history": {"es": "Pronósticos emitidos: seeing (″)", "en": "Issued forecasts: seeing (″)"},
     "gtc_mean": {"es": "GTC media", "en": "GTC mean"},
     "gtc_gust": {"es": "GTC racha", "en": "GTC gust"},
@@ -127,12 +127,12 @@ def dashboard(lang: str) -> dict:
     panels = [
         {"id": 1, "type": "text", "title": "", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 3},
          "options": {"mode": "markdown", "content": t["about"]}},
-        stat(2, t["closure"], latest("domeclosureprobability * 100", FORECAST, FORECAST_ID), 0, "percent",
-             steps((GOOD, None), (WARNING, 20), (CRITICAL, 50)), 0),
+        stat(2, t["closure"], latest("domeclosedhours", FORECAST, FORECAST_ID), 0, "h",
+             steps((GOOD, None), (WARNING, 1), (CRITICAL, 4)), 1),
         stat(3, t["seeing"], latest("seeingforecast", FORECAST, FORECAST_ID), 4, "none",
              steps((GOOD, None), (WARNING, 0.9), (CRITICAL, 1.2)), 2),
-        stat(4, t["lost"], latest("hourslostforecast", FORECAST, FORECAST_ID), 8, "h",
-             steps((GOOD, None), (WARNING, 1), (CRITICAL, 4)), 1),
+        stat(4, t["lost"], latest("openhoursforecast", FORECAST, FORECAST_ID), 8, "h",
+             steps((CRITICAL, None), (WARNING, 4), (GOOD, 7)), 1),
         stat(5, t["mode"], latest("forecastmode", FORECAST, FORECAST_ID), 12, "none",
              steps((BLUE, None)), 0, mode_map),
         stat(6, t["rh_now"], latest("relativehumidity * 100", OBSERVED, GTC_ID), 16, "percent",
@@ -154,8 +154,8 @@ def dashboard(lang: str) -> dict:
             (series("dewpoint", t["dew_point"], OBSERVED, GTC_ID), ORANGE),
         ], {"x": 12, "y": 16, "w": 12, "h": 8}, "celsius"),
         timeseries(11, t["fc_history"], [
-            (series("domeclosureprobability * 100", "p", FORECAST, FORECAST_ID), BLUE),
-        ], {"x": 0, "y": 24, "w": 12, "h": 7}, "percent", points=True),
+            (series("domeclosedhours", "h", FORECAST, FORECAST_ID), BLUE),
+        ], {"x": 0, "y": 24, "w": 12, "h": 7}, "h", points=True),
         timeseries(12, t["seeing_history"], [
             (series("seeingforecast", "seeing", FORECAST, FORECAST_ID), BLUE),
         ], {"x": 12, "y": 24, "w": 12, "h": 7}, "none", points=True),

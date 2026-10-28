@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
-  <meta name="description" content="Forecast of tonight's observing conditions at the Roque de los Muchachos Observatory (La Palma), hour by hour: dome-closure risk, seeing and warnings. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=6">
+  <meta name="description" content="Tonight at the Roque de los Muchachos Observatory (La Palma), hour by hour: will the dome be open, and how sharp will the stars be. Independent project with real, public data.">
+  <link rel="stylesheet" href="assets/style.css?v=9">
 </head>
 <body>
   <header class="top">
@@ -27,165 +27,94 @@
   <main class="wrap">
     <p class="notice" data-i18n="independent"></p>
 
-    <!-- 1. Tonight in a few numbers -->
+    <!-- 1. Tonight: the answer -->
     <section id="tonight">
-      <div class="section-head">
-        <h2 id="night-title"></h2>
-        <span id="mode" class="badge"></span>
-      </div>
-      <p class="muted small" id="night-window"></p>
-      <div class="callout small" id="mode-box"></div>
-      <div class="tiles">
-        <div class="tile">
-          <span class="tile-label" data-i18n="tile_closed"></span>
-          <span class="tile-value" id="closed-h"></span>
-          <span id="risk" class="status small"></span>
-          <span class="muted small" id="closure-ref"></span>
-        </div>
-        <div class="tile">
-          <span class="tile-label" data-i18n="tile_lost"></span>
-          <span class="tile-value" id="lost"></span>
-          <span class="muted small" id="lost-of"></span>
-          <span class="muted small" id="lost-ref"></span>
-        </div>
-        <div class="tile">
-          <span class="tile-label" data-i18n="tile_sky"></span>
-          <span class="tile-value" id="sky"></span>
-          <span id="sky-word" class="status small"></span>
-          <span class="muted small" data-i18n="tile_sky_help"></span>
-        </div>
-        <div class="tile">
-          <span class="tile-label" data-i18n="tile_seeing"></span>
-          <span class="tile-value" id="seeing"></span>
-          <div class="scale" id="seeing-scale" aria-hidden="true"><div class="scale-bar"></div><div class="scale-mark" id="seeing-mark"></div></div>
-          <span class="scale-ends small muted"><span>0,4″</span><span id="seeing-class-word"></span><span>2″</span></span>
+      <h2 id="night-title"></h2>
+      <p class="muted small night-line"><span id="night-window"></span></p>
+      <details class="info"><summary id="mode"></summary><p id="mode-text"></p></details>
+      <p class="headline" id="headline"></p>
+      <div class="strip" id="strip"></div>
+      <p class="muted small" data-i18n-html="strip_legend"></p>
+
+      <div class="facts">
+        <div class="fact">
+          <span class="fact-label" data-i18n="fact_seeing"></span>
+          <span class="fact-value" id="seeing"></span>
+          <div class="scale" aria-hidden="true"><div class="scale-bar"></div><div class="scale-mark" id="seeing-mark"></div></div>
+          <span class="scale-ends small muted"><span>0,4″</span><span id="seeing-class"></span><span>2″</span></span>
           <span class="muted small" id="seeing-ref"></span>
         </div>
-        <div class="tile">
-          <span class="tile-label" data-i18n="tile_moon"></span>
-          <span class="tile-value moon-value"><svg id="moon-icon" viewBox="0 0 40 40" width="34" height="34" aria-hidden="true"></svg><span id="moon-pct"></span></span>
+        <div class="fact">
+          <span class="fact-label" data-i18n="fact_moon"></span>
+          <span class="fact-value moon-value"><svg id="moon-icon" viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"></svg><span id="moon-pct"></span></span>
           <span class="muted small" id="moon-text"></span>
         </div>
+        <div class="fact">
+          <span class="fact-label" data-i18n="fact_usual"></span>
+          <span class="fact-value" id="usual"></span>
+          <span class="muted small" id="usual-text"></span>
+        </div>
       </div>
-      <p class="summary" id="summary"></p>
     </section>
 
-    <!-- 2. Hour by hour -->
-    <section id="hours-section">
-      <h2 data-i18n="hours_title"></h2>
-      <p class="muted small" data-i18n-html="hours_text"></p>
-      <div class="table-wrap"><table id="hours" class="hours"></table></div>
-      <details class="more small">
-        <summary data-i18n="warnings_more"></summary>
-        <div data-i18n-html="warnings_text"></div>
-      </details>
-    </section>
-
-    <!-- 3. Where each number comes from -->
-    <section>
-      <h2 data-i18n="origin_title"></h2>
-      <div class="table-wrap"><table class="text origin" data-i18n-html="origin_table"></table></div>
-    </section>
-
-    <!-- 4. How it works, in three lines -->
+    <!-- 2. How we know, in three sentences -->
     <section>
       <h2 data-i18n="how_title"></h2>
-      <ol class="steps" data-i18n-html="how_short"></ol>
-      <p class="muted small" data-i18n="how_note"></p>
+      <ol class="steps" id="how"></ol>
     </section>
 
     <!-- Everything else, folded -->
     <details class="fold">
-      <summary><h2 data-i18n="data_title"></h2></summary>
-      <p class="muted" data-i18n="data_intro"></p>
-      <div class="data" data-i18n-html="data_html"></div>
+      <summary><h2 data-i18n="fold_real"></h2></summary>
+      <p class="muted" data-i18n="real_intro"></p>
+      <ul class="checks" id="checks"></ul>
+      <div class="table-wrap"><table id="table-wht" class="small"></table></div>
     </details>
 
     <details class="fold">
       <summary><h2 data-i18n="fold_eval"></h2></summary>
-      <p class="muted" data-i18n="eval_text"></p>
-      <h3 data-i18n="eval_plain"></h3>
+      <p class="muted" data-i18n="eval_intro"></p>
       <div class="table-wrap"><table id="table-plain" class="text plain"></table></div>
-      <p class="muted small" data-i18n="eval_plain_note"></p>
+      <p class="muted small" data-i18n="eval_note"></p>
 
-      <details class="more">
-      <summary data-i18n="eval_technical"></summary>
-      <div class="prose small" data-i18n-html="glossary"></div>
-
-      <h3 data-i18n="eval_hourly"></h3>
-      <p class="muted small" data-i18n="eval_hourly_text"></p>
-      <div class="table-wrap"><table id="table-hourly" class="text"></table></div>
-
-      <h3 data-i18n="eval_lt"></h3>
-      <p class="muted small" data-i18n="eval_lt_text"></p>
-      <div class="table-wrap"><table id="table-lt"></table></div>
-
-      <h3 data-i18n="eval_sky"></h3>
-      <p class="muted small" data-i18n="eval_sky_text"></p>
-      <div class="table-wrap"><table id="table-sky"></table></div>
-
-      <h3 data-i18n="eval_closure"></h3>
-      <div class="chart bars" id="chart-skill"></div>
-      <div class="table-wrap"><table id="table-closure"></table></div>
-
-      <h3 data-i18n="eval_reliability"></h3>
-      <p class="muted small" id="reliability-text"></p>
-      <div class="chart square" id="chart-reliability"></div>
-
-      <h3 data-i18n="eval_recent"></h3>
-      <p class="muted small" data-i18n="eval_recent_text"></p>
+      <h3 data-i18n="recent_title"></h3>
+      <p class="muted small" data-i18n="recent_text"></p>
       <div class="chart" id="chart-recent"></div>
 
-      <h3 data-i18n="eval_seeing"></h3>
-      <div class="chart" id="chart-seeing"></div>
-      <div class="table-wrap"><table id="table-seeing"></table></div>
-
-      <h3 data-i18n="eval_lost"></h3>
-      <p class="muted small" data-i18n="eval_lost_text"></p>
-      <div class="table-wrap"><table id="table-lost"></table></div>
-
-      </details>
+      <h3 data-i18n="reliability_title"></h3>
+      <p class="muted small" data-i18n="reliability_text"></p>
+      <div class="chart square" id="chart-reliability"></div>
 
       <h3 data-i18n="track_title"></h3>
       <p class="muted small" data-i18n="track_text"></p>
       <div class="table-wrap"><table id="table-track"></table></div>
+
+      <details class="more">
+        <summary data-i18n="technical"></summary>
+        <div class="prose small" data-i18n-html="glossary"></div>
+        <div class="table-wrap"><table id="table-tech"></table></div>
+      </details>
     </details>
 
     <details class="fold">
-      <summary><h2 data-i18n="fold_model"></h2></summary>
-      <ol class="flow" id="flow"></ol>
-      <div class="prose" data-i18n-html="how_text"></div>
-      <h3 data-i18n="why_title"></h3>
-      <p class="muted small" id="mode-note"></p>
-      <dl class="inputs" id="inputs"></dl>
-      <div class="two">
-        <div>
-          <h3 data-i18n="importance_closure"></h3>
-          <div class="chart bars" id="chart-imp-closure"></div>
-        </div>
-        <div>
-          <h3 data-i18n="importance_seeing"></h3>
-          <div class="chart bars" id="chart-imp-seeing"></div>
-        </div>
-      </div>
-      <p class="muted small" data-i18n="importance_text"></p>
+      <summary><h2 data-i18n="fold_data"></h2></summary>
+      <div class="data" data-i18n-html="data_html"></div>
     </details>
 
     <details class="fold">
       <summary><h2 data-i18n="fold_live"></h2></summary>
-      <h3 data-i18n="hourly_title"></h3>
-      <p class="muted small" data-i18n="hourly_text"></p>
-      <div class="chart" id="chart-hourly-rh"></div>
-      <div class="chart short" id="chart-hourly-wind"></div>
       <h3 data-i18n="station_title"></h3>
       <p class="muted small" id="station-text"></p>
       <div class="chart" id="chart-station"></div>
+      <h3 data-i18n="raw_title"></h3>
+      <p class="muted small" data-i18n="raw_text"></p>
+      <div class="chart" id="chart-raw"></div>
       <div id="gtc-panel"></div>
     </details>
 
     <details class="fold">
-      <summary><h2 data-i18n="sources_title"></h2></summary>
-      <div class="prose" data-i18n-html="sources_text"></div>
+      <summary><h2 data-i18n="fold_refs"></h2></summary>
+      <div class="prose" data-i18n-html="refs_html"></div>
     </details>
   </main>
 
@@ -195,8 +124,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=6"></script>
-  <script src="assets/charts.js?v=6"></script>
-  <script src="assets/app.js?v=6"></script>
+  <script src="assets/i18n.js?v=9"></script>
+  <script src="assets/charts.js?v=9"></script>
+  <script src="assets/app.js?v=9"></script>
 </body>
 </html>

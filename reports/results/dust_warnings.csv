@@ -1,4 +1,0 @@
-target,warning,hit_rate,false_alarm_ratio,peirce,warned_hours,event_hours
-calima,"raw forecast, dust max >= 50 ug/m3",0.167,0.971,0.066,104,18
-calima,"raw forecast, dust max >= 20 ug/m3 (chosen on 2022-2023)",0.667,0.932,0.504,176,18
-calima,"model, probability >= 0.02 (chosen on 2022-2023)",0.722,0.949,0.483,254,18

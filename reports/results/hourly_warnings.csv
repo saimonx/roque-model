@@ -1,7 +1,0 @@
-target,warning,hit_rate,false_alarm_ratio,peirce,warned_hours,event_hours
-closed,"raw forecast, read literally",0.950,0.790,0.284,6092,1350
-closed,"model, final (threshold 0.05)",0.945,0.516,0.757,2634,1350
-closed,"model, provisional (threshold 0.15)",0.848,0.556,0.650,2578,1350
-windy,"raw forecast, read literally",0.040,0.844,0.037,32,124
-windy,"model, final (threshold 0.02)",0.903,0.845,0.831,722,124
-windy,"model, provisional (threshold 0.02)",0.798,0.882,0.711,837,124

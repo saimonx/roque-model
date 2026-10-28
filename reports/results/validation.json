@@ -1,0 +1,131 @@
+{
+  "gtc": {
+    "available": true,
+    "year": 2024,
+    "exposures": 8710,
+    "instruments": [
+      "HiPERCAM",
+      "MEGARA",
+      "OSIRIS"
+    ],
+    "exposing_hours": 884.2,
+    "exposing_when_label_closed": 0.0113,
+    "label_closed_hours": 495.3,
+    "nights_fully_closed": 26,
+    "nights_fully_closed_with_gtc_data": 0
+  },
+  "liverpool": {
+    "nights": 3322,
+    "correlation": 0.74,
+    "label_closed_nights": 355,
+    "label_closed_lt_also_lost": 0.986,
+    "lt_lost_nights": 941,
+    "lt_lost_label_closed_some": 0.679,
+    "mean_closed_h_label": 1.61,
+    "mean_lost_h_lt": 2.75
+  },
+  "wht": [
+    {
+      "year": 2010,
+      "nights": 354,
+      "correlation": 0.79,
+      "closed_all_night_but_no_wht_loss": 2
+    },
+    {
+      "year": 2011,
+      "nights": 365,
+      "correlation": 0.8,
+      "closed_all_night_but_no_wht_loss": 3
+    },
+    {
+      "year": 2012,
+      "nights": 366,
+      "correlation": 0.75,
+      "closed_all_night_but_no_wht_loss": 4
+    },
+    {
+      "year": 2013,
+      "nights": 365,
+      "correlation": 0.75,
+      "closed_all_night_but_no_wht_loss": 5
+    },
+    {
+      "year": 2014,
+      "nights": 363,
+      "correlation": 0.7,
+      "closed_all_night_but_no_wht_loss": 8
+    },
+    {
+      "year": 2015,
+      "nights": 365,
+      "correlation": 0.71,
+      "closed_all_night_but_no_wht_loss": 4
+    },
+    {
+      "year": 2016,
+      "nights": 363,
+      "correlation": 0.75,
+      "closed_all_night_but_no_wht_loss": 4
+    },
+    {
+      "year": 2017,
+      "nights": 364,
+      "correlation": 0.63,
+      "closed_all_night_but_no_wht_loss": 7
+    },
+    {
+      "year": 2018,
+      "nights": 356,
+      "correlation": 0.68,
+      "closed_all_night_but_no_wht_loss": 13
+    },
+    {
+      "year": 2019,
+      "nights": 361,
+      "correlation": 0.66,
+      "closed_all_night_but_no_wht_loss": 11
+    },
+    {
+      "year": 2020,
+      "nights": 355,
+      "correlation": 0.45,
+      "closed_all_night_but_no_wht_loss": 19
+    },
+    {
+      "year": 2021,
+      "nights": 361,
+      "correlation": 0.43,
+      "closed_all_night_but_no_wht_loss": 17
+    },
+    {
+      "year": 2022,
+      "nights": 355,
+      "correlation": 0.32,
+      "closed_all_night_but_no_wht_loss": 33
+    },
+    {
+      "year": 2023,
+      "nights": 362,
+      "correlation": 0.65,
+      "closed_all_night_but_no_wht_loss": 9
+    },
+    {
+      "year": 2024,
+      "nights": 363,
+      "correlation": 0.15,
+      "closed_all_night_but_no_wht_loss": 22
+    },
+    {
+      "year": 2025,
+      "nights": 365,
+      "correlation": 0.41,
+      "closed_all_night_but_no_wht_loss": 25
+    },
+    {
+      "year": 2026,
+      "nights": 299,
+      "correlation": 0.66,
+      "closed_all_night_but_no_wht_loss": 15
+    }
+  ]
+}

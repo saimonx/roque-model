@@ -2,7 +2,7 @@
 
 > **Independent project**, not affiliated with GRANTECAN or any observatory. All data are real and public.
 > Notebook: [`notebooks/02_models.ipynb`](../notebooks/02_models.ipynb). Code: `src/roque_forecast/features.py`,
-> `src/roque_forecast/train.py`. Metrics: [`reports/results/`](results/).
+> `src/roque_forecast/train.py`, `hourly.py`, `validate.py`. Metrics: [`reports/results/`](results/).
 
 ## The question
 
@@ -113,60 +113,77 @@ model. Instead, the closure-hours forecast is converted with one factor fitted o
 - **2024–2025:** it does not, because in those years the log books many closed nights as observed. The model
   is right about the weather and the label is not. This is why those years are excluded from fitting.
 
-## 4. Hour by hour (added 28 Oct 2026, `hourly.py`)
+## 4. The design used live (28 Oct 2026): one closure label, one hourly model, three checks
 
-One row per night hour with at least 30 minutes of astronomical night (32,153 hours, 2017–2026). Labels:
-dome closed for at least half of the hour (NOT humidity rule); at least one minute of wind ≥ 22.2 m/s
-(80 km/h, the INT closing limit); hourly median R2D2 seeing. Inputs: the forecast at mid-hour (ECMWF;
-GFS 750 hPa wind from 2021), plus the nightly inputs and the position of the hour in the night. Same
-split and the same rule: settings chosen on 2023, results on 2024–2026 (8,577 hours).
+Sections 1–3 study the night as a whole. The live product is simpler and is the one to read:
 
-| Closure for humidity | Brier ↓ | Skill vs climatology ↑ | AUC | Closed hours caught | Wrong "close" calls |
-|---|---|---|---|---|---|
-| Climatology (month) | 0.127 | 0 | 0.65 | — | — |
-| Raw forecast, read literally (yes/no) | 0.569 | −3.46 | 0.64 | 95 % | 79 % |
-| Precasting (humidity before night ≥ 90 %) | 0.071 | 0.44 | 0.87 | 81 % | 34 % |
-| **Gradient boosting** | **0.057** | **0.55** | **0.96** | 73 % | 25 % |
-| Gradient boosting, forecast only | 0.078 | 0.38 | 0.92 | 59 % | 31 % |
-
-- **Wind** is rare (1.4 % of hours) and the 10 m wind of the ECMWF grid point is useless at the summit
-  (mean 1.3 m/s, never above 6.5 m/s), so the GFS 750 hPa wind was added. Probabilities stay badly calibrated
-  (Brier skill 0.01 final, −0.24 forecast only) but the ranking is good (AUC 0.96 / 0.95), so the model
-  drives a **warning** with the threshold that maximises the Peirce score on 2023: on the test hours it
-  catches 90 % (final) / 80 % (forecast only) of the windy hours, with 85–88 % false alarms. The raw
-  forecast read literally catches 4 %.
-- **Seeing**: RMSE 0.358″ against 0.409″ for monthly climatology (skill 0.13); forecast only 0.373″.
-- **Ice and dust** are warnings from simple rules (no label to evaluate them yet; the dust forecast archive
-  starts in 2022).
-
-## 5. Liverpool Telescope labels: hours lost, clear sky and dust (added 28 Oct 2026, `extra_models.py`)
-
-The Liverpool Telescope (LT, robotic 2 m on the Roque) publishes one report per night since 2007: hours
-observing, lost to weather, lost to faults, and a comment with the reason. It is filled in the same way
-every year, so unlike the WHT log every year can be used: train 2017–2022, settings on 2023, test 2024–2026.
-The LT is more cautious than a staffed telescope (it closes for ice risk, cloud or dust), so its labels say
-what the LT did, not what the GTC did.
-
-| Forecast (test 2024–2026) | Reference | Model |
+| Question | Model | Label |
 |---|---|---|
-| LT hours lost to weather (1,026 nights) | climatology RMSE 3.71 h, persistence MAE 1.92 h | **RMSE 2.52 h**, MAE 1.51 h (skill 0.32); forecast only 2.74 h |
-| Photometric sky (689 observed nights) | persistence Brier 0.224 (skill 0.12) | **Brier 0.211** (skill 0.17), AUC 0.74 |
-| Dust noted in the report (18 of 1,026 nights) | climatology Brier 0.017 | logistic regression on the CAMS dust forecast: Brier 0.018 (no skill), AUC 0.78 |
+| Is the dome closed this hour? | gradient boosting per night hour (`hourly.py`), provisional and final | `dome.closed`: humidity ≥ 90 % (reopen after 20 min), **or** gusts ≥ 22.2 m/s (80 km/h, INT limit, same reopen), **or** ice (≤ 0 °C with humidity ≥ 90 % in the previous 24 h) |
+| How many hours closed tonight? | sum of the hourly probabilities | same label, summed over the night |
+| Seeing of the night | section 2 (`train.py`) | R2D2 median |
 
-- **Dust is used as a warning, not a probability.** The CAMS forecast archive starts in August 2022: 514
-  training nights with only 11 dust events, so the threshold is chosen on those training nights. A forecast
-  dust maximum ≥ 20 µg/m³ catches 12 of the 18 test events (Peirce 0.50) against 3 of 18 with the 50 µg/m³
-  used before (the EU daily PM10 limit). Either way most warnings are false alarms (93 %).
-- **Raw forecast cloud** read literally (mean cloud < 20 % → photometric) has no skill (Brier skill −0.01):
-  the grid-point cloud is the sea of clouds below the summit, the same bias as for humidity.
-- **Sources looked at and not usable:** the ING dust and sky-brightness links are images (PNG plots), not
-  data; the TNG and GTC dust values are only published for the last 24 h / current value (collected since
-  27 Oct 2026); the IAC PWV page did not respond.
+**The ice rule** was calibrated against the Liverpool Telescope reports of 2017–2022 (never the test
+years): it adds 29 nights to the label, and the LT lost 26 of them.
+
+**Hourly slots:** UTC hours with ≥ 30 minutes of astronomical night (32,153 hours, 2017–2026). An hour is
+labelled closed when the label covers at least half of it, and only if ≥ 45 minutes were measured. Inputs:
+the ECMWF forecast at mid-hour (the 10 m wind is useless at the summit, mean 1.3 m/s, so the GFS 750 hPa
+wind is added from 2021), the nightly inputs of section 1, and the position of the hour in the night.
+
+### Results on the test years (2024–2026)
+
+| Dome closed, each hour (8,577 hours, 17 % closed) | Brier ↓ | Skill | AUC | Right when it says "closed" | Closed hours caught |
+|---|---|---|---|---|---|
+| Climatology (month) | 0.136 | 0 | 0.66 | — | — |
+| Raw forecast, read literally | 0.566 | −3.16 | 0.63 | 22 % | 93 % |
+| Persistence (same hour last night) | 0.120 | 0.12 | 0.69 | 52 % | 47 % |
+| Precasting (humidity before night) | 0.081 | 0.41 | 0.85 | 67 % | 77 % |
+| Model, provisional | 0.089 | 0.35 | 0.90 | 64 % | 62 % |
+| **Model, final** | **0.067** | **0.51** | **0.95** | **73 %** | **72 %** |
+
+| Closed hours of the night (1,028 nights) | MAE | RMSE |
+|---|---|---|
+| Climatology (month) | 1.95 h | 2.87 h |
+| Persistence (last night) | 1.33 h | 2.94 h |
+| Raw forecast | 4.67 h | 5.93 h |
+| Model, provisional | 1.08 h | 2.13 h |
+| **Model, final** | **0.78 h** | **1.74 h** |
+
+The provisional model loses to precasting on the hour: precasting already uses the station just before
+the night, which the provisional model cannot have. Once the night starts the final model uses it too and
+beats every reference.
+
+### Does the label reflect reality? (`validate.py`, `results/validation.json`)
+
+- **GTC public archive, 2024** (OSIRIS, MEGARA, HiPERCAM; 8,710 exposures, 884 hours exposing): the label
+  calls "closed" only 1.1 % of the minutes the GTC was exposing, and on the 26 nights it calls fully closed
+  the GTC took no data. The archive cannot show closures (no data ≠ closed), only that the label does not
+  close when the GTC is open.
+- **Liverpool Telescope, 2017–2026** (3,322 nights): correlation 0.74 with its hours lost to weather; of the
+  355 nights the label closes fully, the LT lost 98.6 %. The LT is more cautious (2.75 h lost on average
+  against 1.61 h closed by the label): it also closes for cloud, dust and ice risk.
+- **WHT, 2010–2026:** correlation 0.70–0.80 per year until 2016, lower in the years whose log books record
+  closed nights as observed (0.15 in 2024).
+
+### Tried and dropped
+
+- Separate nightly closure and WHT hours models in the live product (section 1 and 3): replaced by the sum
+  of the hourly model, which answers both with one label.
+- Hour-by-hour seeing: RMSE 0.358″ against 0.409″ for climatology, but no better than the nightly model
+  for the night as a whole, and the hourly R2D2 label is noisy.
+- Separate humidity and wind models combined as `1 − (1 − p_h)(1 − p_w)`: same Brier as one model on the
+  composite label, so the single label was kept.
+- Liverpool Telescope hours-lost and photometric-sky models: the LT label mixes reasons the GTC does not
+  share (it closes earlier), and the photometric model barely beat persistence (Brier skill 0.17 against
+  0.12). The LT reports are kept as a check only.
+- CAMS dust warning: 18 dust nights in the test years, the CAMS archive only from August 2022, 93 % false
+  alarms.
 
 ## Limitations and next steps
 
-- **Proxy labels.** The closure label is a rule rebuilt from humidity. Wind, dust and ice closures are not in
-  it, and none of the labels are the GTC's own operating decisions.
+- **Proxy labels.** The closure label is rebuilt from the NOT station (humidity, wind, ice). Dust and cloud
+  closures are not in it, and none of the labels are the GTC's own operating decisions (section 4 checks them).
 - **One forecast model at one grid point.** The grid point is 4 km away, on smoothed terrain, and is usually
   wetter and calmer than the summit. The model learns to correct that.
 - **Closure recalibration, tested and rejected (28 Oct 2026).** Isotonic regression was checked without
@@ -176,5 +193,5 @@ what the LT did, not what the GTC did.
   (`train.calibration_check`, saved in `results/settings.json`). On the test years the model is somewhat
   over-confident between 40 % and 90 %; with ~250 nights in those bins this may be noise or a change in the
   climate of the last years, and the live track record is where to watch it.
-- **Possible improvements:** an hourly version for the decision during the night; a longer archive of
+- **Possible improvements:** a longer archive of
   pressure-level forecasts for the jet stream (training now has it only from 2021).
