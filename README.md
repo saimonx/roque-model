@@ -138,7 +138,7 @@ scripts/install_collectors.sh --uninstall   # remove them
 | `live` | every 15 min | GTC live panel + TNG current values → `data/raw/live/YYYY-MM/YYYY-MM-DD.jsonl` |
 | `daily` | 10:07 and 22:07 | TNG last-24 h series + downtime → `data/raw/tng/YYYY-MM-DD/` |
 | `weekly` | Monday 10:23 | GTC last-30-days series → `data/raw/gtc_atmosportal/YYYY-MM-DD/` |
-| `tonight` (optional: `install_collectors.sh tonight`) | every hour at :05 | `scripts/update_tonight.sh` |
+| `tonight` (installed separately: `install_collectors.sh tonight`) | every hour at :05 | `scripts/update_tonight.sh` |
 
 ## Layout
 
