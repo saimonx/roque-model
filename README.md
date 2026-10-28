@@ -20,7 +20,7 @@ All data are **real and public**; nothing in this project is simulated.
 | [ING R2D2 seeing monitor](https://astro.ing.iac.es/seeing/) (Isaac Newton Group) | DIMM seeing every 15–35 s at night | Sep 2018 → today | the real seeing of each night (median) |
 | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather and faults on the WHT, Moon illumination | 2007 → today | real hours lost; only reliable years (2017, 2018, 2023, 2026), other years book closed nights as observed |
 | [Open-Meteo](https://open-meteo.com) archived ECMWF IFS HRES forecasts ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | the hourly forecast at the site as issued at the time (not the weather measured later) | 2017 → today (issued 24 h earlier: 2025 → today) | model inputs |
-| [Open-Meteo](https://open-meteo.com) archived NOAA GFS forecasts | wind at 200 hPa, ~12 km up (jet stream) | Mar 2021 → today | seeing model input |
+| [Open-Meteo](https://open-meteo.com) archived NOAA GFS forecasts | wind at 200 hPa (~12 km, jet stream) and 750 hPa (~2.5 km, summit height) | Mar 2021 → today | seeing input; hourly wind input |
 
 ### Live (for tonight's forecast)
 
@@ -29,6 +29,7 @@ All data are **real and public**; nothing in this project is simulated.
 | Today's ECMWF and GFS forecast (Open-Meteo) | hourly | inputs of tonight's forecast, hour-by-hour chart |
 | NOT weather station, last 36 h | hourly | the 2 h before the night (final forecast), last night's closure, 24 h chart |
 | R2D2 seeing, last days | hourly | last night's seeing |
+| [CAMS](https://atmosphere.copernicus.eu/) dust forecast via [Open-Meteo](https://open-meteo.com/en/docs/air-quality-api) | hourly | dust (calima) warning, ≥ 50 µg/m³; not a model input |
 | [GTC atmosportal](https://atmosportal.gtc.iac.es/) live panel (GTC weather station; rain, PM10 dust, warning colours) | every 15 min | shown on the page and as a FIWARE entity; not a model input (the site keeps only the last month) |
 | GTC 30-day series and [TNG weather](https://tngweb.tng.iac.es/weather) (24 h series, dust by particle size, downtime) | weekly / daily | stored to build up a history; not model inputs yet |
 
@@ -100,6 +101,7 @@ uv sync                                          # create .venv and install depe
 .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts (~30 s)
 .venv/bin/python -m roque_forecast.features      # one row per night: inputs known at sunset + labels
 .venv/bin/python -m roque_forecast.train         # fit, compare with baselines -> reports/results/
+.venv/bin/python -m roque_forecast.hourly        # hour-by-hour models (closure, wind, seeing) -> reports/results/hourly_*
 ```
 
 ### Tonight's forecast and the web page
@@ -112,6 +114,29 @@ scripts/update_tonight.sh                       # both steps (hourly job); ROQUE
 ```
 
 ![Web page, Spanish version (28 Oct 2026)](reports/figures/13_web_es.jpg)
+
+**Hour by hour.** The page shows each hour of the night side by side: what the weather forecast says read
+literally (humidity ≥ 90 % → close), our probability of closing for humidity, the seeing of that hour, and
+warnings for wind, ice and dust (`hourly.py`). On the 2024–2026 test hours:
+
+| Hour-by-hour call | Closed hours caught | Wrong "close" calls |
+|---|---|---|
+| Raw forecast, read literally | 95 % | **79 %** |
+| Our model (final), probability ≥ 50 % | 73 % | **25 %** |
+| Our model (provisional), probability ≥ 50 % | 59 % | 31 % |
+
+The raw forecast is far too wet at the summit (the 9 km grid point sits inside the cloud layer, below the
+real summit): it says "close" in 6,092 hours, of which 1,350 really closed. The hourly closure model scores
+Brier 0.057 (skill 0.55 against monthly climatology, AUC 0.96). Hourly seeing: RMSE 0.358″ against 0.409″
+for climatology.
+
+Wind and the other warnings are honest about their limits:
+- **Wind** (gusts above 80 km/h, the INT closing limit on the Roque): too rare (1.4 % of hours) for a
+  calibrated probability, so the model drives a warning whose threshold was chosen on 2023. It catches 90 %
+  of the windy hours (final) / 80 % (provisional), but about 5 of 6 warnings are false alarms.
+- **Ice** (forecast ≤ 0.5 °C with high humidity, or freezing and humid at the NOT in the last 24 h) and
+  **dust** (CAMS ≥ 50 µg/m³, the EU daily PM10 limit; no public dome limit exists) are simple rules,
+  not evaluated.
 
 Two modes, so a forecast never uses information it could not have had:
 - **provisional** (afternoon): forecast-only models (weather forecast, last night, season);

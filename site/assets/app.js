@@ -41,28 +41,25 @@
     const t = T(), f = d.forecast, r = d.references, n = d.night, month = monthName(n.date);
     const date = new Date(n.date + "T12:00:00Z").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
     $("night-title").textContent = fill(t.night_of, { date });
-    $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h) });
     const mode = $("mode");
     mode.textContent = d.mode === "final" ? t.mode_final : t.mode_provisional;
     mode.className = "badge " + d.mode;
+    $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h) })
+      + " · " + fill(d.mode === "final" ? t.note_final_short : t.note_provisional_short, { time: timeLocal(n.final_from_utc) });
     $("mode-note").textContent = fill(d.mode === "final" ? t.note_final : t.note_provisional, { time: timeLocal(n.final_from_utc) });
 
+    // Four tiles: closure, seeing, hours lost, Moon.
     $("p-closed").textContent = pct(f.p_closed);
     status($("risk"), f.risk, t["risk_" + f.risk]);
-    $("meter-fill").style.width = Math.round(f.p_closed * 100) + "%";
-    $("meter-clim").style.left = Math.round(r.closure_climatology * 100) + "%";
-    $("closure-ref").textContent = fill(t.closure_ref, { month, clim: pct(r.closure_climatology), pers: pct(r.closure_persistence),
-      prec: r.closure_precasting != null ? fill(t.closure_prec, { p: pct(r.closure_precasting) }) : "" });
-    $("closed-hours").textContent = fill(t.closed_hours, { h: num(f.closed_h) });
-
+    $("closure-ref").textContent = fill(t.tile_usual, { month, v: pct(r.closure_climatology) });
     $("seeing").textContent = num(f.seeing_arcsec, 2) + "″";
     status($("seeing-class"), f.seeing_class, t["seeing_" + f.seeing_class]);
-    $("seeing-ref").textContent = fill(t.seeing_ref, { month, clim: num(r.seeing_climatology, 2) });
-
+    $("seeing-ref").textContent = fill(t.tile_usual, { month, v: num(r.seeing_climatology, 2) + "″" });
     $("lost").textContent = num(f.lost_h) + " h";
     $("lost-of").textContent = fill(t.lost_of, { h: num(n.length_h) });
-    $("lost-ref").textContent = fill(t.lost_ref, { month, clim: num(r.lost_h_climatology) });
+    $("lost-ref").textContent = fill(t.tile_usual, { month, v: num(r.lost_h_climatology) + " h" });
     if (d.moon) renderMoon(d.moon, n);
+    if (d.hours) { renderHours(d.hours); $("summary").innerHTML = summary(d); }
 
     // Inputs, with readable names and units (fractions shown as %).
     const dl = $("inputs");
@@ -79,7 +76,7 @@
       dl.appendChild(row);
     }
 
-    // Hour-by-hour forecast.
+    // Raw forecast charts and the station (folded section "the summit, live").
     const hourly = d.hourly.map((h) => ({ ...h, t: new Date(h.t) }));
     const bands = [{ from: new Date(n.start_utc), to: new Date(n.end_utc) }];
     const fmt = (dt, long) => timeLocal(dt.toISOString(), long);
@@ -93,8 +90,6 @@
       series: [{ label: t.wind, color: "--series-2", values: hourly.map((h) => ({ t: h.t, v: h.wind })) }],
       yMin: 0, unit: " m/s", bands, timeFormat: fmt, valueFormat: (v) => num(v), ariaLabel: t.wind,
     });
-
-    // Station, last 24 h.
     const s = d.station_now;
     $("station-text").textContent = fill(t.station_text, { time: timeLocal(s.time_utc), rh: num(s.rh, 0), wind: num(s.wind), temp: num(s.temp) });
     const st = d.station_24h.map((p) => ({ ...p, t: new Date(p.t) }));
@@ -106,6 +101,35 @@
     renderGtc(d.gtc_panel);
     $("updated").textContent = fill(t.updated, { time: timeLocal(d.issued_utc, true),
       eval: state.evaluation ? new Date(state.evaluation.generated_utc).toLocaleDateString(locale()) : t.na });
+  }
+
+  // One row per hour: the raw forecast read literally, our forecast, seeing, warnings, Moon.
+  function renderHours(hours) {
+    const t = T();
+    const chip = (cls, text) => `<span class="chip ${cls}">${text}</span>`;
+    const rows = hours.map((h) => {
+      const raw = `${Math.round(h.raw.rh)} % → ${h.raw.closes ? chip("raw-closed", t.raw_closes) : chip("raw-open", t.raw_opens)}`;
+      const ours = chip("risk-" + h.risk, `${pct(h.p_closed)} · ${t["risk_" + h.risk].toLowerCase()}`);
+      const warns = [h.warn_wind && chip("warn", t.warn_wind), h.warn_ice && chip("warn", t.warn_ice),
+        h.warn_dust && chip("warn", `${t.warn_dust} ${h.dust}`)].filter(Boolean).join(" ") || `<span class="muted">${t.na}</span>`;
+      const see = `<span class="dot see-${h.seeing_class}"></span>${num(h.seeing, 2)}″`;
+      return `<tr><td>${h.local}</td><td>${raw}</td><td>${ours}</td><td>${see}</td><td>${warns}</td><td>${h.moon_up ? t.moon_up : t.na}</td></tr>`;
+    });
+    $("hours").innerHTML = `<thead><tr><th>${t.col_hour}</th><th>${t.col_raw}</th><th>${t.col_ours}</th><th>${t.col_seeing_h}</th><th>${t.col_warn}</th><th>${t.col_moon}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  }
+
+  // Two short sentences: the closure risk (and when it peaks) and the warnings.
+  function summary(d) {
+    const t = T(), f = d.forecast, hours = d.hours;
+    const parts = [fill(t.sum_risk, { level: t["risk_" + f.risk].toLowerCase(), p: pct(f.p_closed) })];
+    const peak = hours.reduce((a, b) => (b.p_closed > a.p_closed ? b : a), hours[0]);
+    const spread = Math.max(...hours.map((h) => h.p_closed)) - Math.min(...hours.map((h) => h.p_closed));
+    parts.push(spread < 0.1 ? t.sum_flat : fill(t.sum_peak, { time: peak.local, p: pct(peak.p_closed) }));
+    const items = [["warn_wind", t.warn_wind], ["warn_ice", t.warn_ice], ["warn_dust", t.warn_dust]]
+      .map(([k, name]) => [name, hours.filter((h) => h[k]).length]).filter(([, count]) => count > 0)
+      .map(([name, count]) => fill(t.sum_warn_item, { name: name.toLowerCase(), n: count, total: hours.length }));
+    parts.push(items.length ? fill(t.sum_warn, { list: items.join(", ") }) : t.sum_nowarn);
+    return parts.join(" ");
   }
 
   function moonPhase(m) {
@@ -123,8 +147,8 @@
     if (m.rises_utc.length) when = fill(t.moon_rises, { time: timeLocal(m.rises_utc[0]) });
     else if (m.sets_utc.length) when = fill(t.moon_sets, { time: timeLocal(m.sets_utc[0]) });
     else when = m.up_at_start ? t.moon_all_night : t.moon_none;
-    $("moon-text").innerHTML = fill(t.moon_text, { pct: pct(m.illumination), phase: t.moon_phases[moonPhase(m)], when,
-      dark: `<b>${num(m.dark_h)} h</b>`, total: num(n.length_h) });
+    $("moon-pct").textContent = pct(m.illumination);
+    $("moon-text").innerHTML = fill(t.moon_tile, { phase: t.moon_phases[moonPhase(m)], when, dark: num(m.dark_h) });
   }
 
   function renderGtc(panel) {
@@ -146,6 +170,11 @@
 
   function renderEvaluation(e) {
     const t = T(), name = (m) => t.methods[m] || m;
+    if (e.hourly_eval) {
+      const label = { raw: t.raw_alone, final: t.model_final, provisional: t.model_provisional };
+      table($("table-hourly"), [t.col_event, t.col_method, t.col_hits, t.col_far2],
+        e.hourly_eval.map((r) => `<tr class="${r.method === "raw" ? "baseline" : "model"}"><td>${t.events[r.target]}</td><td>${label[r.method]}</td><td>${pct(r.hit_rate)}</td><td>${pct(r.false_alarm_ratio)}</td></tr>`));
+    }
     const closure = e.closure.filter((r) => r.inputs === "forecast archive");
     Charts.skillBars($("chart-skill"), closure.map((r) => ({ label: name(r.method), value: r.brier_skill_vs_climatology, model: r.kind === "model" })), t);
     table($("table-closure"), [t.col_method, t.col_nights, t.col_brier, t.col_skill, t.col_auc, t.col_hit, t.col_far],
@@ -209,6 +238,7 @@
     render();
   });
   try { const th = localStorage.getItem("theme"); if (th) document.documentElement.dataset.theme = th; } catch (e) { /* ignore */ }
+  document.querySelectorAll("details").forEach((el) => el.addEventListener("toggle", () => { if (el.open) render(); }));
   let resizeTimer;
   window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(render, 150); });
 

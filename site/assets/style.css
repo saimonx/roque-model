@@ -121,6 +121,42 @@ tr.model td:first-child::before { content: ""; display: inline-block; width: 8px
 tr.baseline td:first-child::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--baseline); margin-right: 8px; }
 .empty { color: var(--text-2); font-style: italic; }
 
+/* Tonight: four compact tiles and a two-sentence summary */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 0.8rem; }
+.tile { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.tile-label { font-size: 0.85rem; color: var(--text-2); font-weight: 600; }
+.tile-value { font-size: 2rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.moon-value { display: flex; align-items: center; gap: 8px; }
+.tile .status { margin: 2px 0; }
+.summary { font-size: 1.05rem; margin: 0.9rem 0 0; }
+
+/* Hour-by-hour table */
+table.hours td, table.hours th { text-align: left; }
+table.hours td:first-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+.chip { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border); white-space: nowrap; }
+.chip.raw-closed { color: var(--text-2); background: var(--surface-2); }
+.chip.raw-open { color: var(--text-2); }
+.chip.risk-low { background: color-mix(in srgb, var(--good) 18%, transparent); border-color: var(--good); }
+.chip.risk-medium { background: color-mix(in srgb, var(--warning) 22%, transparent); border-color: var(--warning); }
+.chip.risk-high { background: color-mix(in srgb, var(--critical) 20%, transparent); border-color: var(--critical); }
+.chip.warn { border-color: var(--warning); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.dot.see-excellent, .dot.see-good { background: var(--good); }
+.dot.see-average { background: var(--warning); }
+.dot.see-poor { background: var(--critical); }
+
+/* How it works, three steps */
+.steps { padding-left: 22px; max-width: 860px; }
+.steps li { margin: 6px 0; }
+
+/* Folded sections */
+details.fold { border-top: 1px solid var(--border); padding: 0.6rem 0; }
+details.fold > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::before { content: "▸"; color: var(--series-1); font-size: 1rem; transition: transform 0.15s; }
+details.fold[open] > summary::before { transform: rotate(90deg); }
+details.fold > summary h2 { margin: 0.4rem 0; font-size: 1.15rem; }
+
 /* Text tables (data sources): left-aligned, wrapping cells */
 table.text th, table.text td { text-align: left; white-space: normal; vertical-align: top; }
 table.text td:first-child { min-width: 180px; }
@@ -158,6 +194,8 @@ table.text td:first-child { min-width: 180px; }
 
 @media (max-width: 760px) {
   .cards { grid-template-columns: 1fr; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tile-value { font-size: 1.6rem; }
   .two { grid-template-columns: 1fr; gap: 0; }
 
   .big { font-size: 2.2rem; }

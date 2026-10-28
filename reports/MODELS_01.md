@@ -113,6 +113,32 @@ model. Instead, the closure-hours forecast is converted with one factor fitted o
 - **2024–2025:** it does not, because in those years the log books many closed nights as observed. The model
   is right about the weather and the label is not. This is why those years are excluded from fitting.
 
+## 4. Hour by hour (added 28 Oct 2026, `hourly.py`)
+
+One row per night hour with at least 30 minutes of astronomical night (32,153 hours, 2017–2026). Labels:
+dome closed for at least half of the hour (NOT humidity rule); at least one minute of wind ≥ 22.2 m/s
+(80 km/h, the INT closing limit); hourly median R2D2 seeing. Inputs: the forecast at mid-hour (ECMWF;
+GFS 750 hPa wind from 2021), plus the nightly inputs and the position of the hour in the night. Same
+split and the same rule: settings chosen on 2023, results on 2024–2026 (8,577 hours).
+
+| Closure for humidity | Brier ↓ | Skill vs climatology ↑ | AUC | Closed hours caught | Wrong "close" calls |
+|---|---|---|---|---|---|
+| Climatology (month) | 0.127 | 0 | 0.65 | — | — |
+| Raw forecast, read literally (yes/no) | 0.569 | −3.46 | 0.64 | 95 % | 79 % |
+| Precasting (humidity before night ≥ 90 %) | 0.071 | 0.44 | 0.87 | 81 % | 34 % |
+| **Gradient boosting** | **0.057** | **0.55** | **0.96** | 73 % | 25 % |
+| Gradient boosting, forecast only | 0.078 | 0.38 | 0.92 | 59 % | 31 % |
+
+- **Wind** is rare (1.4 % of hours) and the 10 m wind of the ECMWF grid point is useless at the summit
+  (mean 1.3 m/s, never above 6.5 m/s), so the GFS 750 hPa wind was added. Probabilities stay badly calibrated
+  (Brier skill 0.01 final, −0.24 forecast only) but the ranking is good (AUC 0.96 / 0.95), so the model
+  drives a **warning** with the threshold that maximises the Peirce score on 2023: on the test hours it
+  catches 90 % (final) / 80 % (forecast only) of the windy hours, with 85–88 % false alarms. The raw
+  forecast read literally catches 4 %.
+- **Seeing**: RMSE 0.358″ against 0.409″ for monthly climatology (skill 0.13); forecast only 0.373″.
+- **Ice and dust** are warnings from simple rules (no label to evaluate them yet; the dust forecast archive
+  starts in 2022).
+
 ## Limitations and next steps
 
 - **Proxy labels.** The closure label is a rule rebuilt from humidity. Wind, dust and ice closures are not in

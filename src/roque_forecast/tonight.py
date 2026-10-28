@@ -43,7 +43,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from roque_forecast import astro, config, dome, features, train
+from roque_forecast import astro, config, dome, features, hourly, train
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
 from roque_forecast.sources import not_mast, open_meteo, r2d2
@@ -92,6 +92,13 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
     (folder / "open_meteo.json").write_text(json.dumps(forecast), encoding="utf-8")
     upper = open_meteo.download_current_upper(session, forecast_days=3)
     (folder / "open_meteo_upper.json").write_text(json.dumps(upper), encoding="utf-8")
+    try:  # the dust forecast is only a warning: the page works without it
+        dust = open_meteo.download_current_dust(session, forecast_days=3)
+        (folder / "open_meteo_dust.json").write_text(json.dumps(dust), encoding="utf-8")
+        dust = open_meteo.parse_dust(dust)
+    except Exception:
+        log.exception("dust forecast failed")
+        dust = pd.DataFrame(columns=["time_utc", "dust", "pm10"])
 
     start = (now - pd.Timedelta(hours=36)).to_pydatetime().replace(tzinfo=None)
     not_file = not_mast.download_range(session, start, now.to_pydatetime().replace(tzinfo=None),
@@ -100,7 +107,8 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
     # date2 is exclusive: today + 1 includes this morning's data.
     r2d2_file = r2d2.download_range(session, today - timedelta(days=2), today + timedelta(days=1),
                                     folder / "r2d2.html")
-    return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper), "minutes": clean_minutes(not_mast.parse(not_file)),
+    return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper), "dust": dust,
+            "minutes": clean_minutes(not_mast.parse(not_file)),
             "seeing": r2d2.parse(r2d2_file)}
 
 
@@ -244,6 +252,80 @@ def predict(row: pd.DataFrame, window: dict, final: bool) -> dict:
 
 
 # --------------------------------------------------------------------------
+# Hour by hour
+# --------------------------------------------------------------------------
+DUST_WARNING_UGM3 = 50  # EU daily limit for PM10; there is no public dome-closing limit for dust
+ICE_TEMP_C = 0.5  # at or below this temperature, wet surfaces can freeze
+
+
+def tonight_hours(window: dict) -> pd.DataFrame:
+    """UTC hours of tonight with at least half an hour of astronomical night (as in training)."""
+    minutes = pd.DataFrame({"time_utc": pd.date_range(window["start"].floor("h"), window["end"], freq="min",
+                                                      inclusive="left")})
+    minutes["is_night"] = astro.is_astronomical_night(minutes["time_utc"])
+    dark = minutes[minutes["is_night"]]
+    counts = dark.groupby(dark["time_utc"].dt.floor("h")).size()
+    hours = counts[counts >= hourly.MIN_DARK_MINUTES].index
+    out = pd.DataFrame({"hour": hours, "dark_minutes": counts.loc[hours].to_numpy()})
+    out["hour_of_night"] = np.arange(len(out))
+    out["night_fraction"] = out["hour_of_night"] / len(out)
+    return out
+
+
+def recent_ice(minutes: pd.DataFrame, now: pd.Timestamp) -> bool:
+    """Ice risk from the station: in the last 24 h it was freezing while humid (rime, ice)."""
+    recent = minutes[minutes["time_utc"] > now - pd.Timedelta(hours=24)]
+    return bool(((recent["temp_c"] <= ICE_TEMP_C) & (recent["humidity_pct"] >= 90)).any())
+
+
+def hour_by_hour(live: dict, window: dict, row: pd.DataFrame, final: bool, now: pd.Timestamp) -> list[dict]:
+    """Each hour of tonight: the raw forecast read literally, our models and the warnings."""
+    models = joblib.load(MODELS_DIR / "hourly.joblib")
+    hours = tonight_hours(window)
+    forecast = hourly.hour_forecast(live["forecast"], live.get("upper"))
+    table = hours.join(forecast, on="hour")
+    night = row.reset_index(drop=True).drop(columns=["hour_of_night", "night_fraction"], errors="ignore")
+    table = table.join(pd.concat([night] * len(table), ignore_index=True))
+    mode = "final" if final else "provisional"
+    pick = (lambda m: (m["probability"], m["features"])) if final else \
+        (lambda m: (m["probability_forecast_only"], m["forecast_only_features"]))
+    closure_model, closure_inputs = pick(models["closure"])
+    wind_model, wind_inputs = pick(models["wind"])
+    seeing = models["seeing"]
+    seeing_model, seeing_inputs = (seeing["model"], seeing["features"]) if final else \
+        (seeing["model_forecast_only"], seeing["forecast_only_features"])
+    table = table.astype({c: float for c in set(closure_inputs + wind_inputs + seeing_inputs)})
+    table["p_closed"] = closure_model.predict_proba(table[closure_inputs])[:, 1]
+    table["p_wind"] = wind_model.predict_proba(table[wind_inputs])[:, 1]
+    table["seeing"] = seeing_model.predict(table[seeing_inputs])
+
+    dust = live.get("dust")
+    dust_by_hour = dust.set_index("time_utc")["dust"] if dust is not None and len(dust) else pd.Series(dtype=float)
+    ice_from_station = recent_ice(live["minutes"], now)
+    mid = pd.DatetimeIndex(table["hour"]) + pd.Timedelta(minutes=30)
+    moon_up = astro.moon_altitude_deg(mid) > 0
+    wind_threshold = models["wind"]["warning_thresholds"][mode]
+    out = []
+    for i, h in enumerate(table.itertuples()):
+        raw_wind = h.h_wind_750 if not np.isnan(h.h_wind_750) else h.h_wind
+        dust_value = dust_by_hour.get(h.hour, np.nan)
+        out.append({
+            "t": iso(h.hour), "local": h.hour.tz_convert(LOCAL_TZ).strftime("%H:%M"),
+            "dark_minutes": int(h.dark_minutes),
+            "raw": {"rh": h.h_rh, "closes": bool(h.h_rh >= hourly.HUMIDITY_LIMIT_PCT), "wind": raw_wind,
+                    "windy": bool(raw_wind >= hourly.WIND_LIMIT_MS), "temp": h.h_temp, "cloud": h.h_cloud},
+            "p_closed": round(float(h.p_closed), 3), "risk": level(h.p_closed, RISK_LEVELS),
+            "seeing": round(float(h.seeing), 2), "seeing_class": level(h.seeing, SEEING_CLASSES),
+            "warn_wind": bool(h.p_wind >= wind_threshold),
+            "warn_ice": bool(h.h_temp <= ICE_TEMP_C and (h.h_rh >= hourly.HUMIDITY_LIMIT_PCT or ice_from_station)),
+            "dust": None if np.isnan(dust_value) else round(float(dust_value)),
+            "warn_dust": bool(not np.isnan(dust_value) and dust_value >= DUST_WARNING_UGM3),
+            "moon_up": bool(moon_up[i]),
+        })
+    return out
+
+
+# --------------------------------------------------------------------------
 # Page data
 # --------------------------------------------------------------------------
 def iso(t: pd.Timestamp) -> str:
@@ -309,6 +391,7 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
                         "wind": last_minute.wind_speed_ms, "temp": last_minute.temp_c,
                         "pressure": last_minute.pressure_hpa},
         "gtc_panel": latest_gtc_panel(),
+        "hours": hour_by_hour(live, window, row, final, now),
         "hourly": hourly_curve(live["forecast"], window),
         "station_24h": station_curve(live["minutes"], now),
         "model": {"trained_on": "2017-2023", "tested_on": "2024-2026",

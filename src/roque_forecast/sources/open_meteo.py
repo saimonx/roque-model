@@ -58,7 +58,10 @@ VARIABLES = [
 ]
 
 UPPER_MODEL = "gfs_global"
-UPPER_VARIABLES = ["wind_speed_200hPa"]
+# 200 hPa (~12 km): jet stream, for the seeing. 750 hPa (~2.5 km): the free-air wind at
+# summit height, for the hourly wind forecast (the 10 m wind of the coarse model grid is
+# far too calm at the summit: mean 1.3 m/s).
+UPPER_VARIABLES = ["wind_speed_200hPa", "wind_speed_750hPa"]
 UPPER_FIRST_DAY = date(2021, 3, 1)
 
 BASE_PARAMS = {
@@ -108,14 +111,35 @@ def download_current_upper(session: PoliteSession, forecast_days: int = 2) -> di
     return session.get(FORECAST_URL, params=params).json()
 
 
+AIR_QUALITY_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
+
+
+def download_current_dust(session: PoliteSession, forecast_days: int = 2) -> dict:
+    """Today's desert-dust forecast at the site: CAMS (Copernicus Atmosphere Monitoring
+    Service) through Open-Meteo, in micrograms per cubic metre. Live only: it is shown as
+    a warning, not used by the models (its archive starts in 2022)."""
+    params = {"latitude": config.SITE_LAT, "longitude": config.SITE_LON, "timezone": "UTC",
+              "hourly": "dust,pm10", "forecast_days": forecast_days}
+    return session.get(AIR_QUALITY_URL, params=params).json()
+
+
+def parse_dust(payload: dict | Path) -> pd.DataFrame:
+    if isinstance(payload, Path):
+        payload = json.loads(payload.read_text(encoding="utf-8"))
+    hourly = pd.DataFrame(payload["hourly"])
+    hourly["time_utc"] = pd.to_datetime(hourly.pop("time"), utc=True)
+    return hourly.dropna(subset=["dust"]).reset_index(drop=True)
+
+
 def parse_upper(payload: dict | Path) -> pd.DataFrame:
     """Hourly table: time_utc plus the upper-level wind (empty hours dropped)."""
     if isinstance(payload, Path):
         payload = json.loads(payload.read_text(encoding="utf-8"))
     hourly = pd.DataFrame(payload["hourly"])
     hourly["time_utc"] = pd.to_datetime(hourly.pop("time"), utc=True)
-    hourly = hourly.dropna(subset=UPPER_VARIABLES, how="all")
-    return hourly[["time_utc", *UPPER_VARIABLES]].reset_index(drop=True)
+    columns = [c for c in UPPER_VARIABLES if c in hourly]
+    hourly = hourly.dropna(subset=columns, how="all")
+    return hourly[["time_utc", *columns]].reset_index(drop=True)
 
 
 def parse(payload: dict | Path) -> pd.DataFrame:

@@ -60,6 +60,28 @@ def importance(name: str, top: int = 8) -> list[dict]:
     return table.head(top).to_dict(orient="records")
 
 
+def hourly_eval() -> list[dict]:
+    """Hour by hour, 2024-2026: how often a yes/no call catches the event and how often it is wrong.
+
+    Dome closure: the raw forecast read literally (humidity >= 90 % -> closed) against our
+    model saying "closed" when its probability is 50 % or more. Wind: the raw forecast
+    against the model's warning (threshold chosen on 2023, see hourly.py).
+    """
+    events = pd.read_csv(RESULTS / "hourly_events_metrics.csv")
+    warnings = pd.read_csv(RESULTS / "hourly_warnings.csv")
+    rows = []
+    for method, name in [("raw forecast, yes/no", "raw"), ("gradient boosting", "final"),
+                         ("gradient boosting, forecast only", "provisional")]:
+        r = events[(events["target"] == "closed") & (events["method"] == method)].iloc[0]
+        rows.append({"target": "closed", "method": name, "hit_rate": r["hit_rate"],
+                     "false_alarm_ratio": r["false_alarm_ratio"]})
+    for _, r in warnings[warnings["target"] == "windy"].iterrows():
+        name = "raw" if r["warning"].startswith("raw") else ("final" if "final" in r["warning"] else "provisional")
+        rows.append({"target": "windy", "method": name, "hit_rate": r["hit_rate"],
+                     "false_alarm_ratio": r["false_alarm_ratio"]})
+    return rows
+
+
 def read_jsonl(path) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
@@ -94,6 +116,7 @@ def build() -> dict:
         "importance": {"closure": importance("closure"), "seeing": importance("seeing")},
         "recent": recent_nights(),
         "track_record": track_record(),
+        "hourly_eval": hourly_eval(),
     })
 
 
