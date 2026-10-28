@@ -209,20 +209,57 @@ pd.DataFrame({
 # ## 5. Long-term view: weather losses per year (WHT)
 
 # %%
-yearly = nights.loc[nights["wht_has_accounting"].fillna(False).astype(bool)].groupby("year").agg(
-    lost=("wht_weather_lost_h", "sum"), night=("wht_night_h", "sum"), n=("wht_night_h", "size"))
+accounted = nights.loc[nights["wht_has_accounting"].fillna(False).astype(bool)]
+yearly = accounted.groupby("year").agg(
+    lost=("wht_weather_lost_h", "sum"), night=("wht_night_h", "sum"), n=("wht_night_h", "size"),
+    closed_pct=("dome_closed_frac", "mean"))
 yearly["lost_pct"] = (yearly["lost"] / yearly["night"]).clip(upper=1) * 100
+yearly["closed_pct"] *= 100
 yearly = yearly[yearly["n"] >= 300]  # complete years only
 
 fig, ax = plt.subplots(figsize=(10, 3.4))
-ax.bar(yearly.index, yearly["lost_pct"], color=BLUE, width=0.6)
-ax.axhline(yearly["lost_pct"].mean(), color=plotting.TEXT_SECONDARY, linewidth=1, linestyle="--")
-ax.annotate(f"mean {yearly['lost_pct'].mean():.0f} %", (yearly.index.min() - 0.4, yearly["lost_pct"].mean()),
-            xytext=(0, 4), textcoords="offset points", color=plotting.TEXT_SECONDARY, fontsize=9)
-ax.set_ylabel("% of dark time lost to weather")
-ax.set_title("WHT time lost to weather per year (complete years)")
+ax.plot(yearly.index, yearly["closed_pct"], marker="o", markersize=5, color=BLUE,
+        label="Rebuilt closure (NOT humidity ≥ 90 %)")
+ax.plot(yearly.index, yearly["lost_pct"], marker="o", markersize=5, color=ORANGE,
+        label="WHT time lost to weather (ING)")
+ax.set_ylim(0, None)
+ax.set_xticks(yearly.index[::2])
+ax.set_ylabel("% of dark time")
+ax.set_title("Per year: rebuilt closures vs. WHT weather losses (complete years)")
+ax.legend(loc="lower left")
 plotting.save(fig, "05_losses_per_year")
 yearly.round(1)
+
+# %% [markdown]
+# ## 6. Label quality: can the WHT losses be trusted every year?
+#
+# In 2019–2022 and 2024–2025 the WHT reports about half the weather losses of other years, while the
+# humidity-based closure stays at the same level. A real change in the weather would move both. The
+# accounting itself points to the cause: on many nights the page reports the **whole night as observed
+# with zero losses of any kind** even though the NOT humidity kept domes closed nearly all night. Those
+# look like nights without a filled-in report rather than real observing (the WHT was being adapted for
+# the WEAVE instrument in part of that period). The cause is not documented publicly, so we only flag
+# them. We count them per year.
+
+# %%
+all_observed = ((accounted["wht_weather_lost_h"] == 0) & (accounted["wht_tech_lost_h"] == 0)
+                & (accounted["wht_other_lost_h"] == 0))
+closed_all_night = accounted["dome_closed_frac"] >= 0.8
+suspect = accounted[all_observed & closed_all_night]
+quality = pd.DataFrame({
+    "nights closed ≥ 80 % (NOT)": closed_all_night.groupby(accounted["year"]).sum(),
+    "…of which WHT says 'all observed'": (all_observed & closed_all_night).groupby(accounted["year"]).sum(),
+})
+quality["share (%)"] = (quality.iloc[:, 1] / quality.iloc[:, 0] * 100).round(0)
+print(f"{len(suspect)} suspect nights in total")
+quality.T
+
+# %%
+early = accounted["year"].between(2007, 2018)
+for label, mask in [("2007–2018", early), ("2019–2026", ~early)]:
+    pair = accounted.loc[mask, ["dome_closed_frac", "wht_weather_lost_frac"]].dropna()
+    print(f"{label}: {len(pair):,} nights, correlation rebuilt closure vs. WHT losses = "
+          f"{pair.corr().iloc[0, 1]:.2f}")
 
 # %% [markdown]
 # ## Summary

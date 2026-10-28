@@ -14,15 +14,16 @@ to be lost to weather.
 |---|---|
 | Python environment, project layout, polite downloaders for 5 public sources | done |
 | Live collectors (GTC panel every 15 min, TNG 24 h series, GTC 30-day series) | running |
-| Bulk historical download (NOT 1997+, R2D2 2018+, ING nights 2007+) | NOT and R2D2 done; ING in progress |
-| Clean tables (Parquet) and exploratory analysis — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done (ING part provisional) |
+| Bulk historical download (NOT 1997+, R2D2 2018+, ING nights 2007+) | done |
+| Clean tables (Parquet) and exploratory analysis — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done |
 | Models: dome-closure risk, seeing, hours lost, honest baselines | next |
 | FIWARE `WeatherObserved` ingestion + Grafana panel | planned |
 | Bilingual (EN/ES) local web with tonight's forecast | planned |
 
 ## Key findings so far
 
-- The dome-closure rule rebuilt from humidity tracks the hours the WHT really lost to weather (r = 0.72), but misses winter losses caused by wind, dust or ice.
+- The dome-closure rule rebuilt from humidity tracks the hours the WHT really lost to weather (r = 0.74 in 2007–2018, 90 % agreement on "most of the night lost"), but misses winter losses caused by wind, dust or ice.
+- The WHT accounting is not equally reliable every year: since 2019 many nights with the domes closed by humidity are reported as fully observed with zero losses. Those 218 suspect nights must be handled before the losses are used as a training label.
 - Wind is the strongest driver of seeing (Spearman +0.58 with the night's maximum wind); easterly winds give the worst seeing.
 - For seeing, the monthly climatology (RMSE 0.34″) beats "same as last night" (0.41″): that is the bar a model must clear.
 
