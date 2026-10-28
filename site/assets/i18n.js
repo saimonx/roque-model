@@ -90,14 +90,37 @@ window.I18N = {
 <li><b>Límites:</b> la etiqueta de cierre solo mira la humedad (no viento, polvo ni hielo) y ninguna etiqueta son decisiones reales de operación del GTC.</li>
 <li><b>Datos en vivo:</b> además se publican como entidades FIWARE (<code>WeatherObserved</code>, <code>WeatherForecast</code>) en un Orion Context Broker local, con histórico en QuantumLeap/CrateDB y paneles de Grafana en español e inglés.</li>
 </ul>`,
-    sources_title: "Fuentes y referencias",
+    data_title: "En qué datos se basa todo",
+    data_intro: "Todos los datos son reales y públicos; no hay nada simulado. Esto es lo que se usa, de dónde sale y para qué.",
+    data_html: `<h3>Histórico: para entrenar y evaluar los modelos</h3>
+<div class="table-wrap"><table class="text"><thead><tr><th>Fuente</th><th>Qué da</th><th>Periodo</th><th>Para qué se usa</th></tr></thead><tbody>
+<tr><td><a href="https://www.not.iac.es/weather/archive/met/index.php">Estación meteorológica del NOT</a> (Nordic Optical Telescope, en el Roque)</td><td>Humedad, temperatura, presión y viento, cada minuto (cada 5 min hasta 2006)</td><td>1997 → hoy</td><td>Saber cuándo se cerró la cúpula (regla de humedad, ver abajo) y las entradas «2 h antes de la noche»</td></tr>
+<tr><td><a href="https://astro.ing.iac.es/seeing/">Monitor de seeing R2D2</a> (Isaac Newton Group)</td><td>Seeing medido cada 15–35 s de noche</td><td>sep 2018 → hoy</td><td>El seeing real de cada noche (mediana)</td></tr>
+<tr><td><a href="https://a.ing.iac.es/weather/archive/">Contabilidad nocturna del WHT</a> (Isaac Newton Group)</td><td>Horas perdidas por meteo y por averías en el telescopio William Herschel</td><td>2007 → hoy</td><td>Las horas perdidas reales. Solo años fiables (2017, 2018, 2023 y 2026): otros años dan por observadas noches con la cúpula cerrada</td></tr>
+<tr><td>Pronósticos archivados del modelo ECMWF IFS (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>El pronóstico hora a hora en el observatorio tal como se emitió entonces (no la meteo que hubo después)</td><td>2017 → hoy (emitidos 24 h antes: 2025 → hoy)</td><td>Entradas de los modelos</td></tr>
+<tr><td>Pronósticos archivados del modelo NOAA GFS (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>Viento a 200 hPa, unos 12 km de altura (corriente en chorro)</td><td>mar 2021 → hoy</td><td>Entrada del modelo de seeing</td></tr>
+</tbody></table></div>
+<h3>En directo: para el pronóstico de esta noche</h3>
+<div class="table-wrap"><table class="text"><thead><tr><th>Fuente</th><th>Cada cuánto</th><th>Para qué se usa</th></tr></thead><tbody>
+<tr><td>Pronóstico de hoy de ECMWF y GFS (Open-Meteo)</td><td>Cada hora</td><td>Entradas del pronóstico de esta noche y gráfica hora a hora</td></tr>
+<tr><td>Estación del NOT, últimas 36 h</td><td>Cada hora</td><td>Las 2 h antes de la noche (pronóstico definitivo), cuánto se cerró anoche y la gráfica de 24 h</td></tr>
+<tr><td>Seeing R2D2 de los últimos días</td><td>Cada hora</td><td>El seeing de anoche</td></tr>
+<tr><td><a href="https://atmosportal.gtc.iac.es/">Panel de la estación del GTC</a> (atmosportal)</td><td>Cada 15 min</td><td>Se muestra en la web y en FIWARE/Grafana; no entra en los modelos (solo publica el último mes)</td></tr>
+<tr><td>Series del GTC (30 días) y del <a href="https://tngweb.tng.iac.es/weather">TNG</a> (24 h, polvo por tamaño)</td><td>Cada semana / cada día</td><td>Se guardan para acumular histórico; todavía no entran en los modelos</td></tr>
+</tbody></table></div>
+<h3>Calculado en este proyecto</h3>
+<ul>
+<li><b>Cierre de cúpula:</b> no existe un registro público de cuándo cierra el GTC. Se reconstruye minuto a minuto desde 1997 con la regla pública del NOT: se cierra con humedad ≥ 90 % y se reabre tras 20 minutos seguidos por debajo.</li>
+<li><b>Noche astronómica y Luna:</b> posición del Sol y de la Luna con fórmulas astronómicas propias (comprobadas con la librería PyEphem).</li>
+</ul>
+<p class="muted small">Las descargas se identifican, esperan al menos 2 s entre peticiones y solo usan páginas enlazadas desde las webs públicas.</p>`,
+    sources_title: "Referencias científicas",
     sources_text: `<ul>
-<li>Meteo del NOT (Nordic Optical Telescope), archivo minuto a minuto: <a href="https://www.not.iac.es/weather/">not.iac.es/weather</a></li>
-<li>Seeing R2D2 y contabilidad nocturna del WHT, Isaac Newton Group: <a href="https://astro.ing.iac.es/seeing/">astro.ing.iac.es/seeing</a></li>
-<li>Estación meteorológica del GTC: <a href="https://atmosportal.gtc.iac.es/">atmosportal.gtc.iac.es</a></li>
-<li>Pronósticos ECMWF IFS y NOAA GFS y sus archivos: <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0)</li>
-<li>Abárzuza et al. 2025, RNAAS 9(2) — random forest para el seeing del Roque. de Sepibus, Masciadri et al. 2026, arXiv:2607.12900 — métodos de referencia. Lombardi et al. 2007, arXiv:astro-ph/0702570.</li>
-</ul>`,
+<li>Abárzuza et al. 2025, RNAAS 9(2) — random forest para el seeing del Roque a partir de la estación meteorológica.</li>
+<li>de Sepibus, Masciadri et al. 2026, arXiv:2607.12900 — persistencia y precasting como métodos de referencia mínimos.</li>
+<li>Lombardi et al. 2007, arXiv:astro-ph/0702570 — viento y humedad frente al seeing en el Roque.</li>
+</ul>
+<p>Las fuentes de datos están en «En qué datos se basa todo», al principio de la página.</p>`,
     updated: "Pronóstico emitido: {time} hora canaria. Evaluación generada: {eval}.",
     footer: "Roque Night Forecast · proyecto independiente · código y metodología en GitHub (saimonx/roque-night-forecast).",
     months: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
@@ -220,14 +243,37 @@ window.I18N = {
 <li><b>Limits:</b> the closure label only looks at humidity (not wind, dust or ice), and none of the labels are real GTC operating decisions.</li>
 <li><b>Live data:</b> also published as FIWARE entities (<code>WeatherObserved</code>, <code>WeatherForecast</code>) in a local Orion Context Broker, with history in QuantumLeap/CrateDB and Grafana dashboards in Spanish and English.</li>
 </ul>`,
-    sources_title: "Sources and references",
+    data_title: "The data everything is based on",
+    data_intro: "All data are real and public; nothing is simulated. This is what is used, where it comes from and what for.",
+    data_html: `<h3>Historical: to train and evaluate the models</h3>
+<div class="table-wrap"><table class="text"><thead><tr><th>Source</th><th>What it gives</th><th>Period</th><th>Used for</th></tr></thead><tbody>
+<tr><td><a href="https://www.not.iac.es/weather/archive/met/index.php">NOT weather station</a> (Nordic Optical Telescope, on the Roque)</td><td>Humidity, temperature, pressure and wind, every minute (every 5 min until 2006)</td><td>1997 → today</td><td>When the dome closed (humidity rule, see below) and the "2 h before the night" inputs</td></tr>
+<tr><td><a href="https://astro.ing.iac.es/seeing/">R2D2 seeing monitor</a> (Isaac Newton Group)</td><td>Seeing measured every 15–35 s at night</td><td>Sep 2018 → today</td><td>The real seeing of each night (median)</td></tr>
+<tr><td><a href="https://a.ing.iac.es/weather/archive/">WHT nightly log</a> (Isaac Newton Group)</td><td>Hours lost to weather and to faults on the William Herschel Telescope</td><td>2007 → today</td><td>The real hours lost. Reliable years only (2017, 2018, 2023 and 2026): other years book closed nights as observed</td></tr>
+<tr><td>Archived ECMWF IFS forecasts (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>The hourly forecast at the observatory as it was issued at the time (not the weather that happened)</td><td>2017 → today (issued 24 h earlier: 2025 → today)</td><td>Model inputs</td></tr>
+<tr><td>Archived NOAA GFS forecasts (<a href="https://open-meteo.com/">Open-Meteo</a>)</td><td>Wind at 200 hPa, about 12 km up (jet stream)</td><td>Mar 2021 → today</td><td>Input of the seeing model</td></tr>
+</tbody></table></div>
+<h3>Live: for tonight's forecast</h3>
+<div class="table-wrap"><table class="text"><thead><tr><th>Source</th><th>How often</th><th>Used for</th></tr></thead><tbody>
+<tr><td>Today's ECMWF and GFS forecast (Open-Meteo)</td><td>Every hour</td><td>Inputs of tonight's forecast and the hour-by-hour chart</td></tr>
+<tr><td>NOT station, last 36 h</td><td>Every hour</td><td>The 2 h before the night (final forecast), how long the dome was closed last night, and the 24 h chart</td></tr>
+<tr><td>R2D2 seeing of the last days</td><td>Every hour</td><td>Last night's seeing</td></tr>
+<tr><td><a href="https://atmosportal.gtc.iac.es/">GTC weather station panel</a> (atmosportal)</td><td>Every 15 min</td><td>Shown on the page and in FIWARE/Grafana; not a model input (it only publishes the last month)</td></tr>
+<tr><td>GTC series (30 days) and <a href="https://tngweb.tng.iac.es/weather">TNG</a> series (24 h, dust by particle size)</td><td>Weekly / daily</td><td>Stored to build up a history; not model inputs yet</td></tr>
+</tbody></table></div>
+<h3>Computed in this project</h3>
+<ul>
+<li><b>Dome closure:</b> there is no public record of when the GTC closes. It is rebuilt minute by minute since 1997 with the NOT's public rule: close at humidity ≥ 90 % and reopen after 20 minutes in a row below it.</li>
+<li><b>Astronomical night and Moon:</b> Sun and Moon positions from our own astronomical formulas (checked against the PyEphem library).</li>
+</ul>
+<p class="muted small">Downloads identify themselves, wait at least 2 s between requests and only use pages linked from the public sites.</p>`,
+    sources_title: "Scientific references",
     sources_text: `<ul>
-<li>NOT (Nordic Optical Telescope) weather archive, minute by minute: <a href="https://www.not.iac.es/weather/">not.iac.es/weather</a></li>
-<li>R2D2 seeing and WHT nightly log, Isaac Newton Group: <a href="https://astro.ing.iac.es/seeing/">astro.ing.iac.es/seeing</a></li>
-<li>GTC weather station: <a href="https://atmosportal.gtc.iac.es/">atmosportal.gtc.iac.es</a></li>
-<li>ECMWF IFS and NOAA GFS forecasts and archives: <a href="https://open-meteo.com/">Open-Meteo</a> (CC BY 4.0)</li>
-<li>Abárzuza et al. 2025, RNAAS 9(2) — random forest for Roque seeing. de Sepibus, Masciadri et al. 2026, arXiv:2607.12900 — reference methods. Lombardi et al. 2007, arXiv:astro-ph/0702570.</li>
-</ul>`,
+<li>Abárzuza et al. 2025, RNAAS 9(2) — random forest for Roque seeing from the weather station.</li>
+<li>de Sepibus, Masciadri et al. 2026, arXiv:2607.12900 — persistence and precasting as minimum reference methods.</li>
+<li>Lombardi et al. 2007, arXiv:astro-ph/0702570 — wind and humidity against seeing at the Roque.</li>
+</ul>
+<p>The data sources are in "The data everything is based on", at the top of the page.</p>`,
     updated: "Forecast issued: {time} Canary time. Evaluation generated: {eval}.",
     footer: "Roque Night Forecast · independent project · code and method on GitHub (saimonx/roque-night-forecast).",
     months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],

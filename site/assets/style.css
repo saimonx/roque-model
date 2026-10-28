@@ -121,6 +121,13 @@ tr.model td:first-child::before { content: ""; display: inline-block; width: 8px
 tr.baseline td:first-child::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--baseline); margin-right: 8px; }
 .empty { color: var(--text-2); font-style: italic; }
 
+/* Text tables (data sources): left-aligned, wrapping cells */
+table.text th, table.text td { text-align: left; white-space: normal; vertical-align: top; }
+table.text td:first-child { min-width: 180px; }
+.data h3 { margin-top: 1.2rem; }
+.data ul { max-width: 860px; padding-left: 20px; }
+.data li { margin: 4px 0; }
+
 /* Expandable explanation inside a card */
 .more { margin-top: 8px; color: var(--text-2); }
 .more summary { cursor: pointer; color: var(--series-1); font-weight: 600; }

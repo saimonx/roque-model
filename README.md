@@ -8,6 +8,39 @@ to be lost to weather.
 > endorsed by or produced for** GRANTECAN, the IAC, the ING, the NOT, the TNG or any other
 > institution. All data come from their public web pages and are credited below.
 
+## Data: what everything is based on
+
+All data are **real and public**; nothing in this project is simulated.
+
+### Historical (to train and evaluate the models)
+
+| Source | What it gives | Period | Used for |
+|---|---|---|---|
+| [NOT weather archive](https://www.not.iac.es/weather/archive/met/index.php) (Nordic Optical Telescope, on the Roque) | humidity, temperature, pressure and wind, every minute (every 5 min until 2006) | 1997 → today | when the dome closed (humidity rule, below) and the "2 h before the night" inputs |
+| [ING R2D2 seeing monitor](https://astro.ing.iac.es/seeing/) (Isaac Newton Group) | DIMM seeing every 15–35 s at night | Sep 2018 → today | the real seeing of each night (median) |
+| [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather and faults on the WHT, Moon illumination | 2007 → today | real hours lost; only reliable years (2017, 2018, 2023, 2026), other years book closed nights as observed |
+| [Open-Meteo](https://open-meteo.com) archived ECMWF IFS HRES forecasts ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | the hourly forecast at the site as issued at the time (not the weather measured later) | 2017 → today (issued 24 h earlier: 2025 → today) | model inputs |
+| [Open-Meteo](https://open-meteo.com) archived NOAA GFS forecasts | wind at 200 hPa, ~12 km up (jet stream) | Mar 2021 → today | seeing model input |
+
+### Live (for tonight's forecast)
+
+| Source | How often | Used for |
+|---|---|---|
+| Today's ECMWF and GFS forecast (Open-Meteo) | hourly | inputs of tonight's forecast, hour-by-hour chart |
+| NOT weather station, last 36 h | hourly | the 2 h before the night (final forecast), last night's closure, 24 h chart |
+| R2D2 seeing, last days | hourly | last night's seeing |
+| [GTC atmosportal](https://atmosportal.gtc.iac.es/) live panel (GTC weather station; rain, PM10 dust, warning colours) | every 15 min | shown on the page and as a FIWARE entity; not a model input (the site keeps only the last month) |
+| GTC 30-day series and [TNG weather](https://tngweb.tng.iac.es/weather) (24 h series, dust by particle size, downtime) | weekly / daily | stored to build up a history; not model inputs yet |
+
+### Computed here
+
+- **Dome closure.** There is no public record of when the GTC closes. Closure is rebuilt minute by minute
+  since 1997 from the NOT's public rule: close at humidity ≥ 90 %, reopen after 20 minutes in a row below it.
+- **Astronomical night and the Moon.** Own Sun and Moon formulas (Moon checked against PyEphem).
+
+Downloads identify themselves with a descriptive User-Agent, wait at least 2 s between requests and
+only use pages linked from the public sites.
+
 ## Status
 
 | Step | State |
@@ -50,22 +83,7 @@ The results hold with forecasts issued 24 h earlier. Details and caveats are in 
 
 ![Seeing vs weather](reports/figures/03_seeing_vs_weather.png)
 
-## Data sources (all real, all public)
-
-| Source | What we use | Coverage |
-|---|---|---|
-| [NOT weather archive](https://www.not.iac.es/weather/archive/met/index.php) (Nordic Optical Telescope) | temperature, humidity, pressure, wind (every 5 min until 2006, every minute since) | 1997 → today |
-| [ING R2D2 seeing monitor](https://astro.ing.iac.es/seeing/) (Isaac Newton Group) | DIMM seeing, every 15–35 s at night | Sep 2018 → today |
-| [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather / technical problems on the WHT, Moon illumination | 2007 → today |
-| [GTC atmosportal](https://atmosportal.gtc.iac.es/) (Gran Telescopio Canarias weather station) | ~11 s series (last 30 days only) and live panel incl. rain, PM10 dust and warning colours | collected by this project from Oct 2026 |
-| [TNG weather](https://tngweb.tng.iac.es/weather) (Telescopio Nazionale Galileo) | 1-min series of the last 24 h, dust counts by particle size, downtime | collected by this project from Oct 2026 |
-| [Open-Meteo](https://open-meteo.com) forecasts and archives ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | ECMWF IFS HRES 9 km hourly forecasts at the site: today's forecast, historical-forecast archive and forecasts issued 24 h earlier | 2017 → today (24 h earlier: 2025 → today) |
-
-Downloads identify themselves with a descriptive User-Agent, wait at least 2 s between requests and
-only use pages linked from the public sites. No simulated data are used in this project; any
-simulated data in future projects will be labelled as such.
-
-### Scientific references
+## Scientific references
 - Abárzuza et al. 2025, *RNAAS* 9(2), [doi:10.3847/2515-5172/adb14f](https://doi.org/10.3847/2515-5172/adb14f) — random forest predicting seeing at the Roque from weather-station data.
 - de Sepibus, Masciadri et al. 2026, [arXiv:2607.12900](https://arxiv.org/abs/2607.12900) — persistence and "precasting" as minimum baselines for seeing forecasts.
 - Lombardi et al. 2007, [arXiv:astro-ph/0702570](https://arxiv.org/abs/astro-ph/0702570) — wind and humidity vs. seeing at the Roque.
