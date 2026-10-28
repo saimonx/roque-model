@@ -13,6 +13,15 @@ window.I18N = {
     note_provisional: "Calculado solo con el pronóstico meteorológico, lo que pasó anoche y la época del año. A partir de las {time} (inicio de la noche) se usan también las 2 horas previas de la estación del NOT y el pronóstico pasa a definitivo.",
     note_final: "Calculado con el pronóstico meteorológico, la estación del NOT en las 2 horas antes de la noche, lo que pasó anoche y la época del año: el mismo modelo que se evaluó con las noches de 2024–2026.",
     closure_title: "Riesgo de tener que cerrar la cúpula",
+    closure_help: "«Cerrar» = al menos 1 hora de cúpula cerrada por humedad, con la regla pública del NOT: se cierra con humedad ≥ 90 % y se reabre tras 20 minutos seguidos por debajo.",
+    closure_more: "Qué tiene en cuenta",
+    closure_more_text: `<ul>
+<li><b>Pronóstico de la noche</b> (ECMWF): humedad, margen hasta el punto de rocío, nubes, lluvia, viento, temperatura y presión.</li>
+<li><b>Estación del NOT en las 2 h antes de la noche</b>: lo que más pesa. Solo existe desde que empieza la noche; antes, el pronóstico es provisional y se calcula sin ella.</li>
+<li><b>Anoche</b>: cuánto tiempo estuvo cerrada (el tiempo va por rachas).</li>
+<li><b>Época del año.</b></li>
+</ul>
+<p>Modelo de gradient boosting entrenado con las noches de 2017–2023. No cubre cierres por viento, polvo o hielo, y no son decisiones reales del GTC.</p>`,
     seeing_title: "Seeing previsto (nitidez)",
     lost_title: "Horas perdidas por meteo",
     risk_low: "Bajo", risk_medium: "Medio", risk_high: "Alto",
@@ -134,6 +143,15 @@ window.I18N = {
     note_provisional: "Computed from the weather forecast, last night's outcome and the time of year only. From {time} (start of the night) the 2 hours before the night at the NOT station are added and the forecast becomes final.",
     note_final: "Computed from the weather forecast, the NOT station in the 2 hours before the night, last night's outcome and the time of year: the same model that was tested on the 2024–2026 nights.",
     closure_title: "Risk of having to close the dome",
+    closure_help: "“Close” = at least 1 hour with the dome closed by humidity, using the NOT's public rule: close at humidity ≥ 90 % and reopen after 20 minutes in a row below it.",
+    closure_more: "What it takes into account",
+    closure_more_text: `<ul>
+<li><b>The night's forecast</b> (ECMWF): humidity, margin to the dew point, cloud, rain, wind, temperature and pressure.</li>
+<li><b>The NOT station in the 2 h before the night</b>: the strongest input. It only exists once the night starts; before that, the forecast is provisional and computed without it.</li>
+<li><b>Last night</b>: how long the dome was closed (weather comes in spells).</li>
+<li><b>Time of year.</b></li>
+</ul>
+<p>Gradient-boosting model trained on the 2017–2023 nights. It does not cover closures for wind, dust or ice, and these are not real GTC decisions.</p>`,
     seeing_title: "Forecast seeing (sharpness)",
     lost_title: "Hours lost to weather",
     risk_low: "Low", risk_medium: "Medium", risk_high: "High",

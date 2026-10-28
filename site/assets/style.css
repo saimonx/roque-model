@@ -121,6 +121,13 @@ tr.model td:first-child::before { content: ""; display: inline-block; width: 8px
 tr.baseline td:first-child::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--baseline); margin-right: 8px; }
 .empty { color: var(--text-2); font-style: italic; }
 
+/* Expandable explanation inside a card */
+.more { margin-top: 8px; color: var(--text-2); }
+.more summary { cursor: pointer; color: var(--series-1); font-weight: 600; }
+.more ul { margin: 6px 0; padding-left: 18px; }
+.more li { margin: 3px 0; }
+.more p { margin: 6px 0 0; }
+
 /* Moon strip */
 .moon { display: flex; gap: 14px; align-items: center; margin-top: 16px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px; }
 .moon p { margin: 0; }
