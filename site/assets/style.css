@@ -260,3 +260,13 @@ table.rules th[scope="row"] { color: var(--text); }
 table.rules td:last-child { color: var(--text-2); }
 #rules h2 { margin-bottom: .25rem; }
 @media (max-width: 600px) { table.rules th, table.rules td { padding: 6px 5px; } }
+
+/* Real vs weather forecast vs our model. */
+.lead { font-size: 1.05rem; margin: .5rem 0 .75rem; }
+table.compare th[scope="row"] { text-align: left; font-weight: 500; white-space: normal; }
+table.compare tr.truth th, table.compare tr.truth td { background: var(--surface-2, transparent); font-weight: 600; }
+table.compare tr.ours th, table.compare tr.ours td { font-weight: 700; }
+/* Long column titles wrap, so the tables fit a phone without much sideways scrolling. */
+table.compare th, table.compare td, #table-years th { white-space: normal; }
+table.compare thead th, #table-years thead th { vertical-align: bottom; }
+@media (max-width: 600px) { table.compare th, table.compare td, #table-years th, #table-years td { padding: 6px 5px; } }

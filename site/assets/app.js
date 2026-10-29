@@ -156,19 +156,36 @@
     table($("table-rules"), t.rules_cols, t.rules_rows.map((r) => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`));
   }
 
-  // One source for every year: the Liverpool Telescope night reports.
+  // One source for every year: the Liverpool Telescope night reports, as plain counts.
   function renderChecks(v) {
-    const t = T(), lt = v.liverpool;
-    const share = (x) => (x == null ? "—" : Math.round(x * 100) + " %");
-    $("checks").innerHTML = `<li>${fill(t.check_lt, { from: lt.first.slice(0, 4), to: lt.last.slice(0, 4), nights: lt.nights,
-      r: num(lt.correlation, 2), n: lt.label_closed_nights, p: share(lt.label_closed_lt_lost).replace(" %", ""),
-      lab: num(lt.mean_closed_h_label, 1), lt: num(lt.mean_lost_h_lt, 1) })}</li>`;
+    const t = T(), lt = v.liverpool, of100 = (x) => (x == null ? "—" : Math.round(x * 100));
+    const [agree, lost, open, more] = t.check_lt;
+    $("checks").innerHTML = [
+      fill(agree, { a: of100(lt.agree), n: lt.nights, from: lt.first.slice(0, 4), to: lt.last.slice(0, 4) }),
+      fill(lost, { k: lt.label_lost_nights, p: of100(lt.label_lost_lt_lost) }),
+      fill(open, { k: lt.label_open_nights, p: of100(lt.label_open_lt_kept) }),
+      fill(more, { lt: lt.lt_lost_nights, lab: lt.label_lost_nights }),
+    ].map((i) => `<li>${i}</li>`).join("");
     table($("table-years"), t.years_cols, lt.by_year.slice().reverse().map((r) =>
-      `<tr><td>${r.year}</td><td>${r.nights}</td><td>${num(r.correlation, 2)}</td><td>${r.label_closed_nights}</td><td>${share(r.label_closed_lt_lost)}</td></tr>`));
+      `<tr><td>${r.year}</td><td>${r.nights}</td><td>${of100(r.agree)}</td><td>${r.label_lost_nights}</td><td>${r.lt_lost_nights}</td><td>${r.both_lost_nights}</td></tr>`));
+  }
+
+  // What really happened, the weather forecast alone and our model, hour by hour (2024-2026).
+  function renderCompare(c) {
+    const t = T(), of100 = (x) => Math.round(x * 100);
+    $("compare-headline").innerHTML = fill(t.compare_headline, { raw: of100(c.raw.wrong), fin: of100(c.final.wrong), prov: of100(c.provisional.wrong) });
+    const row = (key, x, strong) => `<tr${strong ? ' class="ours"' : ""}><th scope="row">${t.compare_rows[key]}</th><td>${num(x.closed_h, 0)} h</td>` +
+      `<td>${fill(t.compare_wrong, { n: of100(x.wrong) })}</td><td>${num(x.false_alarm_h, 0)} h</td><td>${num(x.missed_h, 0)} h</td></tr>`;
+    table($("table-compare"), t.compare_cols, [
+      `<tr class="truth"><th scope="row">${t.compare_rows.real}</th><td>${num(c.real_closed_h, 0)} h</td><td>—</td><td>—</td><td>—</td></tr>`,
+      row("raw", c.raw), row("final", c.final, true), row("provisional", c.provisional),
+    ]);
+    $("compare-note").textContent = fill(t.compare_note, { hours: num(c.hours, 0), open: of100(c.always_open_wrong) });
   }
 
   function renderEvaluation(e) {
     const t = T();
+    renderCompare(e.comparison);
     // Plain words: our forecast (final and, in brackets, provisional) against the simplest references.
     const yesno = (o) => fill(t.plain_yesno, { r: ten(o.right), c: ten(o.caught) });
     const err = (v, r) => fill(t.plain_error, { v: num(v, r.digits) + r.unit });

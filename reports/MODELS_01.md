@@ -133,6 +133,12 @@ wind is added from 2021), the nightly inputs of section 1, and the position of t
 
 ### Results on the test years (2024–2026)
 
+Hour by hour against what really happened (`site_data.comparison`): the dome was closed 1,453 of 8,577
+hours. Read literally, the weather forecast would close 6,111 hours and is wrong in 56.6 % of the hours
+(4,756 needless closures, 98 missed); the final model calls 1,432 hours and is wrong in 9.1 % (380 / 401);
+provisional 12.5 %. Always "open" is wrong in 16.9 %.
+
+
 | Dome closed, each hour (8,577 hours, 17 % closed) | Brier ↓ | Skill | AUC | Right when it says "closed" | Closed hours caught |
 |---|---|---|---|---|---|
 | Climatology (month) | 0.136 | 0 | 0.66 | — | — |
@@ -157,14 +163,14 @@ beats every reference.
 ### Does the label reflect reality? (`validate.py`, `results/validation.json`)
 
 Checked against **one source for every year**, so the check means the same thing every year: the
-**Liverpool Telescope** night reports (2017–2026, 3,322 nights with a report), which book the hours lost to
-weather every night in the same way.
+**Liverpool Telescope** night reports (2017–2026, 3,322 nights with a report). Both are asked, night by
+night, whether at least half of the night was lost:
 
-- Correlation between the LT hours lost and the label's closed hours: **0.74** overall, 0.52–0.83 by year
-  (lowest in 2021, when the LT lost 4.15 h per night on average, cloud and dust included).
-- Of the 355 nights the label closes (almost) fully, the LT lost at least half of the night on **98.6 %**
-  (93–100 % by year).
-- The LT is more cautious: 2.75 h lost per night on average against 1.61 h closed by the label.
+- Agreement 87.2 % of nights (72–93 % by year; lowest in 2021, when the LT lost 148 nights, cloud and dust
+  included).
+- Label "lost" (529 nights) → LT also lost 95.7 %. Label open all night (2,458) → LT kept the night 89.9 %.
+- LT lost 909 nights, the label 529: the LT also closes for cloud, dust and caution.
+- Correlation of the hours: 0.74; mean 2.75 h lost by the LT against 1.61 h closed by the label.
 
 Sources looked at and not used, because they do not cover every year in the same way:
 - **GTC public archive** (CAB): science exposure times show when the GTC was certainly open (Jan 2024 – Sep

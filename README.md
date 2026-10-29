@@ -39,26 +39,32 @@ included: there is no reliable public summit record of them for every year.
 
 ### Is the label real?
 
-There is no public record of when the GTC closes, so the label is checked against **one source for every
-year**: the night reports of the **Liverpool Telescope** (robotic 2 m on the same mountain), which book the
-hours lost to weather every night since 2007, always in the same way (`validate.py`).
+There is no public record of when the GTC closes, so the label is compared with **one real telescope for
+every year**: the **Liverpool Telescope** (robotic 2 m on the same mountain), which books every night since
+2007 how many hours it lost to the weather (`validate.py`). Both are asked the same question, night by
+night: **was at least half of the night lost?**
 
-| Year | Nights | Correlation | Nights the label closes fully | …and the LT also lost |
-|---|---|---|---|---|
-| 2026 | 273 | 0.83 | 34 | 100 % |
-| 2025 | 317 | 0.79 | 38 | 100 % |
-| 2024 | 314 | 0.69 | 25 | 100 % |
-| 2023 | 316 | 0.81 | 35 | 100 % |
-| 2022 | 346 | 0.82 | 46 | 98 % |
-| 2021 | 357 | 0.52 | 36 | 100 % |
-| 2020 | 350 | 0.73 | 38 | 97 % |
-| 2019 | 341 | 0.78 | 27 | 96 % |
-| 2018 | 358 | 0.83 | 49 | 100 % |
-| 2017 | 350 | 0.67 | 27 | 93 % |
-| **2017–2026** | **3,322** | **0.74** | **355** | **99 %** |
+- They **agree on 87 of every 100 nights** (3,322 nights, 2017–2026).
+- When the label says the night was lost (529 nights), the LT lost it too **96 times in 100**.
+- When the label keeps the dome open all night (2,458 nights), the LT did not lose the night either
+  **90 times in 100**.
+- The LT loses more nights than the label (909 against 529): it also closes for cloud, dust or caution,
+  and the label only measures humidity, wind and ice.
 
-The LT is more cautious than the label (it also closes for cloud or dust): 2.75 h lost per night on average
-against 1.61 h closed by the label.
+| Year | Nights | Agree (of 100) | Lost by the label | Lost by the LT | Lost by both |
+|---|---|---|---|---|---|
+| 2026 | 273 | 92 | 48 | 69 | 47 |
+| 2025 | 317 | 87 | 52 | 94 | 52 |
+| 2024 | 314 | 85 | 45 | 83 | 41 |
+| 2023 | 316 | 88 | 61 | 94 | 59 |
+| 2022 | 346 | 90 | 66 | 97 | 65 |
+| 2021 | 357 | 72 | 51 | 148 | 50 |
+| 2020 | 350 | 86 | 56 | 100 | 54 |
+| 2019 | 341 | 93 | 34 | 51 | 31 |
+| 2018 | 358 | 92 | 75 | 95 | 70 |
+| 2017 | 350 | 87 | 41 | 78 | 37 |
+
+For specialists: correlation between the LT hours lost and the label's closed hours 0.74.
 
 **Why only one source?** So the check means the same thing every year. Not used: the GTC public archive
 (exposure times show when the GTC was open, but data become public one year later and only 2024–2025 were
@@ -66,6 +72,20 @@ available), the TNG weather downtime (only the last year is published) and the W
 book nights with the dome closed as observed).
 
 ## Results (test years 2024–2026, never used for training or for any choice)
+
+**Hour by hour, against what really happened** (8,577 night hours; "close" = forecast humidity ≥ 90 %, or
+model probability ≥ 50 %):
+
+| | Hours with the dome closed | Wrong in | Closes when not needed | Stays open when it should close |
+|---|---|---|---|---|
+| What really happened (measured at the summit) | 1,453 h | — | — | — |
+| Weather forecast alone | 6,111 h | 57 of every 100 hours | 4,756 h | 98 h |
+| **Our model (final)** | **1,432 h** | **9 of every 100 hours** | 380 h | 401 h |
+| Our model (provisional) | 1,411 h | 13 of every 100 hours | 515 h | 557 h |
+
+Saying "open" every hour would be wrong in 17 of every 100 hours (the closed ones), so the model beats that
+floor too.
+
 
 | Forecast | Simplest references | Our forecast (final) |
 |---|---|---|

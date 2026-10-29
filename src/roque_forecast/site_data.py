@@ -72,6 +72,26 @@ def plain_summary() -> list[dict]:
     ]
 
 
+def comparison() -> dict:
+    """Test hours 2024-2026: what really happened, what the weather forecast alone would
+    have done, and what our model says (a "closed" call = probability >= 50 %)."""
+    hours = pd.read_parquet(config.PROCESSED_DIR / "hour_predictions.parquet")
+    real = hours["closed"] == 1
+
+    def calls(said: pd.Series) -> dict:
+        return {"closed_h": int(said.sum()),
+                "wrong": round(float((said != real).mean()), 3),          # share of hours it gets wrong
+                "false_alarm_h": int((said & ~real).sum()),               # closes when it was open
+                "missed_h": int((~said & real).sum())}                    # stays open when it was closed
+
+    return {"hours": len(hours), "real_closed_h": int(real.sum()),
+            "raw": calls(hours["raw"] >= 0.5),
+            "final": calls(hours["p_final"] >= 0.5),
+            "provisional": calls(hours["p_provisional"] >= 0.5),
+            # Saying "open" every hour is wrong exactly in the closed hours: the floor to beat.
+            "always_open_wrong": round(float(real.mean()), 3)}
+
+
 def technical() -> dict:
     s = scores()
     return {"hour": s[s["forecast"] == "hour closed"].to_dict(orient="records"),
@@ -124,6 +144,7 @@ def track_record() -> list[dict]:
 def build() -> dict:
     return clean({
         "generated_utc": pd.Timestamp.now(tz="UTC").floor("min").isoformat().replace("+00:00", "Z"),
+        "comparison": comparison(),
         "plain": plain_summary(),
         "technical": technical(),
         "validation": json.loads((RESULTS / "validation.json").read_text()),

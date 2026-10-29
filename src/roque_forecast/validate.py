@@ -31,8 +31,7 @@ from roque_forecast.sources import liverpool
 log = logging.getLogger("validate")
 RESULTS = config.PROJECT_DIR / "reports" / "results"
 FIRST_NIGHT = pd.Timestamp("2017-01-01")  # same years as the models (train 2017-2022)
-FULLY_CLOSED = 0.9   # the label closes at least 90 % of the dark hours
-LOST = 0.5           # the LT lost at least half of the night to weather
+LOST = 0.5  # a night counts as "lost" when at least half of its dark hours are closed / lost
 
 
 def label_by_minute(first: pd.Timestamp) -> pd.DataFrame:
@@ -58,15 +57,26 @@ def load_liverpool() -> pd.DataFrame:
 
 
 def compare(j: pd.DataFrame) -> dict:
-    """Our closed hours against the LT hours lost to weather, for a set of nights."""
-    label_closed = j["closed_h"] >= FULLY_CLOSED * j["dark_h"]
+    """Our closed hours against the LT hours lost to weather, for a set of nights.
+
+    The plain-language question for each night: was at least half of it lost?
+    Both sides answer it, and the counts say how often they agree."""
+    label_lost = j["closed_h"] >= LOST * j["dark_h"]
     lt_lost = j["weather_h"] >= LOST * j["dark_h"]
+    label_open = j["closed_h"] == 0  # the label keeps the dome open all night
     return {
         "nights": len(j),
+        "agree": round(float((label_lost == lt_lost).mean()), 3),
+        "label_lost_nights": int(label_lost.sum()),
+        "lt_lost_nights": int(lt_lost.sum()),
+        "both_lost_nights": int((label_lost & lt_lost).sum()),
+        # When the label says "lost", did the LT lose the night too?
+        "label_lost_lt_lost": round(float(lt_lost[label_lost].mean()), 3) if label_lost.any() else None,
+        # When the label keeps the dome open all night, did the LT keep most of the night?
+        "label_open_nights": int(label_open.sum()),
+        "label_open_lt_kept": round(float((~lt_lost)[label_open].mean()), 3) if label_open.any() else None,
+        # For specialists: how closely the hours move together (Pearson correlation).
         "correlation": round(float(j["closed_h"].corr(j["weather_h"])), 2),
-        # Nights our label calls (almost) fully closed: did the LT lose them too?
-        "label_closed_nights": int(label_closed.sum()),
-        "label_closed_lt_lost": round(float(lt_lost[label_closed].mean()), 3) if label_closed.any() else None,
         "mean_closed_h_label": round(float(j["closed_h"].mean()), 2),
         "mean_lost_h_lt": round(float(j["weather_h"].mean()), 2),
     }
