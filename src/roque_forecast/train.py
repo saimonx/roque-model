@@ -1,4 +1,9 @@
-"""Train and evaluate the three night forecasts against simple reference methods.
+"""The nightly study: three night forecasts against simple reference methods.
+
+What the live forecast uses from here: the **seeing** model (one number per night).
+The dome-closure forecast moved to hourly.py (hour by hour, closure for humidity,
+wind or ice); the nightly closure and WHT hours-lost models below are the first
+study, kept because reports/MODELS_01.md reports them.
 
     1. Dome closure risk: probability that the humidity rule closes the dome for
        at least 1 hour tonight (plus a second model for the number of hours).
@@ -25,6 +30,10 @@ How the evaluation stays honest
 - **Two forecast archives** (see sources/open_meteo.py): the long, slightly
   optimistic one for training and testing, and the 24-hour-old forecasts on the
   nights where they exist, a slightly pessimistic check of the same models.
+- **Checks that say "no" are kept.** Recalibrating the closure probabilities
+  (isotonic regression) was tested with a nested, leave-one-year-out check on
+  2017-2023 only; it did not lower the Brier score, so it is not applied. The
+  check runs on every training and is saved in settings.json.
 """
 
 import itertools
@@ -40,6 +49,7 @@ from sklearn.compose import TransformedTargetRegressor
 from sklearn.ensemble import HistGradientBoostingClassifier, HistGradientBoostingRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
+from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge
 from sklearn.metrics import (
     brier_score_loss,
@@ -51,7 +61,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from roque_forecast import config
-from roque_forecast.features import FEATURES, OBSERVED_FEATURES
+from roque_forecast.features import FEATURES, OBSERVED_FEATURES, SEEING_FEATURES, UPPER_FEATURES
 
 log = logging.getLogger("train")
 
@@ -81,6 +91,7 @@ SEED = 2026
 # Variant without the station readings before the night: what the forecast alone is
 # worth (e.g. to plan tomorrow night, when tonight's station readings do not exist yet).
 FORECAST_ONLY = [f for f in FEATURES if f not in OBSERVED_FEATURES]
+SEEING_FORECAST_ONLY = FORECAST_ONLY + UPPER_FEATURES
 
 
 # --------------------------------------------------------------------------
@@ -100,7 +111,7 @@ def grid_settings() -> list[dict]:
 
 
 def gradient_boosting(kind: str, **settings):
-    common = dict(max_iter=300, l2_regularization=1.0, random_state=SEED, **settings)
+    common = {"max_iter": 300, "l2_regularization": 1.0, "random_state": SEED, **settings}
     if kind == "classifier":
         return HistGradientBoostingClassifier(**common)
     return HistGradientBoostingRegressor(**common)
@@ -112,12 +123,12 @@ def linear(kind: str):
     return make_pipeline(SimpleImputer(strategy="median"), StandardScaler(), final)
 
 
-def choose_settings(make, sets: dict, target: str, score) -> dict:
+def choose_settings(make, sets: dict, target: str, score, features: list[str] = FEATURES) -> dict:
     """Try every grid point: fit on train, score on validation (lower is better).
     `make(settings)` returns a new, unfitted model."""
     results = []
     for settings in grid_settings():
-        model = make(settings).fit(sets["train"][FEATURES], sets["train"][target])
+        model = make(settings).fit(sets["train"][features], sets["train"][target])
         results.append((score(model, sets["validation"]), settings))
     best_score, best = min(results, key=lambda r: r[0])
     log.info("%s: best settings %s (validation score %.4f)", target, best, best_score)
@@ -203,14 +214,56 @@ def train_closure(sets: dict, day1: pd.DataFrame) -> tuple[dict, list[dict], pd.
     # Forecast-only twins, used by the live forecast before the 2-hour station window is complete
     # (in the afternoon the station readings "just before the night" do not exist yet).
     hours_forecast_only = gradient_boosting("regressor", **settings).fit(fit_on[FORECAST_ONLY], fit_on[hours_target])
+    calibration = calibration_check(data, settings)
+    if any(c["apply"] for c in calibration.values()):
+        # Not the case on the current data (see the docstring). If it ever helps, the
+        # isotonic step has to be added to the saved models: flag it loudly.
+        log.warning("recalibration would help: review train.calibration_check before using the models")
     classifier = models["gradient boosting"][0]
-    importance = importance_table(classifier, data["test"], target, "neg_brier_score")
+    importance = importance_table(classifier, data["test"], target, "neg_brier_score", FEATURES)
     joblib.dump({
         "probability": classifier, "hours": hours, "features": FEATURES,
         "probability_forecast_only": models["gradient boosting, forecast only"][0],
         "hours_forecast_only": hours_forecast_only, "forecast_only_features": FORECAST_ONLY,
     }, MODELS_DIR / "closure.joblib")
-    return {"classifier": classifier, "hours": hours, "settings": settings}, rows, importance
+    return {"classifier": classifier, "hours": hours, "settings": settings, "calibration": calibration}, rows, importance
+
+
+def calibration_check(data: dict, settings: dict) -> dict:
+    """Would recalibrating the closure probabilities help? Decided on 2017-2023 only.
+
+    A model is "calibrated" when its 30 % nights close about 30 % of the time.
+    Isotonic regression is the usual fix: a monotonic curve that maps each raw
+    probability to the closure rate observed for similar probabilities.
+
+    To judge it without the test years:
+    1. Out-of-fold probabilities: for each year 2017-2023, a model trained on the
+       other six years predicts that year (so no prediction comes from a model
+       that saw the night).
+    2. Nested check: for each year, the isotonic curve is fitted on the other
+       years' out-of-fold probabilities and applied to that year.
+    If the nested Brier score is not lower than the raw one, recalibration only
+    adds a step that fits noise, and it is not used.
+    """
+    pool = pd.concat([data["train"], data["validation"]])
+    years = sorted(pool["year"].unique())
+    result = {}
+    for label, inputs in [("full", FEATURES), ("forecast_only", FORECAST_ONLY)]:
+        raw = pd.Series(np.nan, index=pool.index)
+        for year in years:
+            others = pool[pool["year"] != year]
+            model = gradient_boosting("classifier", **settings).fit(others[inputs], others["closed"])
+            raw[pool["year"] == year] = model.predict_proba(pool.loc[pool["year"] == year, inputs])[:, 1]
+        recalibrated = raw.copy()
+        for year in years:
+            rest = pool["year"] != year
+            curve = IsotonicRegression(out_of_bounds="clip", y_min=0, y_max=1).fit(raw[rest], pool["closed"][rest])
+            recalibrated[~rest] = curve.predict(raw[~rest])
+        result[label] = {"brier_raw": round(brier_score_loss(pool["closed"], raw), 4),
+                         "brier_isotonic": round(brier_score_loss(pool["closed"], recalibrated), 4)}
+        result[label]["apply"] = result[label]["brier_isotonic"] < result[label]["brier_raw"]
+    log.info("calibration check (out of fold, 2017-2023): %s", result)
+    return result
 
 
 # --------------------------------------------------------------------------
@@ -245,14 +298,18 @@ def train_seeing(sets: dict, day1: pd.DataFrame) -> tuple[TransformedTargetRegre
     data = {k: v.dropna(subset=[target]) for k, v in sets.items()}
 
     def score(model, frame):
-        return root_mean_squared_error(frame[target], model.predict(frame[FEATURES]))
+        return root_mean_squared_error(frame[target], model.predict(frame[SEEING_FEATURES]))
 
-    settings = choose_settings(lambda st: log_target(gradient_boosting("regressor", **st)), data, target, score)
+    settings = choose_settings(lambda st: log_target(gradient_boosting("regressor", **st)), data, target, score,
+                               SEEING_FEATURES)
     fit_on = pd.concat([data["train"], data["validation"]])
     models = {
-        "gradient boosting": (log_target(gradient_boosting("regressor", **settings)), FEATURES),
-        "linear regression": (log_target(linear("regressor")), FEATURES),
-        "gradient boosting, forecast only": (log_target(gradient_boosting("regressor", **settings)), FORECAST_ONLY),
+        "gradient boosting": (log_target(gradient_boosting("regressor", **settings)), SEEING_FEATURES),
+        # Same inputs as before the jet stream was added, kept to show what it is worth.
+        "gradient boosting, no jet stream": (log_target(gradient_boosting("regressor", **settings)), FEATURES),
+        "linear regression": (log_target(linear("regressor")), SEEING_FEATURES),
+        "gradient boosting, forecast only": (log_target(gradient_boosting("regressor", **settings)),
+                                             SEEING_FORECAST_ONLY),
     }
     for model, inputs in models.values():
         model.fit(fit_on[inputs], fit_on[target])
@@ -270,10 +327,10 @@ def train_seeing(sets: dict, day1: pd.DataFrame) -> tuple[TransformedTargetRegre
                         | regression_metrics(y, model.predict(frame[inputs]), clim_rmse))
 
     model = models["gradient boosting"][0]
-    importance = importance_table(model, data["test"], target, "neg_root_mean_squared_error")
-    joblib.dump({"model": model, "features": FEATURES,
+    importance = importance_table(model, data["test"], target, "neg_root_mean_squared_error", SEEING_FEATURES)
+    joblib.dump({"model": model, "features": SEEING_FEATURES,
                  "model_forecast_only": models["gradient boosting, forecast only"][0],
-                 "forecast_only_features": FORECAST_ONLY}, MODELS_DIR / "seeing.joblib")
+                 "forecast_only_features": SEEING_FORECAST_ONLY}, MODELS_DIR / "seeing.joblib")
     return model, rows, importance
 
 
@@ -338,13 +395,13 @@ def train_lost_hours(table: pd.DataFrame, closure: dict, nights: pd.DataFrame) -
 
 
 # --------------------------------------------------------------------------
-def importance_table(model, frame: pd.DataFrame, target: str, scoring: str) -> pd.DataFrame:
+def importance_table(model, frame: pd.DataFrame, target: str, scoring: str, features: list[str]) -> pd.DataFrame:
     """Permutation importance on the TEST years: shuffle one input at a time and
     measure how much worse the model gets. Bigger drop = more important input."""
     frame = frame.dropna(subset=[target])
-    result = permutation_importance(model, frame[FEATURES], frame[target], scoring=scoring,
+    result = permutation_importance(model, frame[features], frame[target], scoring=scoring,
                                     n_repeats=10, random_state=SEED)
-    return (pd.DataFrame({"feature": FEATURES, "importance": result.importances_mean, "std": result.importances_std})
+    return (pd.DataFrame({"feature": features, "importance": result.importances_mean, "std": result.importances_std})
             .sort_values("importance", ascending=False))
 
 
@@ -352,7 +409,7 @@ def predictions_table(table: pd.DataFrame, closure: dict, seeing: TransformedTar
     out = table[["year", "month", "closed", "dome_closed_h", "seeing_median", "wht_weather_lost_h"]].copy()
     out["p_closed"] = closure["classifier"].predict_proba(table[FEATURES])[:, 1]
     out["pred_closed_h"] = closure["hours"].predict(table[FEATURES]).clip(min=0)
-    out["pred_seeing"] = seeing.predict(table[FEATURES])
+    out["pred_seeing"] = seeing.predict(table[SEEING_FEATURES])
     out["pred_lost_h"] = line.predict(out[["pred_closed_h"]]).clip(min=0)
     out["split"] = np.where(out.index >= TEST_START, "test",
                             np.where(out["year"] == VALIDATION_YEAR, "validation", "train"))
@@ -385,6 +442,7 @@ def main() -> int:
     seeing_importance.to_csv(RESULTS_DIR / "seeing_importance.csv", index=False, float_format="%.5f")
     (RESULTS_DIR / "settings.json").write_text(json.dumps({
         "closure": closure["settings"],
+        "closure_calibration_check": closure["calibration"],
         "lost_hours_slope": round(float(line.coef_[0]), 3),
         "train_years": [min(TRAIN_YEARS), max(TRAIN_YEARS)], "validation_year": VALIDATION_YEAR,
         "test_from": str(TEST_START.date()),

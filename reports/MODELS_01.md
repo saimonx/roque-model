@@ -2,7 +2,7 @@
 
 > **Independent project**, not affiliated with GRANTECAN or any observatory. All data are real and public.
 > Notebook: [`notebooks/02_models.ipynb`](../notebooks/02_models.ipynb). Code: `src/roque_forecast/features.py`,
-> `src/roque_forecast/train.py`. Metrics: [`reports/results/`](results/).
+> `src/roque_forecast/train.py`, `hourly.py`, `validate.py`. Metrics: [`reports/results/`](results/).
 
 ## The question
 
@@ -73,11 +73,17 @@ The real skill lies between the two results.
 |---|---|---|---|
 | Climatology (month) | 0.350 | 0.227 | 0 |
 | Persistence (last night) | 0.415 | 0.278 | −0.19 |
-| **Gradient boosting** | **0.286** | **0.198** | **0.18** |
-| Linear regression (log) | 0.289 | 0.203 | 0.18 |
-| Gradient boosting, forecast only | 0.312 | 0.223 | 0.11 |
+| **Gradient boosting** (with the jet-stream wind) | **0.284** | **0.197** | **0.19** |
+| Gradient boosting, without the jet-stream wind | 0.286 | 0.198 | 0.18 |
+| Linear regression (log) | 0.288 | 0.202 | 0.18 |
+| Gradient boosting, forecast only | 0.310 | 0.219 | 0.11 |
 
-- **24-hour-old forecasts:** 0.306″ against 0.378″ for climatology (skill 0.19).
+- **24-hour-old forecasts:** 0.303″ against 0.378″ for climatology (skill 0.20).
+- **Jet-stream wind (added 28 Oct 2026).** Turbulence high up blurs the stars even when the ground is calm.
+  The ECMWF archive has no pressure levels, so the 200 hPa wind (~12 km) comes from the NOAA GFS archive,
+  which starts in March 2021; older nights have no value (gradient boosting handles gaps natively). It was
+  accepted on the validation year only (RMSE 0.347″ → 0.340″ on 2023). On the test years the gain is small
+  but holds in both archives (0.286″ → 0.284″; 24 h old: 0.306″ → 0.303″). The dome models do not use it.
 - **Strongest input:** the station wind before the night, then temperature and season. This matches
   Abárzuza et al. 2025.
 - **Limit:** a linear model is almost as good. Most of the turbulence is in layers the ground station does
@@ -107,15 +113,116 @@ model. Instead, the closure-hours forecast is converted with one factor fitted o
 - **2024–2025:** it does not, because in those years the log books many closed nights as observed. The model
   is right about the weather and the label is not. This is why those years are excluded from fitting.
 
+## 4. The design used live (28 Oct 2026): one closure label, one hourly model, three checks
+
+Sections 1–3 study the night as a whole. The live product is simpler and is the one to read:
+
+| Question | Model | Label |
+|---|---|---|
+| Is the dome closed this hour? | RoqueModel, a random forest per night hour (`hourly.py`; model and settings from `compare.py`), provisional and final | `dome.closed`: humidity ≥ 90 % (reopen after 20 min), **or** gusts ≥ 22.2 m/s (80 km/h, INT limit, same reopen), **or** ice (≤ 0 °C with humidity ≥ 90 % in the previous 24 h) |
+| How many hours closed tonight? | sum of the hourly probabilities | same label, summed over the night |
+| Seeing of the night | section 2 (`train.py`) | R2D2 median |
+
+**The ice rule** was calibrated against the Liverpool Telescope reports of 2017–2022 (never the test
+years): it adds 29 nights to the label, and the LT lost 26 of them.
+
+**Hourly slots:** UTC hours with ≥ 30 minutes of astronomical night (32,153 hours, 2017–2026). An hour is
+labelled closed when the label covers at least half of it, and only if ≥ 45 minutes were measured. Inputs:
+the ECMWF forecast at mid-hour (the 10 m wind is useless at the summit, mean 1.3 m/s, so the GFS 750 hPa
+wind is added from 2021), the nightly inputs of section 1, and the position of the hour in the night.
+
+### Results on the test years (2024–2026)
+
+Hour by hour against what really happened (`site_data.comparison`): the dome was closed 1,453 of 8,577
+hours. Read literally, the weather forecast would close 6,111 hours and is wrong in 56.6 % of the hours
+(4,756 needless closures, 98 missed); the final model calls 1,390 hours and is wrong in 8.9 % (351 / 414);
+provisional 11.5 %. Always "open" is wrong in 16.9 %.
+
+
+| Dome closed, each hour (8,577 hours, 17 % closed) | Brier ↓ | Skill | AUC | Right when it says "closed" | Closed hours caught |
+|---|---|---|---|---|---|
+| Climatology (month) | 0.136 | 0 | 0.66 | — | — |
+| Raw forecast, read literally | 0.566 | −3.16 | 0.63 | 22 % | 93 % |
+| Persistence (same hour last night) | 0.120 | 0.12 | 0.69 | 52 % | 47 % |
+| Precasting (humidity before night) | 0.081 | 0.41 | 0.85 | 67 % | 77 % |
+| Model, provisional | 0.084 | 0.38 | 0.91 | 69 % | 59 % |
+| **Model, final** | **0.063** | **0.54** | **0.95** | **75 %** | **72 %** |
+
+| Closed hours of the night (1,028 nights) | MAE | RMSE |
+|---|---|---|
+| Climatology (month) | 1.95 h | 2.87 h |
+| Persistence (last night) | 1.33 h | 2.94 h |
+| Raw forecast | 4.67 h | 5.93 h |
+| Model, provisional | 1.24 h | 2.06 h |
+| **Model, final** | **0.87 h** | **1.68 h** |
+
+The provisional model loses to precasting on the hour: precasting already uses the station just before
+the night, which the provisional model cannot have. Once the night starts the final model uses it too and
+beats every reference.
+
+### Does the label reflect reality? (`validate.py`, `results/validation.json`)
+
+Checked against **one source for every year**, so the check means the same thing every year: the
+**Liverpool Telescope** night reports (2017–2026, 3,322 nights with a report). Both are asked, night by
+night, whether at least half of the night was lost:
+
+- Agreement 87.2 % of nights (72–93 % by year; lowest in 2021, when the LT lost 148 nights, cloud and dust
+  included).
+- Label "lost" (529 nights) → LT also lost 95.7 %. Label open all night (2,458) → LT kept the night 89.9 %.
+- LT lost 909 nights, the label 529: the LT also closes for cloud, dust and caution.
+- Correlation of the hours: 0.74; mean 2.75 h lost by the LT against 1.61 h closed by the label.
+
+Sources looked at and not used, because they do not cover every year in the same way:
+- **GTC public archive** (CAB): science exposure times show when the GTC was certainly open (Jan 2024 – Sep
+  2025: 1,499 h exposing, label "closed" in 0.8 % of those minutes), but data become public one year later
+  and the archive cannot show closures.
+- **TNG weather downtime**: only the last 365 days are published (Oct 2025 – Oct 2026: correlation 0.90).
+- **WHT nightly accounting**: some years book nights with the dome closed as observed (EDA, section 6).
+
+### Live models refitted on 2017–2026 (31 Oct 2026)
+
+The scores above come from models trained on 2017–2023 and tested on 2024–2026. Once measured, the live
+RoqueModel (final and provisional) is refitted with the same settings on every labelled year, 2017–2026
+(30,044 hours, 5,163 closed). Before doing it: trained on 2017–2023 vs 2017–2024 with the same settings and
+scored on 2025–2026, the extra year improved Brier 0.0655 → 0.0622 (final) and 0.0879 → 0.0847
+(provisional). The live track record keeps scoring the refitted models on new nights.
+
+### Model choice: random forest (31 Oct 2026, `compare.py`)
+
+Gradient boosting (162 combinations) and random forest (288) got equally wide settings searches on the
+validation years 2021–2023; logistic regression and an MLP smaller ones. Validation Brier, final /
+provisional: gradient boosting 0.0594 / 0.0856, random forest 0.0595 / 0.0869 (per year the two swap:
+final 0.0516 / 0.0559 / 0.0708 against 0.0521 / 0.0568 / 0.0695). Within 2 %, so the test decides:
+random forest 0.0628 / 0.0839 against 0.0667 / 0.0859 (right 91.1 % / 88.5 % against 90.7 % / 88.2 %).
+That choice looked at the test years, so those scores may be slightly optimistic. Night totals: MAE
+0.87 h against 0.77 h (worse), RMSE 1.68 h against 1.75 h (better).
+
+### Tried and dropped
+
+- Separate nightly closure and WHT hours models in the live product (section 1 and 3): replaced by the sum
+  of the hourly model, which answers both with one label.
+- Hour-by-hour seeing: RMSE 0.358″ against 0.409″ for climatology, but no better than the nightly model
+  for the night as a whole, and the hourly R2D2 label is noisy.
+- Separate humidity and wind models combined as `1 − (1 − p_h)(1 − p_w)`: same Brier as one model on the
+  composite label, so the single label was kept.
+- Liverpool Telescope hours-lost and photometric-sky models: the LT label mixes reasons the GTC does not
+  share (it closes earlier), and the photometric model barely beat persistence (Brier skill 0.17 against
+  0.12). The LT reports are kept as a check only.
+- CAMS dust warning: 18 dust nights in the test years, the CAMS archive only from August 2022, 93 % false
+  alarms.
+
 ## Limitations and next steps
 
-- **Proxy labels.** The closure label is a rule rebuilt from humidity. Wind, dust and ice closures are not in
-  it, and none of the labels are the GTC's own operating decisions.
+- **Proxy labels.** The closure label is rebuilt from the NOT station (humidity, wind, ice). Dust and cloud
+  closures are not in it, and none of the labels are the GTC's own operating decisions (section 4 checks them).
 - **One forecast model at one grid point.** The grid point is 4 km away, on smoothed terrain, and is usually
   wetter and calmer than the summit. The model learns to correct that.
-- **Possible improvements:**
-  - calibrate the closure probabilities (isotonic regression);
-  - add forecast pressure-level winds (jet stream at 200 hPa) for seeing;
-  - an hourly version for the decision during the night.
-- **Next in the project:** the forecast for tonight, served live (web page and FIWARE/Grafana panel), using the
-  same features from the current Open-Meteo forecast and the NOT archive.
+- **Closure recalibration, tested and rejected (28 Oct 2026).** Isotonic regression was checked without
+  touching the test years: out-of-fold probabilities for each year 2017–2023 (model trained on the other six),
+  then a nested leave-one-year-out fit of the isotonic curve. Brier 0.0517 raw against 0.0521 recalibrated
+  (forecast-only model: 0.0922 against 0.0933), so it is not applied. The check runs on every training
+  (`train.calibration_check`, saved in `results/settings.json`). On the test years the model is somewhat
+  over-confident between 40 % and 90 %; with ~250 nights in those bins this may be noise or a change in the
+  climate of the last years, and the live track record is where to watch it.
+- **Possible improvements:** a longer archive of
+  pressure-level forecasts for the jet stream (training now has it only from 2021).

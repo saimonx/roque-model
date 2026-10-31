@@ -148,64 +148,7 @@
     legend(container, items);  // also for one series: it names the chart
   }
 
-  /** One bar per night (probability) and a marker on the nights that really closed. */
-  function nightsChart(container, nights, t) {
-    container.innerHTML = "";
-    if (container.nextElementSibling && container.nextElementSibling.classList.contains("legend")) container.nextElementSibling.remove();
-    const W = container.clientWidth, H = container.clientHeight;
-    const m = { top: 18, right: 8, bottom: 24, left: 40 };
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": t.eval_recent }, container);
-    const y = scale(0, 1, H - m.bottom, m.top);
-    const step = (W - m.left - m.right) / nights.length;
-    const bw = Math.max(2, step - 2);  // 2px gap between bars
-    const grid = el("g", { class: "grid axis" }, svg);
-    for (const v of [0, 0.25, 0.5, 0.75, 1]) {
-      el("line", { x1: m.left, x2: W - m.right, y1: y(v), y2: y(v) }, grid);
-      el("text", { x: m.left - 6, y: y(v) + 4, "text-anchor": "end" }, grid).textContent = Math.round(v * 100) + " %";
-    }
-    nights.forEach((n, i) => {
-      const x0 = m.left + i * step + 1;
-      const h = y(0) - y(n.p_closed);
-      el("rect", { x: x0, y: y(n.p_closed), width: bw, height: Math.max(h, 0.5), rx: Math.min(2, bw / 2), fill: css("--series-1") }, svg);
-      if (n.closed === 1) el("circle", { cx: x0 + bw / 2, cy: m.top - 8, r: Math.min(4, bw / 2 + 1), fill: css("--series-2") }, svg);
-      if (i % Math.ceil(nights.length / 6) === 0) {
-        el("text", { x: x0, y: H - 6 }, grid).textContent = n.night.slice(5);
-      }
-      const hit = el("rect", { x: m.left + i * step, y: 0, width: step, height: H, fill: "transparent" }, svg);
-      hit.addEventListener("mousemove", (ev) => showTip(
-        `<div><b>${n.night}</b></div>
-         <div class="row"><span class="key" style="--c:${css("--series-1")}">${t.probability}</span><b>${Math.round(n.p_closed * 100)} %</b></div>
-         <div class="row"><span class="key" style="--c:${css("--series-2")}">${t.col_real_h}</span><b>${n.closed_h != null ? n.closed_h.toFixed(1) + " h" : t.na}</b></div>`, ev));
-      hit.addEventListener("mouseleave", hideTip);
-    });
-    legend(container, [{ label: t.probability, color: css("--series-1") }, { label: t.closed_real, color: css("--series-2"), kind: "dot" }]);
-  }
-
-  /** Horizontal bars, one per method: models in blue, references in grey. */
-  function skillBars(container, rows, t) {
-    container.innerHTML = "";
-    const rowH = 30, m = { top: 6, right: 48, bottom: 26, left: Math.min(300, container.clientWidth * 0.45) };
-    const W = container.clientWidth, H = m.top + m.bottom + rows.length * rowH;
-    container.style.height = H + "px";
-    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": t.skill_axis }, container);
-    const vals = rows.map((r) => r.value);
-    const lo = Math.min(0, ...vals), hi = Math.max(...vals) * 1.05;
-    const x = scale(lo, hi, m.left, W - m.right);
-    const grid = el("g", { class: "grid axis" }, svg);
-    for (const v of niceTicks(lo, hi, 4)) {
-      el("line", { x1: x(v), x2: x(v), y1: m.top, y2: H - m.bottom }, grid);
-      el("text", { x: x(v), y: H - 8, "text-anchor": "middle" }, grid).textContent = v.toFixed(1);
-    }
-    rows.forEach((r, i) => {
-      const yy = m.top + i * rowH + 5, h = rowH - 10;
-      const a = x(Math.min(0, r.value)), b = x(Math.max(0, r.value));
-      el("rect", { x: a, y: yy, width: Math.max(b - a, 1), height: h, rx: 3, fill: css(r.model ? "--series-1" : "--baseline") }, svg);
-      const lab = el("text", { x: m.left - 8, y: yy + h / 2 + 4, "text-anchor": "end", class: "label" }, svg);
-      lab.textContent = r.label;
-      if (r.model) lab.setAttribute("font-weight", "600");
-      el("text", { x: b + 6, y: yy + h / 2 + 4, class: "label" }, svg).textContent = r.value.toFixed(2);
-    });
-  }
-
-  window.Charts = { lineChart, nightsChart, skillBars };
+  /** Moon icon: the lit part drawn with two arcs (the limb and the terminator ellipse).
+   *  Seen from the northern hemisphere: a waxing Moon is lit on the right. */
+  window.Charts = { lineChart };
 })();

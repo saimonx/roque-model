@@ -4,6 +4,18 @@
     "max_leaf_nodes": 7,
     "min_samples_leaf": 20
   },
+  "closure_calibration_check": {
+    "full": {
+      "brier_raw": 0.0517,
+      "brier_isotonic": 0.0521,
+      "apply": false
+    },
+    "forecast_only": {
+      "brier_raw": 0.0922,
+      "brier_isotonic": 0.0933,
+      "apply": false
+    }
+  },
   "lost_hours_slope": 0.849,
   "train_years": [
     2017,

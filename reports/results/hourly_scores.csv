@@ -1,0 +1,12 @@
+forecast,method,n,event_rate,brier,brier_skill,auc,right,caught,mae,rmse,mae_skill
+hour closed,climatology,8577,0.1694,0.1362,0.0000,0.6623,,0.0000,,,
+hour closed,raw forecast,8577,0.1694,0.5659,-3.1565,0.6325,0.2217,0.9326,,,
+hour closed,persistence,8577,0.1694,0.1198,0.1201,0.6896,0.5163,0.4687,,,
+hour closed,precasting,8577,0.1694,0.0808,0.4068,0.8453,0.6745,0.7660,,,
+hour closed,"model, provisional",8577,0.1694,0.0839,0.3839,0.9079,0.6888,0.5864,,,
+hour closed,"model, final",8577,0.1694,0.0628,0.5390,0.9514,0.7475,0.7151,,,
+night closed hours,climatology,1028,,,,,,,1.9544,2.8651,0.0000
+night closed hours,persistence,1028,,,,,,,1.3347,2.9438,0.3171
+night closed hours,raw forecast,1028,,,,,,,4.6681,5.9281,-1.3885
+night closed hours,"model, provisional",1028,,,,,,,1.2354,2.0562,0.3679
+night closed hours,"model, final",1028,,,,,,,0.8676,1.6750,0.5561

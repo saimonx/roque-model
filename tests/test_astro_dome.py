@@ -45,3 +45,33 @@ def test_circular_mean_of_wind_direction():
     mean = circular_mean_deg(pd.Series([350.0, 10.0]))
     assert min(mean, 360 - mean) < 1e-6
     assert abs(circular_mean_deg(pd.Series([80.0, 100.0])) - 90) < 1e-6
+
+
+def test_moon_is_full_and_new_on_known_dates():
+    # Full Moon 25 Jan 2024 17:54 UTC, new Moon 11 Jan 2024 11:57 UTC.
+    lit, _ = astro.moon_illumination(pd.DatetimeIndex([pd.Timestamp("2024-01-25 17:54", tz="UTC"),
+                                                        pd.Timestamp("2024-01-11 11:57", tz="UTC")]))
+    assert lit[0] > 0.99 and lit[1] < 0.01
+
+
+def test_moon_during_splits_the_night_into_moon_up_and_dark_hours():
+    start, end = pd.Timestamp("2026-10-28 19:52", tz="UTC"), pd.Timestamp("2026-10-29 06:00", tz="UTC")
+    moon = astro.moon_during(start, end)
+    assert abs(moon["up_h"] + moon["dark_h"] - (end - start).total_seconds() / 3600) < 0.02
+    assert moon["rises_utc"][0].startswith("2026-10-28T20:2")  # PyEphem: 20:20 UTC
+
+
+def test_wind_closes_and_reopens_after_20_minutes():
+    times = pd.date_range("2025-01-01 22:00", periods=40, freq="min", tz="UTC")
+    wind = [5.0] * 5 + [25.0] + [5.0] * 34
+    minutes = pd.DataFrame({"time_utc": times, "wind_speed_ms": wind})
+    closed = dome.closed_by_wind(minutes)
+    assert not closed.iloc[4] and closed.iloc[5] and closed.iloc[24] and not closed.iloc[25]
+
+
+def test_ice_needs_freezing_after_saturated_air():
+    times = pd.date_range("2025-01-01 00:00", periods=4, freq="6h", tz="UTC")
+    minutes = pd.DataFrame({"time_utc": times, "humidity_pct": [95.0, 60.0, 60.0, 60.0],
+                            "temp_c": [2.0, -1.0, -1.0, 3.0]})
+    ice = dome.closed_by_ice(minutes)
+    assert ice.tolist() == [False, True, True, False]  # frozen and wet within 24 h; then it thaws

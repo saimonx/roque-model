@@ -20,6 +20,14 @@ day-1 forecasts: the real skill lies between the two numbers.
 The model is ECMWF IFS HRES (`ecmwf_ifs`), the best global model, with a grid
 point 4 km from the telescope. `elevation=2270` asks Open-Meteo to correct the
 temperature from the model's smooth terrain to the real summit height.
+
+**Upper-level wind (jet stream).** Seeing depends on turbulence high up, not only
+at the ground: a strong jet stream at ~12 km (200 hPa) shears the air and blurs
+the stars. The ECMWF archive above has no pressure levels, so the 200 hPa wind
+comes from NOAA's GFS model (`gfs_global`), archived only since March 2021
+(checked 28 Oct 2026). Older nights simply have no value; the gradient-boosting
+model handles missing inputs natively. The day-1 archive has no pressure
+levels either, so the 24-hour-old check also uses this short-lead archive.
 """
 
 import json
@@ -49,6 +57,13 @@ VARIABLES = [
     "surface_pressure",
 ]
 
+UPPER_MODEL = "gfs_global"
+# 200 hPa (~12 km): jet stream, for the seeing. 750 hPa (~2.5 km): the free-air wind at
+# summit height, for the hourly wind forecast (the 10 m wind of the coarse model grid is
+# far too calm at the summit: mean 1.3 m/s).
+UPPER_VARIABLES = ["wind_speed_200hPa", "wind_speed_750hPa"]
+UPPER_FIRST_DAY = date(2021, 3, 1)
+
 BASE_PARAMS = {
     "latitude": config.SITE_LAT,
     "longitude": config.SITE_LON,
@@ -60,14 +75,19 @@ BASE_PARAMS = {
 
 
 def download_year(session: PoliteSession, kind: str, start: date, end: date, dest: Path) -> Path:
-    """Save one block of archived forecasts as JSON. `kind` is "historical" or "previous_day1"."""
+    """Save one block of archived forecasts as JSON. `kind` is "historical" or "previous_day1";
+    `kind` "upper" is the GFS jet-stream wind (see the module notes)."""
+    model = MODEL
     if kind == "historical":
         url, hourly = HISTORICAL_URL, VARIABLES
     elif kind == "previous_day1":
         url, hourly = PREVIOUS_RUNS_URL, [f"{v}_previous_day1" for v in VARIABLES]
+    elif kind == "upper":
+        url, hourly, model = HISTORICAL_URL, UPPER_VARIABLES, UPPER_MODEL
     else:
         raise ValueError(kind)
     params = BASE_PARAMS | {
+        "models": model,
         "hourly": ",".join(hourly),
         "start_date": start.isoformat(),
         "end_date": end.isoformat(),
@@ -78,10 +98,31 @@ def download_year(session: PoliteSession, kind: str, start: date, end: date, des
     return dest
 
 
-def download_current(session: PoliteSession, forecast_days: int = 2) -> dict:
-    """Today's forecast (for "tonight"), same model and variables as the archive."""
-    params = BASE_PARAMS | {"hourly": ",".join(VARIABLES), "forecast_days": forecast_days}
+def download_current(session: PoliteSession, forecast_days: int = 2, past_days: int = 0) -> dict:
+    """Today's forecast (for "tonight"), same model and variables as the archive.
+
+    past_days adds the hours already gone (as forecast at the time), to compare the
+    forecast with what the station measured."""
+    params = BASE_PARAMS | {"hourly": ",".join(VARIABLES), "forecast_days": forecast_days, "past_days": past_days}
     return session.get(FORECAST_URL, params=params).json()
+
+
+def download_current_upper(session: PoliteSession, forecast_days: int = 2, past_days: int = 0) -> dict:
+    """Today's GFS jet-stream wind, same model and level as the upper archive."""
+    params = BASE_PARAMS | {"models": UPPER_MODEL, "hourly": ",".join(UPPER_VARIABLES),
+                            "forecast_days": forecast_days, "past_days": past_days}
+    return session.get(FORECAST_URL, params=params).json()
+
+
+def parse_upper(payload: dict | Path) -> pd.DataFrame:
+    """Hourly table: time_utc plus the upper-level wind (empty hours dropped)."""
+    if isinstance(payload, Path):
+        payload = json.loads(payload.read_text(encoding="utf-8"))
+    hourly = pd.DataFrame(payload["hourly"])
+    hourly["time_utc"] = pd.to_datetime(hourly.pop("time"), utc=True)
+    columns = [c for c in UPPER_VARIABLES if c in hourly]
+    hourly = hourly.dropna(subset=columns, how="all")
+    return hourly[["time_utc", *columns]].reset_index(drop=True)
 
 
 def parse(payload: dict | Path) -> pd.DataFrame:

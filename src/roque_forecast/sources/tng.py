@@ -69,3 +69,4 @@ def parse_current(raw: bytes | str) -> list[dict]:
         for name, item in payload.items()
         if isinstance(item, dict)
     ]
+

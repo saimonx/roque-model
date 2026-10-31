@@ -157,10 +157,11 @@ def forecast_entity(page: dict) -> dict:
         # Night averages of the weather forecast (ECMWF IFS through Open-Meteo)
         "relativeHumidity": inputs["fc_rh_mean"] / 100 if inputs.get("fc_rh_mean") is not None else None,
         "temperature": inputs.get("fc_temp_mean"), "windSpeed": inputs.get("fc_wind_mean"),
-        # Our models (see reports/MODELS_01.md)
-        "domeClosureProbability": f["p_closed"], "closureRisk": f["risk"],
-        "domeClosedHours": f["closed_h"], "seeingForecast": f["seeing_arcsec"],
-        "hoursLostForecast": f["lost_h"], "nightLengthHours": night["length_h"],
+        # Our two forecasts (hourly.py and train.py): expected closed hours = sum of the hourly
+        # probabilities; one seeing value for the night.
+        "domeClosedHours": f["closed_h"], "openHoursForecast": f["open_h"], "closureRisk": f["risk"],
+        "seeingForecast": f["seeing_arcsec"], "nightLengthHours": night["length_h"],
+        "hourlyClosureProbability": [{"hourStart": h["t"], "probability": h["p_closed"]} for h in page["hours"]],
         "dataOrigin": "model forecast",
     })
 

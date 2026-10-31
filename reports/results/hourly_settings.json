@@ -1,0 +1,36 @@
+{
+  "closure": {
+    "model": "random_forest",
+    "min_samples_leaf": 3,
+    "max_features": 0.25,
+    "criterion": "log_loss",
+    "missing": "native",
+    "trees": 150
+  },
+  "closure_provisional": {
+    "model": "random_forest",
+    "min_samples_leaf": 10,
+    "max_features": "sqrt",
+    "criterion": "log_loss",
+    "missing": "native",
+    "trees": 150
+  },
+  "live_models_trained_on": {
+    "first_year": 2017,
+    "last_year": 2026,
+    "first_night": "2017-01-01",
+    "last_night": "2026-10-26",
+    "hours": 30044,
+    "closed_hours": 5163
+  },
+  "scores_from": {
+    "trained": [
+      2017,
+      2023
+    ],
+    "tested": [
+      2024,
+      2026
+    ]
+  }
+}
