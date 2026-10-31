@@ -23,8 +23,11 @@ dome be open, and how sharp will the stars be?**
 - **What it gets:** about 30 inputs: this hour's forecast (humidity, wind, temperature, cloud, rain,
   pressure), the forecast for the whole night, the summit station just before the night, last night, and
   the time of year and hour of the night.
-- **How it learnt:** night hours 2017–2023, each with those inputs and whether the dome ended up closed (the
-  label below). 2024–2026 are kept apart for testing.
+- **How it learnt:** first a copy was trained on night hours 2017–2023 (settings chosen on 2023) and tested on
+  2024–2026, which it had not seen: every score in this README comes from that copy. Then the live model was
+  refitted with the same settings on all of 2017–2026 (30,044 hours, 5,163 closed). Checked beforehand: with
+  the same settings, adding 2024 to the training improved the 2025–2026 scores (wrong in 9.7 % → 9.2 % of
+  hours; provisional 13.2 % → 12.0 %).
 - **Inside:** gradient boosting (scikit-learn `HistGradientBoostingClassifier`): hundreds of small decision
   trees, each correcting a little of what the previous ones got wrong.
 - **Two versions:** provisional (before the night, every input except the summit station, which does not

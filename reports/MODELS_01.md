@@ -179,6 +179,14 @@ Sources looked at and not used, because they do not cover every year in the same
 - **TNG weather downtime**: only the last 365 days are published (Oct 2025 – Oct 2026: correlation 0.90).
 - **WHT nightly accounting**: some years book nights with the dome closed as observed (EDA, section 6).
 
+### Live models refitted on 2017–2026 (31 Oct 2026)
+
+The scores above come from models trained on 2017–2023 and tested on 2024–2026. Once measured, the live
+RoqueModel (final and provisional) is refitted with the same settings on every labelled year, 2017–2026
+(30,044 hours, 5,163 closed). Before doing it: trained on 2017–2023 vs 2017–2024 with the same settings and
+scored on 2025–2026, the extra year improved Brier 0.0698 → 0.0652 (final) and 0.0943 → 0.0894
+(provisional). The live track record keeps scoring the refitted models on new nights.
+
 ### Tried and dropped
 
 - Separate nightly closure and WHT hours models in the live product (section 1 and 3): replaced by the sum

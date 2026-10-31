@@ -223,9 +223,23 @@ def train_closure(sets: dict) -> tuple[dict, list, pd.DataFrame]:
     predictions = test[["closed", "dark_minutes", "month"]].assign(
         p_final=p["model, final"], p_provisional=p["model, provisional"], raw=p["raw forecast"],
         climatology=p["climatology"])
-    model = {"final": final, "final_features": CLOSURE_FEATURES, "provisional": provisional,
+    # The live models (RoqueModel). The test years were kept apart only to measure the
+    # scores above, which stay as they are. Now that they are measured, the models that
+    # forecast each night are refitted with the same settings on every labelled year
+    # (2017-2026): more hours, and the most recent ones. Checked before doing it: with the
+    # same settings, adding 2024 to the training improved the 2025-2026 scores
+    # (final: wrong in 9.7 % -> 9.2 % of hours; provisional: 13.2 % -> 12.0 %).
+    everything = pd.concat([data["train"], data["validation"], data["test"]])
+    live_final = make(settings).fit(everything[CLOSURE_FEATURES], everything[target])
+    live_provisional = make(settings_fo).fit(everything[CLOSURE_FORECAST_ONLY], everything[target])
+    years = everything.index.get_level_values("night").year
+    model = {"final": live_final, "final_features": CLOSURE_FEATURES, "provisional": live_provisional,
              "provisional_features": CLOSURE_FORECAST_ONLY, "settings": settings,
-             "settings_provisional": settings_fo}
+             "settings_provisional": settings_fo,
+             "trained_on": {"first_year": int(years.min()), "last_year": int(years.max()),
+                            "hours": len(everything), "closed_hours": int(everything[target].sum())},
+             "evaluated_on": {"trained": [int(data["train"]["year"].min()), int(data["validation"]["year"].max())],
+                              "tested": [int(test["year"].min()), int(test["year"].max())]}}
     return model, rows, predictions
 
 
@@ -275,7 +289,8 @@ def main() -> int:
     closure_pred.to_parquet(config.PROCESSED_DIR / "hour_predictions.parquet")
     nights.to_parquet(config.PROCESSED_DIR / "night_predictions.parquet")
     (RESULTS_DIR / "hourly_settings.json").write_text(json.dumps(
-        {"closure": closure["settings"], "closure_provisional": closure["settings_provisional"]}, indent=2))
+        {"closure": closure["settings"], "closure_provisional": closure["settings_provisional"],
+         "live_models_trained_on": closure["trained_on"], "scores_from": closure["evaluated_on"]}, indent=2))
     pd.set_option("display.width", 200)
     log.info("scores (test 2024-2026)\n%s", scores.to_string(index=False, float_format="%.3f"))
     return 0
