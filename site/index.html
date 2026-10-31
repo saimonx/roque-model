@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
   <meta name="description" content="Tonight at the Roque de los Muchachos Observatory (La Palma), hour by hour: will the dome be open, and how sharp will the stars be. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=31">
+  <link rel="stylesheet" href="assets/style.css?v=32">
 </head>
 <body>
   <header class="top">
@@ -93,6 +93,17 @@
       <div id="gtc-panel"></div>
     </details>
 
+    <!-- Data to keep in mind: why these data, what is missing, limits -->
+    <section id="notes">
+      <h2 data-i18n="notes_title"></h2>
+      <p class="muted" data-i18n="notes_intro"></p>
+      <div class="notes-grid">
+        <article class="note-card why"><h3 data-i18n="notes_why_title"></h3><ul data-i18n-html="notes_why"></ul></article>
+        <article class="note-card missing"><h3 data-i18n="notes_missing_title"></h3><ul data-i18n-html="notes_missing"></ul></article>
+        <article class="note-card limits"><h3 data-i18n="notes_limits_title"></h3><ul data-i18n-html="notes_limits"></ul></article>
+      </div>
+    </section>
+
     <details class="fold">
       <summary><h2 data-i18n="fold_refs"></h2></summary>
       <div class="prose" data-i18n-html="refs_html"></div>
@@ -106,8 +117,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=31"></script>
-  <script src="assets/charts.js?v=31"></script>
-  <script src="assets/app.js?v=31"></script>
+  <script src="assets/i18n.js?v=32"></script>
+  <script src="assets/charts.js?v=32"></script>
+  <script src="assets/app.js?v=32"></script>
 </body>
 </html>
