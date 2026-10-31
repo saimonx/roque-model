@@ -76,26 +76,36 @@
     const t = T(), h = d.hours[i], n = d.night, ex = d.explain;
     const end = new Date(new Date(h.t).getTime() + 3600e3).toISOString();
     const kmh = (ms) => (ms == null ? t.na : num(ms * 3.6, 0));
-    const pts = (x) => (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0);
+    const signed = (x) => (Math.abs(x) < 0.005 ? "≈0" : (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0)) + " %";
     const maxAbs = Math.max(0.05, ...Object.values(h.why).map(Math.abs));
 
     // How our model gets its percentage: starting point + one amount per group of inputs.
+    // This hour's forecast is split by variable; the other groups follow.
     const detail = {
-      hour_forecast: fill(t.gd_hour, { rh: num(h.raw.rh, 0), wind: kmh(h.raw.wind_ms), temp: num(h.raw.temp, 1), cloud: num(h.raw.cloud, 0), precip: num(h.raw.precip, 1) }),
-      night_forecast: fill(t.gd_night, { rh: num(h.night.rh_mean, 0), rhmax: num(h.night.rh_max, 0), wind: kmh(h.night.wind_mean), cloud: num(h.night.cloud_mean, 0) }),
+      humidity: fill(t.gd_humidity, { rh: num(h.raw.rh, 0), spread: num(h.raw.dew_spread, 1) }),
+      wind: fill(t.gd_wind, { wind: kmh(h.raw.wind_ms) }),
+      temperature: fill(t.gd_temperature, { temp: num(h.raw.temp, 1) }),
+      cloud: fill(t.gd_cloud, { cloud: num(h.raw.cloud, 0) }),
+      rain: fill(t.gd_rain, { precip: num(h.raw.precip, 1) }),
+      pressure: fill(t.gd_pressure, { p: num(h.raw.pressure, 0) }),
+      night_forecast: fill(t.gd_night, { rh: num(h.night.rh_mean, 0), rhmax: num(h.night.rh_max, 0), cloud: num(h.night.cloud_mean, 0) }),
       station: fill(t.gd_station, { rh: num(h.night.station_rh, 0), rhmax: num(h.night.station_rh_max, 0), wind: kmh(h.night.station_wind) }),
       last_night: fill(t.gd_last, { p: pct(h.night.last_night_closed) }),
       calendar: fill(t.gd_calendar, { month: monthName(n.date), k: i + 1, total: d.hours.length }),
     };
-    const rows = Object.keys(t.groups).map((g) => {
+    const HOUR = ["humidity", "wind", "temperature", "cloud", "rain", "pressure"];
+    const line = (g) => {
       if (!(g in h.why)) {
         return `<li class="why-row missing"><span class="why-text"><b>${t.groups[g]}</b><br><span class="muted">${fill(t.station_missing, { time: timeLocal(n.final_from_utc) })}</span></span><span class="why-val">—</span></li>`;
       }
       const v = h.why[g], w = (Math.abs(v) / maxAbs * 50).toFixed(1);
-      return `<li class="why-row"><span class="why-text"><b>${t.groups[g]}</b><br><span class="muted">${detail[g]}</span></span>
+      return `<li class="why-row${HOUR.includes(g) ? " sub" : ""}"><span class="why-text"><b>${t.groups[g]}</b> <span class="muted">${detail[g]}</span></span>
         <span class="why-bar"><span class="${v >= 0 ? "up" : "down"}" style="width:${w}%"></span></span>
-        <span class="why-val">${pts(v)}</span></li>`;
-    }).join("");
+        <span class="why-val">${signed(v)}</span></li>`;
+    };
+    const hourSum = HOUR.reduce((a, g) => a + (h.why[g] || 0), 0);
+    const rows = `<li class="why-head"><b>${t.hour_group}</b><span class="why-val">${signed(hourSum)}</span></li>` +
+      HOUR.map(line).join("") + ["night_forecast", "station", "last_night", "calendar"].map(line).join("");
     const color = t.colors[h.level];
     const model = `<div class="why-col">
       <h4>${fill(t.model_title, { p: pct(h.p_closed), color })}</h4>

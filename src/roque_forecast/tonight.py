@@ -278,7 +278,8 @@ def hours_for_page(hours: pd.DataFrame) -> list[dict]:
             # Line 2: the weather forecast read literally (the label's three rules).
             "raw_closed": bool(h.raw_closed),
             "raw": {"rh": r(h.h_rh, 0), "wind_ms": r(wind_summit), "wind_level": "750hPa" if not pd.isna(h.h_wind_750) else "10m",
-                    "temp": r(h.h_temp), "cloud": r(h.h_cloud, 0), "precip": r(h.h_precip, 1)},
+                    "temp": r(h.h_temp), "cloud": r(h.h_cloud, 0), "precip": r(h.h_precip, 1),
+                    "pressure": r(h.h_pressure, 0), "dew_spread": r(h.h_dew_spread)},
             # What the model also used for the whole night (same for every hour).
             "night": {"rh_mean": r(h.fc_rh_mean, 0), "rh_max": r(h.fc_rh_max, 0), "wind_mean": r(h.fc_wind_mean),
                       "cloud_mean": r(h.fc_cloud_mean, 0), "station_rh": r(getattr(h, "pre_humidity_mean", None), 0),

@@ -300,3 +300,8 @@ table.rules-raw td.rule-yes { color: var(--critical); font-weight: 700; }
 .lines { overflow-x: auto; }
 .lines .strip { overflow: visible; min-width: calc(var(--n, 10) * 48px); }
 .lines .line-head { position: sticky; left: 0; }
+
+/* "Forecast for this hour": a heading with its total, then one indented row per variable. */
+.why-head { display: flex; justify-content: space-between; padding: 8px 0 2px; font-size: .85rem; border-bottom: 1px solid var(--border); }
+.why-row.sub { padding-left: 14px; }
+.why-row.sub .why-text b { font-weight: 600; }

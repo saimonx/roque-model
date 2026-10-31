@@ -173,7 +173,9 @@ The page answers the question first (how many hours should be observable, and wh
 hours: **our model** (probability, green / orange / red) and **the weather forecast alone** (the label's
 rules read literally: close / open), each with its historical accuracy against what really closed. Clicking
 an hour shows how both come out: for the model, a starting point plus the amount each group of inputs adds
-or takes away (exact Shapley values over five groups, `explain.py`); for the forecast, which rule is met.
+or takes away: this hour's forecast humidity, wind, temperature, cloud, rain and pressure one by one, then
+the night forecast, the summit station, last night and the time of year (exact Shapley values over ten
+groups, `explain.py`); for the forecast, which rule is met.
 Then the seeing and the Moon; the evidence (label checks, scores in plain words, recent nights, reliability, live track
 record, technical scores) is folded below.
 
