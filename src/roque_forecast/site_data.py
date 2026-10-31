@@ -1,17 +1,18 @@
 """Data for the web page's evidence sections: site/data/evaluation.json.
 
-Three kinds of evidence, kept apart on the page:
+Two kinds of evidence, kept apart on the page:
 
-1. **How well the two forecasts work** on 2024-2026 (nights never used for training
-   or for any choice), against the simplest references, in plain words and in the
+1. **How well RoqueModel works** on 2024-2026 (hours never used to train the copy
+   that is measured), against the simplest references, in plain words and in the
    usual technical scores (reports/results/hourly_scores.csv).
-2. **Whether the closure label reflects reality**: the check against the Liverpool
-   Telescope night reports, year by year (validate.py, validation.json).
-3. **Live track record**: every forecast issued by tonight.py next to what really
+2. **Live track record**: every forecast issued by tonight.py next to what really
    happened that night. For each night the scored forecast is the FIRST final one
    (issued right after the night starts); later runs use newer weather forecasts
    issued while the night is already under way, so scoring them would flatter the
    model. Without a final one, the last provisional forecast is scored.
+
+The check of the closure label against the Liverpool Telescope (validate.py) stays
+in the README and the report, not on the page.
 
 Usage:
     .venv/bin/python -m roque_forecast.site_data
@@ -129,7 +130,6 @@ def build() -> dict:
         "comparison": comparison(),
         "plain": plain_summary(),
         "technical": technical(),
-        "validation": json.loads((RESULTS / "validation.json").read_text()),
         "reliability": reliability(),
         "recent": recent_nights(),
         "track_record": track_record(),

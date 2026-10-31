@@ -285,20 +285,6 @@
     node.innerHTML = `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
   }
 
-  // One source for every year: the Liverpool Telescope night reports, as plain counts.
-  function renderChecks(v) {
-    const t = T(), lt = v.liverpool, of100 = (x) => (x == null ? "—" : Math.round(x * 100));
-    const [agree, lost, open, more] = t.check_lt;
-    $("checks").innerHTML = [
-      fill(agree, { a: of100(lt.agree), n: lt.nights, from: lt.first.slice(0, 4), to: lt.last.slice(0, 4) }),
-      fill(lost, { k: lt.label_lost_nights, p: of100(lt.label_lost_lt_lost) }),
-      fill(open, { k: lt.label_open_nights, p: of100(lt.label_open_lt_kept) }),
-      fill(more, { lt: lt.lt_lost_nights, lab: lt.label_lost_nights }),
-    ].map((i) => `<li>${i}</li>`).join("");
-    table($("table-years"), t.years_cols, lt.by_year.slice().reverse().map((r) =>
-      `<tr><td>${r.year}</td><td>${r.nights}</td><td>${of100(r.agree)}</td><td>${r.label_lost_nights}</td><td>${r.lt_lost_nights}</td><td>${r.both_lost_nights}</td></tr>`));
-  }
-
   // What really happened, the weather forecast alone and our model, hour by hour (2024-2026).
   function renderCompare(c) {
     const t = T(), of100 = (x) => Math.round(x * 100);
@@ -342,7 +328,6 @@
       ...e.technical.night.map((r) => `<tr><td>${t.what.night}</td><td>${r.method}</td><td>MAE ${num(r.mae, 2)} h · RMSE ${num(r.rmse, 2)} h · skill ${num(r.mae_skill, 2)}</td></tr>`),
     ];
     table($("table-tech"), [t.col_what, t.col_method, t.col_scores], tech);
-    renderChecks(e.validation);
   }
 
   // ---------------------------------------------------------------- wiring

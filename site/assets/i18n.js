@@ -86,13 +86,6 @@ window.I18N = {
     rm4_text: "Para medirlo sin trampa, se entrenó una copia igual de RoqueModel con <b>{e0}–{e1}</b> y se comprobó con las <b>{hours} horas de noche de {x0}–{x1}</b>, que no había visto. Si la entrenamos con esos años y la medimos con esas noches, acierta si la cúpula está abierta o cerrada en el <b>{fin} de las horas</b> ({prov} en provisional). Usando solo la previsión del tiempo con las mismas condiciones de cierre, sin modelo, se acierta el <b>{raw}</b>.",
     rm4_bars: { final: "RoqueModel (definitivo)", provisional: "RoqueModel (provisional)", raw: "Solo la previsión del tiempo, sin modelo" },
     rm4_note: "Ojo: decir siempre «abierta» acertaría el {open}, porque la cúpula está abierta casi siempre; RoqueModel también lo mejora. Con un año más de datos acierta algo más (se comprobó), por eso el RoqueModel de cada noche aprende con todos los años. Más cifras en «¿Cuánto acierta?», más abajo.",
-    fold_real: "¿Refleja la realidad la etiqueta de cierre?",
-    real_intro: "No hay un registro público de cuándo cierra el GTC. Para saber si nuestra etiqueta de «cerrada» se parece a la realidad, la comparamos con un telescopio de verdad: el <b>Liverpool Telescope</b>, en la misma montaña, que apunta cada noche desde 2007 cuántas horas perdió por el tiempo. A los dos les hacemos la misma pregunta, noche a noche: <b>¿se perdió al menos la mitad de la noche?</b>",
-    check_lt: ["<b>Coinciden en {a} de cada 100 noches</b> ({n} noches, de {from} a {to}).", "<b>Cuando nuestra etiqueta dice que la noche se perdió</b> ({k} noches), el Liverpool también la perdió en {p} de cada 100.", "<b>Cuando nuestra etiqueta dice que la cúpula estuvo abierta toda la noche</b> ({k} noches), el Liverpool tampoco perdió la noche en {p} de cada 100.", "<b>El Liverpool pierde más noches que nuestra etiqueta</b> ({lt} frente a {lab}). Es lo esperable: cierra también por nubes, polvo o por precaución, y nuestra etiqueta solo mide humedad, viento y hielo."],
-    why_one: "<b>¿Por qué solo el Liverpool?</b> Para que la comprobación signifique lo mismo todos los años, se usa una sola fuente que tenga datos de todos los años. No se usan el <b>archivo público del GTC</b> (sus datos se publican un año después y solo había de 2024–2025), el <b>TNG</b> (solo publica el último año) ni el <b>WHT</b> (algunos años da por observadas noches con la cúpula cerrada).",
-    years_title: "Año por año",
-    years_cols: ["Año", "Noches", "Coinciden (de cada 100)", "Perdidas según nuestra etiqueta", "Perdidas según el Liverpool", "Perdidas según los dos"],
-    years_note: "Una noche cuenta como «perdida» si se perdió al menos la mitad de sus horas.",
     col_year: "Año",
     fold_eval: "¿Cuánto acierta?",
     eval_intro: "Todo con noches de 2024–2026 que el modelo no había visto (la copia entrenada con 2017–2023), frente a lo más sencillo que hay que batir.",
@@ -134,11 +127,10 @@ window.I18N = {
 <tr><td><b>Aprender qué pasó:</b> nitidez (seeing) de cada noche</td><td><a href="https://astro.ing.iac.es/seeing/">Monitor R2D2</a> (Isaac Newton Group)</td><td>2018 → hoy</td></tr>
 <tr><td><b>Entradas:</b> lo que se pronosticó en su momento (no lo que pasó después)</td><td>Pronósticos archivados ECMWF y GFS (viento en altura) vía <a href="https://open-meteo.com/">Open-Meteo</a></td><td>2017 → hoy (GFS desde 2021)</td></tr>
 <tr><td><b>Entradas:</b> la estación 2 h antes de la noche y lo que pasó anoche</td><td>Estación del NOT y R2D2</td><td>en directo</td></tr>
-<tr><td><b>Comprobar la etiqueta</b></td><td><a href="https://telescope.livjm.ac.uk/Reports/">partes del Liverpool Telescope</a> (horas perdidas por meteo)</td><td>2007 → hoy</td></tr>
 <tr><td><b>Solo se muestra</b></td><td><a href="https://atmosportal.gtc.iac.es/">Panel de la estación del GTC</a></td><td>en directo</td></tr>
 <tr><td><b>Calculado aquí</b></td><td>Noche astronómica (fórmulas astronómicas propias)</td><td>—</td></tr>
 </tbody></table></div>
-<p class="muted small">Probado y descartado por no aportar: calima prevista (CAMS), cielo despejado (partes del Liverpool) y seeing hora a hora. Las descargas se identifican, esperan entre peticiones y solo usan páginas enlazadas desde las webs públicas.</p>`,
+<p class="muted small">Probado y descartado por no aportar: calima prevista (CAMS) y seeing hora a hora. Las descargas se identifican, esperan entre peticiones y solo usan páginas enlazadas desde las webs públicas.</p>`,
     fold_live: "La cumbre en directo",
     station_title: "Últimas 24 horas en la estación del NOT",
     station_text: "Medias de 10 minutos. Última medida: {time} hora canaria — humedad {rh} %, viento {wind} m/s, {temp} °C.",
@@ -245,13 +237,6 @@ window.I18N = {
     rm4_text: "To measure it without cheating, an identical copy of RoqueModel was trained on <b>{e0}–{e1}</b> and checked on the <b>{hours} night hours of {x0}–{x1}</b>, which it had not seen. Trained on those years and measured on those nights, it gets the dome open or closed right in <b>{fin} of hours</b> ({prov} when provisional). Using only the weather forecast with the same closing rules, without a model, gets <b>{raw}</b> right.",
     rm4_bars: { final: "RoqueModel (final)", provisional: "RoqueModel (provisional)", raw: "Weather forecast alone, no model" },
     rm4_note: "Note: saying \"open\" every hour would be right {open} of the time, because the dome is nearly always open; RoqueModel beats that too. With one more year of data it does a little better (this was checked), which is why each night's RoqueModel learns from every year. More figures under \"How good is it?\" below.",
-    fold_real: "Does the closure label reflect reality?",
-    real_intro: "There is no public record of when the GTC closes. To know whether our \"closed\" label looks like reality, we compare it with a real telescope: the <b>Liverpool Telescope</b>, on the same mountain, which books every night since 2007 how many hours it lost to the weather. We ask both the same question, night by night: <b>was at least half of the night lost?</b>",
-    check_lt: ["<b>They agree on {a} of every 100 nights</b> ({n} nights, {from} to {to}).", "<b>When our label says the night was lost</b> ({k} nights), the Liverpool lost it too {p} times in 100.", "<b>When our label says the dome was open all night</b> ({k} nights), the Liverpool did not lose the night either {p} times in 100.", "<b>The Liverpool loses more nights than our label</b> ({lt} against {lab}). That is expected: it also closes for cloud, dust or caution, and our label only measures humidity, wind and ice."],
-    why_one: "<b>Why only the Liverpool?</b> So that the check means the same every year, it uses a single source with data for every year. Not used: the <b>GTC public archive</b> (its data become public one year later and only 2024–2025 were available), the <b>TNG</b> (it publishes only the last year) and the <b>WHT</b> (some years book nights with the dome closed as observed).",
-    years_title: "Year by year",
-    years_cols: ["Year", "Nights", "Agree (of every 100)", "Lost by our label", "Lost by the Liverpool", "Lost by both"],
-    years_note: "A night counts as \"lost\" if at least half of its hours were lost.",
     col_year: "Year",
     fold_eval: "How good is it?",
     eval_intro: "All on 2024–2026 nights the model had not seen (the copy trained on 2017–2023), against the simplest things to beat.",
@@ -293,11 +278,10 @@ window.I18N = {
 <tr><td><b>Learning what happened:</b> sharpness (seeing) of each night</td><td><a href="https://astro.ing.iac.es/seeing/">R2D2 monitor</a> (Isaac Newton Group)</td><td>2018 → today</td></tr>
 <tr><td><b>Inputs:</b> what was forecast at the time (not what happened later)</td><td>Archived ECMWF and GFS (upper-air wind) forecasts via <a href="https://open-meteo.com/">Open-Meteo</a></td><td>2017 → today (GFS from 2021)</td></tr>
 <tr><td><b>Inputs:</b> the station 2 h before the night and last night</td><td>NOT station and R2D2</td><td>live</td></tr>
-<tr><td><b>Checking the label</b></td><td><a href="https://telescope.livjm.ac.uk/Reports/">Liverpool Telescope night reports</a> (hours lost to weather)</td><td>2007 → today</td></tr>
 <tr><td><b>Shown only</b></td><td><a href="https://atmosportal.gtc.iac.es/">GTC weather station panel</a></td><td>live</td></tr>
 <tr><td><b>Computed here</b></td><td>Astronomical night (own astronomical formulas)</td><td>—</td></tr>
 </tbody></table></div>
-<p class="muted small">Tried and dropped because they added nothing: forecast dust (CAMS), clear sky (Liverpool reports) and hour-by-hour seeing. Downloads identify themselves, wait between requests and only use pages linked from the public sites.</p>`,
+<p class="muted small">Tried and dropped because they added nothing: forecast dust (CAMS) and hour-by-hour seeing. Downloads identify themselves, wait between requests and only use pages linked from the public sites.</p>`,
     fold_live: "The summit, live",
     station_title: "Last 24 hours at the NOT station",
     station_text: "10-minute means. Latest reading: {time} Canary time — humidity {rh} %, wind {wind} m/s, {temp} °C.",
