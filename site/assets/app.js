@@ -161,7 +161,7 @@
 
     $("updated").textContent = fill(t.updated, { time: timeLocal(d.issued_utc, true) });
     renderHow(d);
-    if (d.model) renderRoqueModel(d);
+    if (d.model) { renderRoqueModel(d); renderRoqueAccuracy(d); }
     renderLive(d);
   }
 
@@ -189,13 +189,9 @@
       from: dateLong(tr.first_night), to: dateLong(tr.last_night) });
     const years = [];
     for (let y = tr.first_year; y <= tr.last_year; y++) years.push(y);
-    const [e0, e1] = m.evaluated_on.trained, [x0, x1] = m.evaluated_on.tested;
-    const cell = (y) => (y >= e0 && y <= e1 ? "learn" : y >= x0 && y <= x1 ? "test" : "");
-    const acc = state.evaluation ? pct(1 - state.evaluation.comparison.final.wrong) : "";
     $("rm-timeline").innerHTML = `
-      <div class="tl-row"><span class="tl-label">${t.rm_tl_copy}</span><div class="tl-bar">${years.map((y) => `<span class="tl-y ${cell(y)}">${y}</span>`).join("")}</div></div>
       <div class="tl-row"><span class="tl-label">${t.rm_tl_live}</span><div class="tl-bar">${years.map((y) => `<span class="tl-y live">${y}</span>`).join("")}</div></div>
-      <p class="tl-legend small"><span class="sw tl-learn"></span> ${t.rm_tl_learn} &nbsp; <span class="sw tl-test"></span> ${fill(t.rm_tl_test, { acc })} &nbsp; <span class="sw tl-livesw"></span> ${t.rm_tl_livetext}</p>`;
+      <p class="tl-legend small"><span class="sw tl-livesw"></span> ${t.rm_tl_livetext}</p>`;
     table($("rm-data"), t.rm_data_cols, t.rm_data.map((r) => `<tr><th scope="row">${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`));
 
     // 3. How it forecasts: the steps, then a worked example with tonight's riskiest hour.
@@ -219,6 +215,32 @@
     });
     rows.push(`<li class="wf-total"><span class="wf-label">${t.rm_total}</span><span class="wf-track"><span class="wf-bar total" style="left:0;width:${(h.p_closed / top * 100).toFixed(1)}%;background:var(${COLORS[h.level]})"></span></span><span class="wf-val">${pct(h.p_closed)}</span></li>`);
     $("rm-example").innerHTML = rows.join("");
+  }
+
+  // 4. How good it is: a copy trained on the early years, checked on the later ones,
+  // against the weather forecast alone read with the same closing rules.
+  function renderRoqueAccuracy(d) {
+    const t = T(), m = d.model, c = state.evaluation && state.evaluation.comparison;
+    if (!c) return;
+    const [e0, e1] = m.evaluated_on.trained, [x0, x1] = m.evaluated_on.tested;
+    const ok = (x) => 1 - x.wrong;
+    const vals = { fin: pct(ok(c.final)), prov: pct(ok(c.provisional)), raw: pct(ok(c.raw)), open: pct(1 - c.always_open_wrong) };
+    $("rm4-text").innerHTML = fill(t.rm4_text, { e0, e1, x0, x1, hours: num(c.hours, 0), ...vals });
+    const years = [];
+    for (let y = e0; y <= x1; y++) years.push(y);
+    const cls = (y) => (y <= e1 ? "learn" : "test");
+    $("rm4-timeline").innerHTML = `
+      <div class="tl-row"><span class="tl-label">${t.rm_tl_copy}</span><div class="tl-bar">${years.map((y) => `<span class="tl-y ${cls(y)}">${y}</span>`).join("")}</div></div>
+      <p class="tl-legend small"><span class="sw tl-learn"></span> ${t.rm_tl_learn} &nbsp; <span class="sw tl-test"></span> ${t.rm_tl_test}</p>`;
+    const bars = [
+      [t.rm4_bars.final, ok(c.final), "--series-1"],
+      [t.rm4_bars.provisional, ok(c.provisional), "--series-1"],
+      [t.rm4_bars.raw, ok(c.raw), "--critical"],
+    ];
+    $("rm4-bars").innerHTML = bars.map(([label, v, color]) => `<li><span class="bar-label">${label}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(v * 100).toFixed(1)}%;background:var(${color})"></span></span>
+      <span class="bar-val">${pct(v)}</span></li>`).join("");
+    $("rm4-note").innerHTML = fill(t.rm4_note, vals);
   }
 
   function dateLong(iso) {

@@ -360,3 +360,12 @@ ul.rm-waterfall li { display: grid; grid-template-columns: minmax(150px, 34%) 1f
 li.wf-total { font-weight: 700; border-bottom: none; }
 .rm-part { min-width: 0; }
 .rm-part code { overflow-wrap: anywhere; }
+
+/* Part 4: accuracy bars */
+ul.rm-bars { list-style: none; padding: 0; margin: 12px 0; }
+ul.rm-bars li { display: grid; grid-template-columns: minmax(150px, 34%) 1fr 56px; gap: 10px; align-items: center; padding: 6px 0; font-size: .88rem; }
+.bar-track { height: 18px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+.bar-fill { display: block; height: 100%; border-radius: 5px; }
+ul.rm-bars li:nth-child(2) .bar-fill { opacity: .55; }
+.bar-val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { ul.rm-bars li, ul.rm-waterfall li { grid-template-columns: 1fr 48px; } .bar-label, .wf-label { grid-column: 1 / -1; } }
