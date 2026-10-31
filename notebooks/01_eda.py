@@ -263,4 +263,4 @@ for label, mask in [("2007–2018", early), ("2019–2026", ~early)]:
 
 # %% [markdown]
 # ## Summary
-# Findings are written up in `reports/EDA_01.md` (and explained in Spanish in `APRENDIZAJE.md`).
+# Findings are written up in `reports/EDA_01.md`.
