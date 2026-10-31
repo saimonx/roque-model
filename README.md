@@ -3,6 +3,8 @@
 Tonight at the **Roque de los Muchachos Observatory** (La Palma, Canary Islands), hour by hour: **will the
 dome be open, and how sharp will the stars be?**
 
+**Live page (ES/EN), updated every hour:** https://saimonx.github.io/roque-night-forecast/
+
 > **Independent project.** This is a personal portfolio project. It is **not affiliated with,
 > endorsed by or produced for** GRANTECAN, the IAC, the ING, the NOT, the TNG, the Liverpool Telescope or
 > any other institution. All data come from their public web pages and are credited below.
@@ -168,8 +170,8 @@ linked from the public sites.
 | Downloaders, bulk history, clean tables, EDA — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done |
 | Nightly study (closure, seeing, WHT hours lost) — [report](reports/MODELS_01.md), [notebook](notebooks/02_models.ipynb) | done |
 | Closure label with humidity, wind and ice; hourly closure model; checks against GTC, LT and WHT | done |
-| Tonight's forecast, live, every hour; FIWARE entities + Grafana (ES/EN) | done (local) |
-| Bilingual web page | done (local); GitHub Pages when the repo is public |
+| Tonight's forecast, live, every hour (GitHub Actions); FIWARE entities + Grafana (ES/EN, local) | done |
+| Bilingual web page on GitHub Pages | done |
 
 ## Key findings from the data
 
@@ -226,8 +228,13 @@ Every run is logged in `data/forecasts/issued.jsonl`. Each run also records what
 night before (`outcomes.jsonl`), so the page builds a **live track record**, scoring the first final
 forecast of each night.
 
-`scripts/publish_site.sh` force-pushes `site/` to a `gh-pages` branch as a single commit, so hourly
-updates never pile up in the history of `main`.
+**In the cloud, every hour** (`.github/workflows/forecast.yml`): GitHub Actions installs the package
+from `uv.lock`, downloads the trained models and the few tables they need from the `runtime` release
+(`scripts/build_runtime.sh` packs and uploads them; run it again after retraining), reads the forecast log
+back from the published site, runs `tonight` and `site_data`, and publishes. `scripts/publish_site.sh`
+force-pushes `site/` (with the forecast log in `forecasts/`) to a `gh-pages` branch as a single commit, so
+hourly updates never pile up in the history of `main`. The Mac's hourly job does the same locally,
+without publishing, to feed FIWARE and Grafana.
 
 ### FIWARE + Grafana (local, Docker)
 

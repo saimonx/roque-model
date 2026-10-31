@@ -1,0 +1,56 @@
+# Tonight's forecast, every hour, in the cloud: the same steps as scripts/update_tonight.sh on
+# the Mac, then the page is published to the gh-pages branch (GitHub Pages).
+name: Tonight's forecast
+
+on:
+  schedule:
+    - cron: "5 * * * *"        # every hour at :05 (GitHub may start it some minutes late)
+  workflow_dispatch:            # and by hand, from the Actions tab
+
+permissions:
+  contents: write               # to push the gh-pages branch and read the runtime release
+
+concurrency:
+  group: forecast
+  cancel-in-progress: false
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install the package (same versions as uv.lock)
+        run: uv sync --frozen --no-dev
+
+      - name: Fetch RoqueModel and the tables it needs (runtime release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download runtime --pattern runtime.tar.gz --dir "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/runtime.tar.gz"
+
+      - name: Restore the forecast log from the published site
+        run: |
+          if git fetch --depth=1 origin gh-pages; then
+            mkdir -p data/forecasts
+            for f in issued.jsonl outcomes.jsonl; do
+              if git show "FETCH_HEAD:forecasts/$f" > "$RUNNER_TEMP/$f"; then mv "$RUNNER_TEMP/$f" "data/forecasts/$f"; fi
+            done
+          fi
+
+      - name: Tonight's forecast
+        run: uv run --no-dev python -m roque_forecast.tonight --no-fiware
+
+      - name: Page evaluation and live track record
+        run: uv run --no-dev python -m roque_forecast.site_data
+
+      - name: Publish to GitHub Pages
+        env:
+          PUBLISH_REMOTE: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
+        run: scripts/publish_site.sh
