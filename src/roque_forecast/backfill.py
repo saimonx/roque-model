@@ -4,6 +4,7 @@ Usage (from the project folder):
     .venv/bin/python -m roque_forecast.backfill not     # NOT weather, month by month, 1997 -> today
     .venv/bin/python -m roque_forecast.backfill r2d2    # R2D2 seeing, month by month, Sep 2018 -> today
     .venv/bin/python -m roque_forecast.backfill ing     # ING accounting, night by night, 2007 -> yesterday
+    .venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts, year by year
 
 Design choices:
 - **Resumable:** files already on disk are skipped, so the command can be stopped
@@ -23,13 +24,16 @@ from pathlib import Path
 
 from roque_forecast import config
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import ing_nights, not_mast, r2d2
+from roque_forecast.sources import ing_nights, not_mast, open_meteo, r2d2
 
 log = logging.getLogger("backfill")
 
 NOT_FIRST_MONTH = date(1997, 1, 1)
 R2D2_FIRST_MONTH = date(2018, 9, 1)  # the monitor started on 2018-09-19
 ING_FIRST_NIGHT = date(2007, 1, 1)  # earlier pages are empty (checked 2005); 2007 has night lengths
+# First year of each forecast archive for ECMWF IFS HRES (checked 28 Oct 2026; the
+# day-1 archive is empty before late 2025, empty hours are dropped when parsing).
+FORECAST_FIRST_YEAR = {"historical": 2017, "previous_day1": 2025}
 
 
 def months(first: date, last: date) -> Iterator[date]:
@@ -116,10 +120,29 @@ def backfill_ing(session: PoliteSession, today: date) -> None:
     log.info("ING finished: %d nights downloaded this run", done)
 
 
+def backfill_forecasts(session: PoliteSession, today: date) -> None:
+    for kind, first_year in FORECAST_FIRST_YEAR.items():
+        folder = config.RAW_DIR / "open_meteo" / kind
+        for year in range(first_year, today.year + 1):
+            final = folder / f"{open_meteo.MODEL}_{year}.json"
+            if final.exists() and year != today.year:
+                continue
+            part = final.with_name(final.name + ".part")
+            # The archive ends yesterday; for the current year, stop there.
+            end = min(date(year, 12, 31), today)
+            try:
+                open_meteo.download_year(session, kind, date(year, 1, 1), end, part)
+                finish(part, final)
+                log.info("Open-Meteo %s %d ok (%d bytes)", kind, year, final.stat().st_size)
+            except Exception:
+                log.exception("Open-Meteo %s %d failed (will retry on next run)", kind, year)
+
+
 SOURCES = {
     "not": (backfill_not, 2.0),
     "r2d2": (backfill_r2d2, 2.0),
     "ing": (backfill_ing, 3.0),
+    "forecasts": (backfill_forecasts, 3.0),
 }
 
 

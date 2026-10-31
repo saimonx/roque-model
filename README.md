@@ -16,14 +16,34 @@ to be lost to weather.
 | Live collectors (GTC panel every 15 min, TNG 24 h series, GTC 30-day series) | running |
 | Bulk historical download (NOT 1997+, R2D2 2018+, ING nights 2007+) | done |
 | Clean tables (Parquet) and exploratory analysis — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done |
-| Models: dome-closure risk, seeing, hours lost, honest baselines | next |
+| Models: dome-closure risk, seeing, hours lost, honest baselines — [report](reports/MODELS_01.md), [notebook](notebooks/02_models.ipynb) | done |
+| Tonight's forecast served live (same models, current Open-Meteo forecast) | next |
 | FIWARE `WeatherObserved` ingestion + Grafana panel | planned |
 | Bilingual (EN/ES) local web with tonight's forecast | planned |
 
-## Key findings so far
+## Results (test years 2024–2026, never used for training or tuning)
+
+| Forecast | Best reference method | Model |
+|---|---|---|
+| Dome closure (≥ 1 h closed by the humidity rule) | precasting: Brier 0.082, skill 0.45 | gradient boosting: Brier **0.067**, skill **0.55**, AUC 0.96 |
+| Median seeing of the night | climatology: RMSE 0.350″ | gradient boosting: RMSE **0.286″** (−18 %) |
+| WHT hours lost to weather (2026, reliable log) | climatology: RMSE 2.99 h; persistence: MAE 1.42 h | calibrated closure forecast: RMSE **2.65 h**, MAE **1.36 h** |
+
+Skill is against monthly climatology. The models use only what is known at the start of the night:
+- the ECMWF forecast, taken from forecast archives and not from the weather measured later;
+- the NOT station in the 2 previous hours;
+- last night's outcome;
+- the season.
+
+The results hold with forecasts issued 24 h earlier. Details and caveats are in the
+[models report](reports/MODELS_01.md).
+
+![Closure skill](reports/figures/06_closure_skill.png)
+
+## Key findings from the data
 
 - The dome-closure rule rebuilt from humidity tracks the hours the WHT really lost to weather (r = 0.74 in 2007–2018, 90 % agreement on "most of the night lost"), but misses winter losses caused by wind, dust or ice.
-- The WHT accounting is not equally reliable every year: since 2019 many nights with the domes closed by humidity are reported as fully observed with zero losses. Those 218 suspect nights must be handled before the losses are used as a training label.
+- The WHT accounting is not equally reliable every year: since 2019 many nights with the domes closed by humidity are reported as fully observed with zero losses. Those years (2019–2022, 2024–2025) are kept out of model fitting and shown only for comparison.
 - Wind is the strongest driver of seeing (Spearman +0.58 with the night's maximum wind); easterly winds give the worst seeing.
 - For seeing, the monthly climatology (RMSE 0.34″) beats "same as last night" (0.41″): that is the bar a model must clear.
 
@@ -38,6 +58,7 @@ to be lost to weather.
 | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather / technical problems on the WHT, Moon illumination | 2007 → today |
 | [GTC atmosportal](https://atmosportal.gtc.iac.es/) (Gran Telescopio Canarias weather station) | ~11 s series (last 30 days only) and live panel incl. rain, PM10 dust and warning colours | collected by this project from Oct 2026 |
 | [TNG weather](https://tngweb.tng.iac.es/weather) (Telescopio Nazionale Galileo) | 1-min series of the last 24 h, dust counts by particle size, downtime | collected by this project from Oct 2026 |
+| [Open-Meteo](https://open-meteo.com) forecast archives ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | ECMWF IFS HRES 9 km hourly forecasts at the site: historical-forecast archive and forecasts issued 24 h earlier | 2017 → today (24 h earlier: 2025 → today) |
 
 Downloads identify themselves with a descriptive User-Agent, wait at least 2 s between requests and
 only use pages linked from the public sites. No simulated data are used in this project; any
@@ -57,6 +78,9 @@ uv sync                                          # create .venv and install depe
 .venv/bin/python -m pytest                       # run the tests
 .venv/bin/python -m roque_forecast.backfill not  # historical download (also: r2d2, ing); resumable
 .venv/bin/python -m roque_forecast.build_tables  # raw files -> data/processed/*.parquet
+.venv/bin/python -m roque_forecast.backfill forecasts  # archived Open-Meteo forecasts (~30 s)
+.venv/bin/python -m roque_forecast.features      # one row per night: inputs known at sunset + labels
+.venv/bin/python -m roque_forecast.train         # fit, compare with baselines -> reports/results/
 ```
 
 ### Collectors (macOS)
@@ -83,11 +107,13 @@ src/roque_forecast/
   build_tables.py    raw files -> clean Parquet tables (minutes, R2D2 points, ING nights, nights)
   astro.py           Sun altitude and astronomical night (NOAA formulas, checked against ING)
   dome.py            dome-closure rule rebuilt from humidity
+  features.py        modelling table: forecast + pre-night station + persistence + season, and labels
+  train.py           time-split training, baselines, metrics, permutation importance
   plotting.py        shared figure style (colour-blind-safe palette)
 notebooks/           analysis notebooks (.py source + executed .ipynb)
-reports/             written findings and figures
+reports/             written findings, figures and metric tables (reports/results/)
   sources/           one module per data source: download + parse
-tests/               parser tests on small real files (tests/fixtures/)
+tests/               parser tests on small real files (tests/fixtures/), time-window and split tests
 launchd/             LaunchAgent templates
 data/                downloaded data (not in git)
 ```
