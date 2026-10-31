@@ -285,55 +285,9 @@
     node.innerHTML = `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
   }
 
-  // What really happened, the weather forecast alone and our model, hour by hour (2024-2026).
-  function renderCompare(c) {
-    const t = T(), of100 = (x) => Math.round(x * 100);
-    $("compare-headline").innerHTML = fill(t.compare_headline, { raw: of100(c.raw.wrong), fin: of100(c.final.wrong), prov: of100(c.provisional.wrong) });
-    const row = (key, x, strong) => `<tr${strong ? ' class="ours"' : ""}><th scope="row">${t.compare_rows[key]}</th><td>${num(x.closed_h, 0)} h</td>` +
-      `<td>${fill(t.compare_wrong, { n: of100(x.wrong) })}</td><td>${num(x.false_alarm_h, 0)} h</td><td>${num(x.missed_h, 0)} h</td></tr>`;
-    table($("table-compare"), t.compare_cols, [
-      `<tr class="truth"><th scope="row">${t.compare_rows.real}</th><td>${num(c.real_closed_h, 0)} h</td><td>—</td><td>—</td><td>—</td></tr>`,
-      row("raw", c.raw), row("final", c.final, true), row("provisional", c.provisional),
-    ]);
-    $("compare-note").textContent = fill(t.compare_note, { hours: num(c.hours, 0), open: of100(c.always_open_wrong) });
-  }
-
-  function renderEvaluation(e) {
-    const t = T();
-    renderCompare(e.comparison);
-    // Plain words: our forecast (final and, in brackets, provisional) against the simplest references.
-    const yesno = (o) => fill(t.plain_yesno, { r: ten(o.right), c: ten(o.caught) });
-    const err = (v, r) => fill(t.plain_error, { v: num(v, r.digits) + r.unit });
-    const rows = e.plain.map((r) => {
-      const ours = r.kind === "yesno"
-        ? `<b>${yesno(r.ours.final)}</b><br><span class="muted">${t.provisional_word}: ${yesno(r.ours.provisional)}</span>`
-        : `<b>${err(r.ours.final, r)}</b><br><span class="muted">${t.provisional_word}: ${err(r.ours.provisional, r)}</span>`;
-      const refs = r.refs.map((x) => `${t.refs[x.name]}: ${r.kind === "yesno" ? yesno(x) : err(x.value, r)}`).join("<br>");
-      return `<tr><td>${t.what[r.key]}</td><td>${ours}</td><td>${refs}</td></tr>`;
-    });
-    table($("table-plain"), [t.col_what, t.col_ours, t.col_refs], rows);
-
-    Charts.nightsChart($("chart-recent"), e.recent, t);
-    Charts.reliability($("chart-reliability"), e.reliability, t);
-
-    if (!e.track_record.length) {
-      table($("table-track"), [t.col_night], [`<tr><td class="empty">${t.track_empty}</td></tr>`]);
-    } else {
-      table($("table-track"), [t.col_night, t.col_mode, t.col_fc_h, t.col_real_h],
-        e.track_record.map((r) => `<tr><td>${r.night}</td><td>${r.mode === "final" ? t.final_word : t.provisional_word}</td><td>${num(r.closed_h)} h</td><td>${r.dome_closed_h != null ? num(r.dome_closed_h) + " h" : t.na}</td></tr>`));
-    }
-
-    const tech = [
-      ...e.technical.hour.map((r) => `<tr><td>${t.what.hour}</td><td>${r.method}</td><td>Brier ${num(r.brier, 3)} · skill ${num(r.brier_skill, 2)} · AUC ${num(r.auc, 2)}</td></tr>`),
-      ...e.technical.night.map((r) => `<tr><td>${t.what.night}</td><td>${r.method}</td><td>MAE ${num(r.mae, 2)} h · RMSE ${num(r.rmse, 2)} h · skill ${num(r.mae_skill, 2)}</td></tr>`),
-    ];
-    table($("table-tech"), [t.col_what, t.col_method, t.col_scores], tech);
-  }
-
   // ---------------------------------------------------------------- wiring
   function render() {
     applyTexts();
-    if (state.evaluation) renderEvaluation(state.evaluation);
     if (state.tonight) renderTonight(state.tonight);
   }
 

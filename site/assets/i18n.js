@@ -11,7 +11,6 @@ window.I18N = {
     mode_provisional_text: "Antes de que empiece la noche aún no existe lo que más ayuda: lo que mide la estación de la cumbre justo antes de la noche. Por eso ahora se usan la previsión del tiempo, lo que pasó anoche y la época del año. A las {time} se añade la estación y el pronóstico pasa a definitivo. Cuando dice «cerrar», acierta el {prov} de las veces en provisional y el {fin} en definitivo.",
     mode_final_text: "Ya usa lo que midió la estación de la cumbre justo antes de la noche, que es lo que más ayuda, además de la previsión del tiempo, lo de anoche y la época del año. Cuando dice «cerrar», acierta el {fin} de las veces (en provisional, el {prov}).",
     headline: "Se podrá observar unas {open} de las {total} horas de noche",
-    cell_title: "{time}: {p} de que la cúpula esté cerrada",
     strip_legend: "<b>Toca una hora</b> para ver cómo sale cada línea. RoqueModel da la probabilidad de que la cúpula esté cerrada por humedad, viento o hielo (<span class=\"sw\" style=\"background:var(--good)\"></span> menos del 20 %, <span class=\"sw\" style=\"background:var(--warning)\"></span> 20–50 %, <span class=\"sw\" style=\"background:var(--critical)\"></span> más del 50 %). La previsión sola solo dice sí o no (<span class=\"sw\" style=\"background:var(--critical)\"></span> cerrar, <span class=\"sw\" style=\"background:var(--good)\"></span> abrir).",
     line_model: "RoqueModel",
     line_raw: "Solo la previsión del tiempo",
@@ -85,52 +84,7 @@ window.I18N = {
     rm4_title: "Cuánto acierta",
     rm4_text: "Para medirlo sin trampa, se entrenó una copia igual de RoqueModel con <b>{e0}–{e1}</b> y se comprobó con las <b>{hours} horas de noche de {x0}–{x1}</b>, que no había visto. Si la entrenamos con esos años y la medimos con esas noches, acierta si la cúpula está abierta o cerrada en el <b>{fin} de las horas</b> ({prov} en provisional). Usando solo la previsión del tiempo con las mismas condiciones de cierre, sin modelo, se acierta el <b>{raw}</b>.",
     rm4_bars: { final: "RoqueModel (definitivo)", provisional: "RoqueModel (provisional)", raw: "Solo la previsión del tiempo, sin modelo" },
-    rm4_note: "Ojo: decir siempre «abierta» acertaría el {open}, porque la cúpula está abierta casi siempre; RoqueModel también lo mejora. Con un año más de datos acierta algo más (se comprobó), por eso el RoqueModel de cada noche aprende con todos los años. Más cifras en «¿Cuánto acierta?», más abajo.",
-    col_year: "Año",
-    fold_eval: "¿Cuánto acierta?",
-    eval_intro: "Todo con noches de 2024–2026 que el modelo no había visto (la copia entrenada con 2017–2023), frente a lo más sencillo que hay que batir.",
-    eval_note: "«Acierta 7 de cada 10» = de cada 10 veces que dice «cerrar», 7 lo estuvo. «Detecta 7 de cada 10» = de cada 10 horas cerradas, avisó de 7.",
-    plain_title: "Más cifras, frente a lo más sencillo",
-    compare_headline: "Solo la previsión del tiempo se equivoca en <b>{raw} de cada 100 horas</b>; RoqueModel, en <b>{fin} de cada 100</b> ({prov} antes de que empiece la noche).",
-    compare_cols: ["", "Horas con la cúpula cerrada", "Se equivoca en", "Cierra sin hacer falta", "No cierra cuando hacía falta"],
-    compare_rows: { real: "Lo que pasó de verdad (medido en la cumbre)", raw: "Solo la previsión del tiempo", final: "RoqueModel (definitivo)", provisional: "RoqueModel (provisional)" },
-    compare_wrong: "{n} de cada 100 horas",
-    compare_note: "Son las {hours} horas de noche de 2024–2026, que el modelo nunca vio al aprender. «Cerrar» = la previsión da una humedad del 90 % o más; el modelo, una probabilidad del 50 % o más. Decir siempre «abierta» se equivocaría en {open} de cada 100 horas (justo las que estuvo cerrada): RoqueModel también lo mejora.",
-    plain_yesno: "acierta {r} de cada 10; detecta {c} de cada 10",
-    plain_error: "se equivoca de media {v}",
-    provisional_word: "provisional",
-    refs: { raw: "Previsión del tiempo sola", precasting: "Humedad justo antes de la noche", climatology: "Lo normal del mes", persistence: "Igual que anoche" },
-    what: { hour: "Cúpula cerrada en cada hora", night: "Horas cerradas de la noche", seeing: "Seeing de la noche" },
-    col_what: "Qué se predice", col_ours: "RoqueModel (definitivo)", col_refs: "Lo que hay que batir",
-    recent_title: "Últimas 60 noches de la prueba",
-    recent_text: "Barras: horas de cúpula cerrada que pronosticó el modelo. Puntos: las que de verdad lo estuvieron.",
-    forecast_word: "Pronóstico", actual_word: "Real", hours_word: "Horas",
-    reliability_title: "¿Son fiables los porcentajes?",
-    reliability_text: "Horas de 2024–2026 agrupadas por el porcentaje que dio el modelo. Si dice 30 %, la cúpula debería estar cerrada unas 3 de cada 10 de esas horas: cuanto más cerca de la diagonal, mejor.",
-    eval_reliability: "Fiabilidad de los porcentajes",
-    rel_x: "Porcentaje pronosticado", rel_y: "Cerrada de verdad", rel_model: "RoqueModel", rel_perfect: "Perfecto",
-    track_title: "Historial en directo",
-    track_text: "Cada pronóstico emitido por esta web frente a lo que pasó. Se llena noche a noche.",
-    track_empty: "Todavía no hay noches terminadas con pronóstico emitido.",
-    col_night: "Noche", col_mode: "Tipo", col_fc_h: "Cerrada (pronóstico)", col_real_h: "Cerrada (real)",
-    technical: "Ver las cifras técnicas (para especialistas)",
-    glossary: `<ul>
-<li><b>Brier:</b> error medio de un porcentaje (0 es perfecto). <b>Skill:</b> cuánto error quita frente a «lo normal del mes» (0 nada, 1 todo).</li>
-<li><b>AUC:</b> lo bien que ordena las horas de más a menos riesgo (0,5 al azar, 1 perfecto).</li>
-<li><b>MAE:</b> error medio en horas o segundos de arco. <b>RMSE:</b> parecido, pero castiga más los errores grandes.</li>
-</ul>`,
-    col_method: "Método", col_scores: "Cifras",
-    fold_data: "Datos y fuentes",
-    data_html: `<p>Todos los datos son reales y públicos; no hay nada simulado.</p>
-<div class="table-wrap"><table class="text"><thead><tr><th>Para qué</th><th>Fuente</th><th>Periodo</th></tr></thead><tbody>
-<tr><td><b>Aprender qué pasó:</b> cúpula cerrada por humedad (≥ 90 %, reabrir tras 20 min), viento (rachas de más de 80 km/h) o hielo (0 °C o menos tras humedad alta en 24 h)</td><td><a href="https://www.not.iac.es/weather/archive/met/index.php">Estación meteorológica del NOT</a>, minuto a minuto</td><td>1997 → hoy</td></tr>
-<tr><td><b>Aprender qué pasó:</b> nitidez (seeing) de cada noche</td><td><a href="https://astro.ing.iac.es/seeing/">Monitor R2D2</a> (Isaac Newton Group)</td><td>2018 → hoy</td></tr>
-<tr><td><b>Entradas:</b> lo que se pronosticó en su momento (no lo que pasó después)</td><td>Pronósticos archivados ECMWF y GFS (viento en altura) vía <a href="https://open-meteo.com/">Open-Meteo</a></td><td>2017 → hoy (GFS desde 2021)</td></tr>
-<tr><td><b>Entradas:</b> la estación 2 h antes de la noche y lo que pasó anoche</td><td>Estación del NOT y R2D2</td><td>en directo</td></tr>
-<tr><td><b>Solo se muestra</b></td><td><a href="https://atmosportal.gtc.iac.es/">Panel de la estación del GTC</a></td><td>en directo</td></tr>
-<tr><td><b>Calculado aquí</b></td><td>Noche astronómica (fórmulas astronómicas propias)</td><td>—</td></tr>
-</tbody></table></div>
-<p class="muted small">Probado y descartado por no aportar: calima prevista (CAMS) y seeing hora a hora. Las descargas se identifican, esperan entre peticiones y solo usan páginas enlazadas desde las webs públicas.</p>`,
+    rm4_note: "Ojo: decir siempre «abierta» acertaría el {open}, porque la cúpula está abierta casi siempre; RoqueModel también lo mejora. Con un año más de datos acierta algo más (se comprobó), por eso el RoqueModel de cada noche aprende con todos los años.",
     fold_live: "La cumbre en directo",
     station_title: "Últimas 24 horas en la estación del NOT",
     station_text: "Medias de 10 minutos. Última medida: {time} hora canaria — humedad {rh} %, viento {wind} m/s, {temp} °C.",
@@ -148,8 +102,9 @@ window.I18N = {
 <li>ING, procedimiento de alarmas del INT: cierre con humedad ≥ 90 % y con rachas de más de 80 km/h.</li>
 </ul>`,
     footer: "Roque Night Forecast · proyecto independiente · código y metodología en GitHub (saimonx/roque-night-forecast).",
-    months: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+    credits: "Datos: <a href=\"https://www.not.iac.es/weather/\">estación meteorológica del NOT</a>, <a href=\"https://astro.ing.iac.es/seeing/\">seeing R2D2 del ING</a>, previsiones ECMWF y NOAA GFS vía <a href=\"https://open-meteo.com\">Open-Meteo</a> (<a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>); en directo, <a href=\"https://atmosportal.gtc.iac.es/\">atmosportal del GTC</a> y <a href=\"https://tngweb.tng.iac.es/weather\">TNG</a>.",
     na: "—",
+    months: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
   },
 
   en: {
@@ -162,7 +117,6 @@ window.I18N = {
     mode_provisional_text: "Before the night starts, what helps the most does not exist yet: the summit station's readings just before the night. So it now uses the weather forecast, last night and the time of year. At {time} the station is added and the forecast becomes final. When it says \"close\", it is right {prov} of the time when provisional and {fin} when final.",
     mode_final_text: "It now uses what the summit station measured just before the night, which helps the most, on top of the weather forecast, last night and the time of year. When it says \"close\", it is right {fin} of the time (provisional: {prov}).",
     headline: "About {open} of the {total} night hours should be observable",
-    cell_title: "{time}: {p} chance that the dome is closed",
     strip_legend: "<b>Tap an hour</b> to see how each line comes out. RoqueModel gives the chance that the dome is closed for humidity, wind or ice (<span class=\"sw\" style=\"background:var(--good)\"></span> below 20 %, <span class=\"sw\" style=\"background:var(--warning)\"></span> 20–50 %, <span class=\"sw\" style=\"background:var(--critical)\"></span> above 50 %). The forecast alone only says yes or no (<span class=\"sw\" style=\"background:var(--critical)\"></span> close, <span class=\"sw\" style=\"background:var(--good)\"></span> open).",
     line_model: "RoqueModel",
     line_raw: "Weather forecast alone",
@@ -236,52 +190,7 @@ window.I18N = {
     rm4_title: "How good it is",
     rm4_text: "To measure it without cheating, an identical copy of RoqueModel was trained on <b>{e0}–{e1}</b> and checked on the <b>{hours} night hours of {x0}–{x1}</b>, which it had not seen. Trained on those years and measured on those nights, it gets the dome open or closed right in <b>{fin} of hours</b> ({prov} when provisional). Using only the weather forecast with the same closing rules, without a model, gets <b>{raw}</b> right.",
     rm4_bars: { final: "RoqueModel (final)", provisional: "RoqueModel (provisional)", raw: "Weather forecast alone, no model" },
-    rm4_note: "Note: saying \"open\" every hour would be right {open} of the time, because the dome is nearly always open; RoqueModel beats that too. With one more year of data it does a little better (this was checked), which is why each night's RoqueModel learns from every year. More figures under \"How good is it?\" below.",
-    col_year: "Year",
-    fold_eval: "How good is it?",
-    eval_intro: "All on 2024–2026 nights the model had not seen (the copy trained on 2017–2023), against the simplest things to beat.",
-    eval_note: "\"Right 7 in 10\" = of every 10 times it says \"close\", 7 were closed. \"Catches 7 in 10\" = of every 10 closed hours, it warned about 7.",
-    plain_title: "More figures, against the simplest references",
-    compare_headline: "The weather forecast alone is wrong in <b>{raw} of every 100 hours</b>; RoqueModel, in <b>{fin} of every 100</b> ({prov} before the night starts).",
-    compare_cols: ["", "Hours with the dome closed", "Wrong in", "Closes when not needed", "Stays open when it should close"],
-    compare_rows: { real: "What really happened (measured at the summit)", raw: "Weather forecast alone", final: "RoqueModel (final)", provisional: "RoqueModel (provisional)" },
-    compare_wrong: "{n} of every 100 hours",
-    compare_note: "These are the {hours} night hours of 2024–2026, which the model never saw while learning. \"Close\" = the forecast gives humidity of 90 % or more; the model, a probability of 50 % or more. Saying \"open\" every hour would be wrong in {open} of every 100 hours (exactly the closed ones): RoqueModel beats that too.",
-    plain_yesno: "right {r} in 10; catches {c} in 10",
-    plain_error: "off by {v} on average",
-    provisional_word: "provisional",
-    refs: { raw: "Weather forecast alone", precasting: "Humidity just before the night", climatology: "The usual for the month", persistence: "Same as last night" },
-    what: { hour: "Dome closed each hour", night: "Closed hours of the night", seeing: "Seeing of the night" },
-    col_what: "What is forecast", col_ours: "RoqueModel (final)", col_refs: "What it has to beat",
-    recent_title: "Last 60 test nights",
-    recent_text: "Bars: closed hours the model forecast. Dots: the hours that really were closed.",
-    forecast_word: "Forecast", actual_word: "Actual", hours_word: "Hours",
-    reliability_title: "Can the percentages be trusted?",
-    reliability_text: "Hours of 2024–2026 grouped by the percentage the model gave. When it says 30 %, the dome should be closed in about 3 of 10 of those hours: the closer to the diagonal, the better.",
-    eval_reliability: "Reliability of the percentages",
-    rel_x: "Forecast percentage", rel_y: "Actually closed", rel_model: "RoqueModel", rel_perfect: "Perfect",
-    track_title: "Live track record",
-    track_text: "Every forecast issued by this page against what happened. It fills up night by night.",
-    track_empty: "No finished night with an issued forecast yet.",
-    col_night: "Night", col_mode: "Type", col_fc_h: "Closed (forecast)", col_real_h: "Closed (actual)",
-    technical: "Show the technical figures (for specialists)",
-    glossary: `<ul>
-<li><b>Brier:</b> average error of a percentage (0 is perfect). <b>Skill:</b> how much error it removes against "the usual for the month" (0 none, 1 all).</li>
-<li><b>AUC:</b> how well it ranks hours from most to least risky (0.5 random, 1 perfect).</li>
-<li><b>MAE:</b> average error in hours or arcseconds. <b>RMSE:</b> similar, but punishes big errors more.</li>
-</ul>`,
-    col_method: "Method", col_scores: "Scores",
-    fold_data: "Data and sources",
-    data_html: `<p>All data are real and public; nothing is simulated.</p>
-<div class="table-wrap"><table class="text"><thead><tr><th>What for</th><th>Source</th><th>Period</th></tr></thead><tbody>
-<tr><td><b>Learning what happened:</b> dome closed for humidity (≥ 90 %, reopen after 20 min), wind (gusts above 80 km/h) or ice (0 °C or less after high humidity within 24 h)</td><td><a href="https://www.not.iac.es/weather/archive/met/index.php">NOT weather station</a>, minute by minute</td><td>1997 → today</td></tr>
-<tr><td><b>Learning what happened:</b> sharpness (seeing) of each night</td><td><a href="https://astro.ing.iac.es/seeing/">R2D2 monitor</a> (Isaac Newton Group)</td><td>2018 → today</td></tr>
-<tr><td><b>Inputs:</b> what was forecast at the time (not what happened later)</td><td>Archived ECMWF and GFS (upper-air wind) forecasts via <a href="https://open-meteo.com/">Open-Meteo</a></td><td>2017 → today (GFS from 2021)</td></tr>
-<tr><td><b>Inputs:</b> the station 2 h before the night and last night</td><td>NOT station and R2D2</td><td>live</td></tr>
-<tr><td><b>Shown only</b></td><td><a href="https://atmosportal.gtc.iac.es/">GTC weather station panel</a></td><td>live</td></tr>
-<tr><td><b>Computed here</b></td><td>Astronomical night (own astronomical formulas)</td><td>—</td></tr>
-</tbody></table></div>
-<p class="muted small">Tried and dropped because they added nothing: forecast dust (CAMS) and hour-by-hour seeing. Downloads identify themselves, wait between requests and only use pages linked from the public sites.</p>`,
+    rm4_note: "Note: saying \"open\" every hour would be right {open} of the time, because the dome is nearly always open; RoqueModel beats that too. With one more year of data it does a little better (this was checked), which is why each night's RoqueModel learns from every year.",
     fold_live: "The summit, live",
     station_title: "Last 24 hours at the NOT station",
     station_text: "10-minute means. Latest reading: {time} Canary time — humidity {rh} %, wind {wind} m/s, {temp} °C.",
@@ -299,7 +208,8 @@ window.I18N = {
 <li>ING, INT alarm procedure: close at humidity ≥ 90 % and with gusts above 80 km/h.</li>
 </ul>`,
     footer: "Roque Night Forecast · independent project · code and method on GitHub (saimonx/roque-night-forecast).",
-    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    credits: "Data: <a href=\"https://www.not.iac.es/weather/\">NOT weather station</a>, <a href=\"https://astro.ing.iac.es/seeing/\">ING R2D2 seeing</a>, ECMWF and NOAA GFS forecasts via <a href=\"https://open-meteo.com\">Open-Meteo</a> (<a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>); live, <a href=\"https://atmosportal.gtc.iac.es/\">GTC atmosportal</a> and <a href=\"https://tngweb.tng.iac.es/weather\">TNG</a>.",
     na: "—",
+    months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
   },
 };

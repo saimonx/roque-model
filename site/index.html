@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
   <meta name="description" content="Tonight at the Roque de los Muchachos Observatory (La Palma), hour by hour: will the dome be open, and how sharp will the stars be. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=30">
+  <link rel="stylesheet" href="assets/style.css?v=31">
 </head>
 <body>
   <header class="top">
@@ -83,41 +83,6 @@
 
     <!-- Everything else, folded -->
     <details class="fold">
-      <summary><h2 data-i18n="fold_eval"></h2></summary>
-      <p class="muted" data-i18n="eval_intro"></p>
-      <p class="lead" id="compare-headline"></p>
-      <div class="table-wrap"><table id="table-compare" class="compare"></table></div>
-      <p class="muted small" id="compare-note"></p>
-
-      <h3 data-i18n="plain_title"></h3>
-      <div class="table-wrap"><table id="table-plain" class="text plain"></table></div>
-      <p class="muted small" data-i18n="eval_note"></p>
-
-      <h3 data-i18n="recent_title"></h3>
-      <p class="muted small" data-i18n="recent_text"></p>
-      <div class="chart" id="chart-recent"></div>
-
-      <h3 data-i18n="reliability_title"></h3>
-      <p class="muted small" data-i18n="reliability_text"></p>
-      <div class="chart square" id="chart-reliability"></div>
-
-      <h3 data-i18n="track_title"></h3>
-      <p class="muted small" data-i18n="track_text"></p>
-      <div class="table-wrap"><table id="table-track"></table></div>
-
-      <details class="more">
-        <summary data-i18n="technical"></summary>
-        <div class="prose small" data-i18n-html="glossary"></div>
-        <div class="table-wrap"><table id="table-tech"></table></div>
-      </details>
-    </details>
-
-    <details class="fold">
-      <summary><h2 data-i18n="fold_data"></h2></summary>
-      <div class="data" data-i18n-html="data_html"></div>
-    </details>
-
-    <details class="fold">
       <summary><h2 data-i18n="fold_live"></h2></summary>
       <h3 data-i18n="station_title"></h3>
       <p class="muted small" id="station-text"></p>
@@ -137,11 +102,12 @@
   <footer class="wrap foot">
     <p id="updated" class="muted small"></p>
     <p class="muted small" data-i18n="footer"></p>
+    <p class="muted small" data-i18n-html="credits"></p>
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=30"></script>
-  <script src="assets/charts.js?v=30"></script>
-  <script src="assets/app.js?v=30"></script>
+  <script src="assets/i18n.js?v=31"></script>
+  <script src="assets/charts.js?v=31"></script>
+  <script src="assets/app.js?v=31"></script>
 </body>
 </html>
