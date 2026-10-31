@@ -143,7 +143,7 @@
 
   // ---------------------------------------------------------------- tonight
   function renderTonight(d) {
-    const t = T(), f = d.forecast, n = d.night, month = monthName(n.date);
+    const t = T(), f = d.forecast, n = d.night;
     const date = new Date(n.date + "T12:00:00Z").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
     $("night-title").textContent = fill(t.night_of, { date });
     $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: timeLocal(d.issued_utc) });
@@ -159,39 +159,9 @@
 
     renderLines(d);
 
-    // Seeing: value, a 0.4-2" scale and how it ranks among Roque nights.
-    $("seeing").textContent = num(f.seeing_arcsec, 2) + "″";
-    const x = Math.min(1, Math.max(0, (f.seeing_arcsec - 0.4) / 1.6));
-    $("seeing-mark").style.left = (x * 100).toFixed(1) + "%";
-    $("seeing-class").textContent = t["seeing_" + f.seeing_class];
-    const q = state.evaluation && state.evaluation.seeing_quantiles;
-    $("seeing-ref").textContent = q ? fill(t.seeing_better, { p: 100 - q.filter((v) => v < f.seeing_arcsec).length }) : "";
-
-    if (d.moon) renderMoon(d.moon);
-    $("usual").textContent = num(f.usual.closed_h) + " h";
-    $("usual-text").textContent = fill(t.usual_text, { month, h: num(f.closed_h) });
     $("updated").textContent = fill(t.updated, { time: timeLocal(d.issued_utc, true) });
     renderHow(d);
     renderLive(d);
-  }
-
-  function moonPhase(m) {
-    const k = m.illumination;
-    if (k < 0.03) return "new";
-    if (k > 0.97) return "full";
-    if (k >= 0.43 && k <= 0.57) return m.waxing ? "first_quarter" : "last_quarter";
-    return (m.waxing ? "waxing_" : "waning_") + (k < 0.5 ? "crescent" : "gibbous");
-  }
-
-  function renderMoon(m) {
-    const t = T();
-    Charts.moonIcon($("moon-icon"), m.illumination, m.waxing);
-    let when;
-    if (m.rises_utc.length) when = fill(t.moon_rises, { time: timeLocal(m.rises_utc[0]) });
-    else if (m.sets_utc.length) when = fill(t.moon_sets, { time: timeLocal(m.sets_utc[0]) });
-    else when = m.up_at_start ? t.moon_all_night : t.moon_none;
-    $("moon-pct").textContent = pct(m.illumination);
-    $("moon-text").textContent = fill(t.moon_text, { phase: t.moon_phases[moonPhase(m)], when, dark: num(m.dark_h) });
   }
 
   function renderHow(d) {

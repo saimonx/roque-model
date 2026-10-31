@@ -13,10 +13,24 @@ dome be open, and how sharp will the stars be?**
 
 | Question | Forecast | Learnt from |
 |---|---|---|
-| **Will the dome be open, and when?** | For each night hour, the probability that the dome is closed (`hourly.py`). The night's expected closed hours are the sum of the hours. | The **closure label** (see [below](#when-the-dome-counts-as-closed)), rebuilt minute by minute from the NOT weather station since 1997 (`dome.py`). |
-| **How sharp?** | The median seeing of the night (`train.py`). | The ING R2D2 seeing monitor (2018 →). |
+| **Will the dome be open, and when?** | **RoqueModel**: for each night hour, the probability that the dome is closed (`hourly.py`). The night's expected closed hours are the sum of the hours. | The **closure label** (see [below](#when-the-dome-counts-as-closed)), rebuilt minute by minute from the NOT weather station since 1997 (`dome.py`). |
+| **How sharp?** | The median seeing of the night (`train.py`; computed live and sent to FIWARE, not shown on the page). | The ING R2D2 seeing monitor (2018 →). |
 
-The Moon (phase, rise/set, moonless hours) is computed, not forecast.
+### How RoqueModel works
+
+- **One model:** it takes the data for one hour and returns one number, the chance that the dome is closed
+  in that hour. The night's closed hours are the sum over its hours.
+- **What it gets:** about 30 inputs: this hour's forecast (humidity, wind, temperature, cloud, rain,
+  pressure), the forecast for the whole night, the summit station just before the night, last night, and
+  the time of year and hour of the night.
+- **How it learnt:** night hours 2017–2023, each with those inputs and whether the dome ended up closed (the
+  label below). 2024–2026 are kept apart for testing.
+- **Inside:** gradient boosting (scikit-learn `HistGradientBoostingClassifier`): hundreds of small decision
+  trees, each correcting a little of what the previous ones got wrong.
+- **Two versions:** provisional (before the night, every input except the summit station, which does not
+  exist yet) and final (from the start of the night, all inputs).
+- **Each hour's breakdown** on the page is worked out afterwards (`explain.py`): how much the percentage
+  changes when one piece of data is swapped for that of an ordinary hour (exact Shapley values).
 
 **Why a model and not the weather forecast itself?** The weather model sees the mountain lower than it is,
 inside the sea of clouds below the summit: read literally (humidity ≥ 90 % → close) it calls "close" in
@@ -170,13 +184,13 @@ scripts/update_tonight.sh                       # both steps (hourly job); ROQUE
 ```
 
 The page answers the question first (how many hours should be observable, and which), with two lines of
-hours: **our model** (probability, green / orange / red) and **the weather forecast alone** (the label's
+hours: **RoqueModel** (probability, green / orange / red) and **the weather forecast alone** (the label's
 rules read literally: close / open), each with its historical accuracy against what really closed. Clicking
 an hour shows how both come out: for the model, a starting point plus the amount each group of inputs adds
 or takes away: this hour's forecast humidity, wind, temperature, cloud, rain and pressure one by one, then
 the night forecast, the summit station, last night and the time of year (exact Shapley values over ten
 groups, `explain.py`); for the forecast, which rule is met.
-Then the seeing and the Moon; the evidence (label checks, scores in plain words, recent nights, reliability, live track
+Then a short "How RoqueModel works"; the evidence (label checks, scores in plain words, recent nights, reliability, live track
 record, technical scores) is folded below.
 
 Every run is logged in `data/forecasts/issued.jsonl`. Each run also records what really happened the
