@@ -16,6 +16,7 @@ Findings (27 Oct 2026):
   We keep the raw numbers here and decide how to cap them when modelling.
 """
 
+import gzip
 import re
 from datetime import date
 from pathlib import Path
@@ -25,13 +26,20 @@ from roque_forecast.polite_http import PoliteSession
 NIGHT_URL = "https://a.ing.iac.es/weather/archive/index.php"
 
 
-def download_night(session: PoliteSession, night: date, dest: Path) -> Path:
-    """Save the HTML page of one night (the night that starts on `night`)."""
+def fetch_night(session: PoliteSession, night: date) -> bytes:
+    """Return the raw HTML bytes of one night (the night that starts on `night`).
+
+    The site declares ISO-8859-1 (Latin-1); we keep raw bytes and decode when parsing.
+    """
     params = {"night": night.isoformat(), "actionflag": "showDate", "submit": "submit"}
-    response = session.get(NIGHT_URL, params=params)
+    return session.get(NIGHT_URL, params=params).content
+
+
+def download_night(session: PoliteSession, night: date, dest: Path) -> Path:
+    """Save the HTML page of one night, untouched, to `dest`."""
+    content = fetch_night(session, night)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    # The site declares ISO-8859-1 (Latin-1); we store raw bytes to be safe.
-    dest.write_bytes(response.content)
+    dest.write_bytes(content)
     return dest
 
 
@@ -66,4 +74,6 @@ def parse_html(html: str) -> dict:
 
 
 def parse(path: Path) -> dict:
-    return parse_html(path.read_bytes().decode("latin-1"))
+    """Parse a saved night page (plain `.html` or gzip-compressed `.html.gz`)."""
+    raw = gzip.decompress(path.read_bytes()) if path.suffix == ".gz" else path.read_bytes()
+    return parse_html(raw.decode("latin-1"))

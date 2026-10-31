@@ -1,0 +1,146 @@
+"""Bulk download of the historical archives (NOT, R2D2, ING nights).
+
+Usage (from the project folder):
+    .venv/bin/python -m roque_forecast.backfill not     # NOT weather, month by month, 1997 -> today
+    .venv/bin/python -m roque_forecast.backfill r2d2    # R2D2 seeing, month by month, Sep 2018 -> today
+    .venv/bin/python -m roque_forecast.backfill ing     # ING accounting, night by night, 2007 -> yesterday
+
+Design choices:
+- **Resumable:** files already on disk are skipped, so the command can be stopped
+  and re-run at any time. The current (unfinished) month is always downloaded again.
+- **Atomic writes:** each file is first written as `*.part` and renamed when complete,
+  so an interrupted download never leaves a half file that looks finished.
+- **Polite:** one request at a time, 2 s apart (3 s for the ING, which has ~7,000 pages).
+"""
+
+import argparse
+import gzip
+import logging
+import sys
+from collections.abc import Iterator
+from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
+
+from roque_forecast import config
+from roque_forecast.polite_http import PoliteSession
+from roque_forecast.sources import ing_nights, not_mast, r2d2
+
+log = logging.getLogger("backfill")
+
+NOT_FIRST_MONTH = date(1997, 1, 1)
+R2D2_FIRST_MONTH = date(2018, 9, 1)  # the monitor started on 2018-09-19
+ING_FIRST_NIGHT = date(2007, 1, 1)  # earlier pages are empty (checked 2005); 2007 has night lengths
+
+
+def months(first: date, last: date) -> Iterator[date]:
+    """Yield the first day of every month from `first` to `last` (inclusive)."""
+    current = first.replace(day=1)
+    while current <= last:
+        yield current
+        current = (current + timedelta(days=32)).replace(day=1)
+
+
+def next_month(month: date) -> date:
+    return (month + timedelta(days=32)).replace(day=1)
+
+
+def is_current_month(month: date, today: date) -> bool:
+    return (month.year, month.month) == (today.year, today.month)
+
+
+def finish(part: Path, final: Path) -> None:
+    """Rename `*.part` to its final name (the download is complete)."""
+    part.replace(final)
+
+
+def backfill_not(session: PoliteSession, today: date) -> None:
+    folder = config.RAW_DIR / "not"
+    for month in months(NOT_FIRST_MONTH, today):
+        final = folder / f"{month.year}" / f"not_{month:%Y-%m}.tsv.gz"
+        nodata = final.with_suffix(".nodata")
+        if (final.exists() or nodata.exists()) and not is_current_month(month, today):
+            continue
+        part = final.with_name(final.name + ".part")
+        try:
+            # The form works with minutes: [first day 00:00, first day of next month 00:00]
+            start = datetime(month.year, month.month, 1)
+            end_month = next_month(month)
+            end = datetime(end_month.year, end_month.month, 1)
+            not_mast.download_range(session, start, end, part)
+            finish(part, final)
+            log.info("NOT %s ok (%d bytes)", f"{month:%Y-%m}", final.stat().st_size)
+        except RuntimeError as exc:
+            # The server answered but offered no file: the month has no data.
+            nodata.parent.mkdir(parents=True, exist_ok=True)
+            nodata.write_text(str(exc))
+            log.warning("NOT %s: no data (%s)", f"{month:%Y-%m}", exc)
+        except Exception:
+            log.exception("NOT %s failed (will retry on next run)", f"{month:%Y-%m}")
+
+
+def backfill_r2d2(session: PoliteSession, today: date) -> None:
+    folder = config.RAW_DIR / "r2d2"
+    for month in months(R2D2_FIRST_MONTH, today):
+        final = folder / f"r2d2_{month:%Y-%m}.html"
+        if final.exists() and not is_current_month(month, today):
+            continue
+        part = final.with_name(final.name + ".part")
+        try:
+            # date2 is exclusive, so asking until the 1st of next month covers the whole month
+            r2d2.download_range(session, month, next_month(month), part)
+            finish(part, final)
+            log.info("R2D2 %s ok (%d bytes)", f"{month:%Y-%m}", final.stat().st_size)
+        except Exception:
+            log.exception("R2D2 %s failed (will retry on next run)", f"{month:%Y-%m}")
+
+
+def backfill_ing(session: PoliteSession, today: date) -> None:
+    folder = config.RAW_DIR / "ing_nights"
+    night = ING_FIRST_NIGHT
+    done = 0
+    # Only finished nights: a night that started yesterday ended this morning.
+    while night < today:
+        final = folder / f"{night.year}" / f"{night}.html.gz"
+        if not final.exists():
+            part = final.with_name(final.name + ".part")
+            try:
+                part.parent.mkdir(parents=True, exist_ok=True)
+                part.write_bytes(gzip.compress(ing_nights.fetch_night(session, night)))
+                finish(part, final)
+                done += 1
+                if done % 100 == 0:
+                    log.info("ING %s ok (%d nights downloaded this run)", night, done)
+            except Exception:
+                log.exception("ING %s failed (will retry on next run)", night)
+        night += timedelta(days=1)
+    log.info("ING finished: %d nights downloaded this run", done)
+
+
+SOURCES = {
+    "not": (backfill_not, 2.0),
+    "r2d2": (backfill_r2d2, 2.0),
+    "ing": (backfill_ing, 3.0),
+}
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("source", choices=SOURCES)
+    args = parser.parse_args(argv)
+
+    config.LOG_DIR.mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        handlers=[
+            logging.FileHandler(config.LOG_DIR / f"backfill_{args.source}.log"),
+            logging.StreamHandler(sys.stdout),
+        ],
+    )
+    function, delay_s = SOURCES[args.source]
+    function(PoliteSession(min_interval_s=delay_s), datetime.now(UTC).date())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
