@@ -85,7 +85,7 @@ window.I18N = {
     rm4_text: "Para medirlo sin trampa, se entrenó una copia igual de RoqueModel con <b>{e0}–{e1}</b> y se comprobó con las <b>{hours} horas de noche de {x0}–{x1}</b>, que no había visto. Si la entrenamos con esos años y la medimos con esas noches, acierta si la cúpula está abierta o cerrada en el <b>{fin} de las horas</b> ({prov} en provisional). Usando solo la previsión del tiempo con las mismas condiciones de cierre, sin modelo, se acierta el <b>{raw}</b>.",
     rm4_bars: { final: "RoqueModel (definitivo)", provisional: "RoqueModel (provisional)", raw: "Solo la previsión del tiempo, sin modelo" },
     rm4_note: "Ojo: decir siempre «abierta» acertaría el {open}, porque la cúpula está abierta casi siempre; RoqueModel también lo mejora. Con un año más de datos acierta algo más (se comprobó), por eso el RoqueModel de cada noche aprende con todos los años.",
-    fold_live: "La cumbre en directo",
+    fold_live: "Datos en tiempo real",
     live_intro: "Solo los datos que usa RoqueModel: la previsión para cada hora y lo que mide la estación del NOT en la cumbre.",
     station_title: "Medido en la cumbre: estación del NOT, últimas 24 horas",
     station_text: "Humedad, viento y presión: lo que RoqueModel toma de la estación antes de la noche. Medias de 10 minutos. Última medida: {time} hora canaria — humedad {rh} %, viento {wind} km/h, {p} hPa. La línea roja es el límite de cierre.",
@@ -104,12 +104,11 @@ window.I18N = {
     notes_limits_title: "Límites a tener presentes",
     notes_limits: "<li><b>«Cerrada» es la regla del NOT, no la decisión del GTC.</b> Cada telescopio tiene sus propios límites y sus operadores pueden decidir distinto.</li><li><b>Los casos raros tienen pocos ejemplos.</b> El viento muy fuerte y el hielo ocurren pocas horas al año, así que en esos casos el modelo es menos fiable.</li><li><b>Se reentrena a mano.</b> Las noches nuevas no entran en el modelo hasta que se vuelve a entrenar.</li><li><b>Proyecto independiente.</b> No es una herramienta operativa del observatorio: es un ejemplo de cómo se podría hacer con datos públicos.</li>",
     fold_refs: "Referencias",
-    refs_html: `<ul>
-<li>Abárzuza et al. 2025, RNAAS 9(2): random forest para el seeing del Roque.</li>
-<li>de Sepibus, Masciadri et al. 2026, arXiv:2607.12900: persistencia y precasting como métodos de referencia mínimos.</li>
-<li>Lombardi et al. 2007, arXiv:astro-ph/0702570: viento y humedad frente al seeing en el Roque.</li>
-<li>ING, procedimiento de alarmas del INT: cierre con humedad ≥ 90 % y con rachas de más de 80 km/h.</li>
-</ul>`,
+    refs_html: `<li><a href="https://doi.org/10.3847/2515-5172/adb14f">Abárzuza et al. 2025, RNAAS 9(2)</a>: un random forest predice el seeing del Roque con los datos de la estación meteorológica.</li>
+<li><a href="https://arxiv.org/abs/2607.12900">de Sepibus, Masciadri et al. 2026, arXiv:2607.12900</a>: persistencia y precasting como métodos de referencia mínimos que un pronóstico debe batir.</li>
+<li><a href="https://arxiv.org/abs/astro-ph/0702570">Lombardi et al. 2007, arXiv:astro-ph/0702570</a>: viento y humedad frente al seeing en el Roque.</li>
+<li><a href="https://www.ing.iac.es/Astronomy/tonotes/int/observer/old/alert.html">ING, procedimiento de alarmas del telescopio INT</a>: cerrar con humedad del 90 % y con rachas de más de 80 km/h.</li>
+<li><a href="https://www.not.iac.es/weather/">Estación meteorológica del NOT</a>: regla de cierre por humedad (90 %, se reabre tras 20 minutos por debajo).</li>`,
     footer: "Roque Night Forecast · proyecto independiente · código y metodología en GitHub (saimonx/roque-night-forecast).",
     credits: "Datos: <a href=\"https://www.not.iac.es/weather/\">estación meteorológica del NOT</a>, <a href=\"https://astro.ing.iac.es/seeing/\">seeing R2D2 del ING</a>, previsiones ECMWF y NOAA GFS vía <a href=\"https://open-meteo.com\">Open-Meteo</a> (<a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>).",
     na: "—",
@@ -200,7 +199,7 @@ window.I18N = {
     rm4_text: "To measure it without cheating, an identical copy of RoqueModel was trained on <b>{e0}–{e1}</b> and checked on the <b>{hours} night hours of {x0}–{x1}</b>, which it had not seen. Trained on those years and measured on those nights, it gets the dome open or closed right in <b>{fin} of hours</b> ({prov} when provisional). Using only the weather forecast with the same closing rules, without a model, gets <b>{raw}</b> right.",
     rm4_bars: { final: "RoqueModel (final)", provisional: "RoqueModel (provisional)", raw: "Weather forecast alone, no model" },
     rm4_note: "Note: saying \"open\" every hour would be right {open} of the time, because the dome is nearly always open; RoqueModel beats that too. With one more year of data it does a little better (this was checked), which is why each night's RoqueModel learns from every year.",
-    fold_live: "The summit, live",
+    fold_live: "Real-time data",
     live_intro: "Only the data RoqueModel uses: the forecast for each hour and what the NOT station measures at the summit.",
     station_title: "Measured at the summit: NOT station, last 24 hours",
     station_text: "Humidity, wind and pressure: what RoqueModel takes from the station before the night. 10-minute means. Latest reading: {time} Canary time — humidity {rh} %, wind {wind} km/h, {p} hPa. The red line is the closing limit.",
@@ -219,12 +218,11 @@ window.I18N = {
     notes_limits_title: "Limits to keep in mind",
     notes_limits: "<li><b>\"Closed\" is the NOT rule, not the GTC's decision.</b> Each telescope has its own limits and its operators may decide differently.</li><li><b>Rare cases have few examples.</b> Very strong wind and ice happen only a few hours a year, so the model is less reliable then.</li><li><b>It is retrained by hand.</b> New nights do not enter the model until it is trained again.</li><li><b>Independent project.</b> It is not an operational tool of the observatory: it is an example of how it could be done with public data.</li>",
     fold_refs: "References",
-    refs_html: `<ul>
-<li>Abárzuza et al. 2025, RNAAS 9(2): random forest for Roque seeing.</li>
-<li>de Sepibus, Masciadri et al. 2026, arXiv:2607.12900: persistence and precasting as minimum reference methods.</li>
-<li>Lombardi et al. 2007, arXiv:astro-ph/0702570: wind and humidity against seeing at the Roque.</li>
-<li>ING, INT alarm procedure: close at humidity ≥ 90 % and with gusts above 80 km/h.</li>
-</ul>`,
+    refs_html: `<li><a href="https://doi.org/10.3847/2515-5172/adb14f">Abárzuza et al. 2025, RNAAS 9(2)</a>: a random forest predicts Roque seeing from weather-station data.</li>
+<li><a href="https://arxiv.org/abs/2607.12900">de Sepibus, Masciadri et al. 2026, arXiv:2607.12900</a>: persistence and precasting as the minimum reference methods a forecast must beat.</li>
+<li><a href="https://arxiv.org/abs/astro-ph/0702570">Lombardi et al. 2007, arXiv:astro-ph/0702570</a>: wind and humidity against seeing at the Roque.</li>
+<li><a href="https://www.ing.iac.es/Astronomy/tonotes/int/observer/old/alert.html">ING, INT telescope alarm procedure</a>: close at 90 % humidity and with gusts above 80 km/h.</li>
+<li><a href="https://www.not.iac.es/weather/">NOT weather station</a>: humidity closing rule (90 %, reopen after 20 minutes below).</li>`,
     footer: "Roque Night Forecast · independent project · code and method on GitHub (saimonx/roque-night-forecast).",
     credits: "Data: <a href=\"https://www.not.iac.es/weather/\">NOT weather station</a>, <a href=\"https://astro.ing.iac.es/seeing/\">ING R2D2 seeing</a>, ECMWF and NOAA GFS forecasts via <a href=\"https://open-meteo.com\">Open-Meteo</a> (<a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>).",
     na: "—",

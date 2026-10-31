@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
   <meta name="description" content="Tonight at the Roque de los Muchachos Observatory (La Palma), hour by hour: will the dome be open, and how sharp will the stars be. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=35">
+  <link rel="stylesheet" href="assets/style.css?v=36">
 </head>
 <body>
   <header class="top">
@@ -78,42 +78,35 @@
           <ul class="rm-bars" id="rm4-bars"></ul>
           <p class="muted small" id="rm4-note"></p>
         </article>
+        <article class="rm-part" id="live">
+          <header class="rm-head"><span class="rm-num">5</span><h3 data-i18n="fold_live"></h3></header>
+          <p data-i18n="live_intro"></p>
+          <h4 data-i18n="live_fc_title"></h4>
+          <p class="muted small" data-i18n="live_fc_text"></p>
+          <div class="mini-grid" id="fc-grid"></div>
+          <h4 data-i18n="station_title"></h4>
+          <p class="muted small" id="station-text"></p>
+          <div class="mini-grid" id="station-grid"></div>
+          <h4 data-i18n="vs_title"></h4>
+          <p class="muted small" data-i18n="vs_text"></p>
+          <div class="chart short" id="chart-vs"></div>
+        </article>
+        <article class="rm-part" id="notes">
+          <header class="rm-head"><span class="rm-num">6</span><h3 data-i18n="notes_title"></h3></header>
+          <p class="muted" data-i18n="notes_intro"></p>
+          <div class="notes-grid">
+            <section class="note-card why"><h4 data-i18n="notes_why_title"></h4><ul data-i18n-html="notes_why"></ul></section>
+            <section class="note-card missing"><h4 data-i18n="notes_missing_title"></h4><ul data-i18n-html="notes_missing"></ul></section>
+            <section class="note-card limits"><h4 data-i18n="notes_limits_title"></h4><ul data-i18n-html="notes_limits"></ul></section>
+          </div>
+        </article>
+        <article class="rm-part" id="refs">
+          <header class="rm-head"><span class="rm-num">7</span><h3 data-i18n="fold_refs"></h3></header>
+          <ul class="refs" data-i18n-html="refs_html"></ul>
+        </article>
       </div>
     </section>
 
-    <!-- Everything else, folded -->
-    <details class="fold">
-      <summary><h2 data-i18n="fold_live"></h2></summary>
-      <p class="muted" data-i18n="live_intro"></p>
-      <h3 data-i18n="live_fc_title"></h3>
-      <p class="muted small" data-i18n="live_fc_text"></p>
-      <div class="mini-grid" id="fc-grid"></div>
-
-      <h3 data-i18n="station_title"></h3>
-      <p class="muted small" id="station-text"></p>
-      <div class="mini-grid" id="station-grid"></div>
-
-      <h3 data-i18n="vs_title"></h3>
-      <p class="muted small" data-i18n="vs_text"></p>
-      <div class="chart short" id="chart-vs"></div>
-
-    </details>
-
-    <!-- Data to keep in mind: why these data, what is missing, limits -->
-    <section id="notes">
-      <h2 data-i18n="notes_title"></h2>
-      <p class="muted" data-i18n="notes_intro"></p>
-      <div class="notes-grid">
-        <article class="note-card why"><h3 data-i18n="notes_why_title"></h3><ul data-i18n-html="notes_why"></ul></article>
-        <article class="note-card missing"><h3 data-i18n="notes_missing_title"></h3><ul data-i18n-html="notes_missing"></ul></article>
-        <article class="note-card limits"><h3 data-i18n="notes_limits_title"></h3><ul data-i18n-html="notes_limits"></ul></article>
-      </div>
-    </section>
-
-    <details class="fold">
-      <summary><h2 data-i18n="fold_refs"></h2></summary>
-      <div class="prose" data-i18n-html="refs_html"></div>
-    </details>
   </main>
 
   <footer class="wrap foot">
@@ -123,8 +116,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=35"></script>
-  <script src="assets/charts.js?v=35"></script>
-  <script src="assets/app.js?v=35"></script>
+  <script src="assets/i18n.js?v=36"></script>
+  <script src="assets/charts.js?v=36"></script>
+  <script src="assets/app.js?v=36"></script>
 </body>
 </html>

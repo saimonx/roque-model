@@ -382,3 +382,9 @@ ul.rm-bars li:nth-child(2) .bar-fill { opacity: .55; }
 /* The summit, live: small charts in a grid, one variable each */
 .mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 6px 18px; }
 .mini-grid .chart { margin-top: .3rem; }
+
+/* Cards 5-7 */
+.rm-part h4 { margin: 1rem 0 .3rem; font-size: .95rem; }
+.rm-part .note-card h4 { margin: .2rem 0 .5rem; }
+ul.refs { padding-left: 1.1rem; margin: .4rem 0; }
+ul.refs li { margin: .5rem 0; line-height: 1.5; }
