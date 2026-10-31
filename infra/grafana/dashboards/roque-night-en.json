@@ -1,0 +1,903 @@
+{
+ "uid": "roque-night-en",
+ "title": "Roque Night Forecast — weather and night forecast",
+ "tags": [
+  "roque",
+  "fiware",
+  "en"
+ ],
+ "timezone": "utc",
+ "refresh": "5m",
+ "schemaVersion": 39,
+ "editable": false,
+ "time": {
+  "from": "now-7d",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "text",
+   "title": "",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 3
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**Independent project, not affiliated with GRANTECAN or any observatory.** Real, public data: GTC (atmosportal) and NOT weather stations, ECMWF IFS forecast (Open-Meteo, CC BY 4.0). Night forecast: our own models (see `reports/MODELS_01.md`). Flow: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."
+   }
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "Dome-closure risk tonight",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 3,
+    "w": 4,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT domeclosureprobability * 100 AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND domeclosureprobability * 100 IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#0ca30c",
+        "value": null
+       },
+       {
+        "color": "#fab219",
+        "value": 20
+       },
+       {
+        "color": "#d03b3b",
+        "value": 50
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": []
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "Forecast seeing",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 4,
+    "y": 3,
+    "w": 4,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT seeingforecast AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND seeingforecast IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 2,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#0ca30c",
+        "value": null
+       },
+       {
+        "color": "#fab219",
+        "value": 0.9
+       },
+       {
+        "color": "#d03b3b",
+        "value": 1.2
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": []
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "Forecast hours lost",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 3,
+    "w": 4,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT hourslostforecast AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND hourslostforecast IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "h",
+     "decimals": 1,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#0ca30c",
+        "value": null
+       },
+       {
+        "color": "#fab219",
+        "value": 1
+       },
+       {
+        "color": "#d03b3b",
+        "value": 4
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": []
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 5,
+   "type": "stat",
+   "title": "Forecast type",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 3,
+    "w": 4,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT forecastmode AS value FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND forecastmode IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#2a78d6",
+        "value": null
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "provisional": {
+         "text": "provisional (forecast only)",
+         "color": "#fab219"
+        },
+        "final": {
+         "text": "final (with the station)",
+         "color": "#0ca30c"
+        }
+       }
+      }
+     ]
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 6,
+   "type": "stat",
+   "title": "GTC humidity now",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 3,
+    "w": 4,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT relativehumidity * 100 AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND relativehumidity * 100 IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "decimals": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#0ca30c",
+        "value": null
+       },
+       {
+        "color": "#fab219",
+        "value": 80
+       },
+       {
+        "color": "#d03b3b",
+        "value": 90
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": []
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 7,
+   "type": "stat",
+   "title": "Dew-point margin (GTC)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 20,
+    "y": 3,
+    "w": 4,
+    "h": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT temperature - dewpoint AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND temperature - dewpoint IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "decimals": 1,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "#d03b3b",
+        "value": null
+       },
+       {
+        "color": "#fab219",
+        "value": 2
+       },
+       {
+        "color": "#0ca30c",
+        "value": 4
+       }
+      ]
+     },
+     "color": {
+      "mode": "thresholds"
+     },
+     "mappings": []
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 8,
+   "type": "timeseries",
+   "title": "Relative humidity (%) — the dome closes at 90 %",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 8,
+    "w": 24,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", relativehumidity * 100 AS \"GTC\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND relativehumidity * 100 IS NOT NULL ORDER BY 1"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", relativehumidity * 100 AS \"NOT\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND relativehumidity * 100 IS NOT NULL ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "pointSize": 8,
+      "insertNulls": 1800000,
+      "spanNulls": false,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "transparent",
+        "value": null
+       },
+       {
+        "color": "#d03b3b",
+        "value": 90
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "B"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 9,
+   "type": "timeseries",
+   "title": "Wind (m/s)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", windspeed AS \"GTC mean\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND windspeed IS NOT NULL ORDER BY 1"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", gustspeed AS \"GTC gust\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND gustspeed IS NOT NULL ORDER BY 1"
+    },
+    {
+     "refId": "C",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", windspeed AS \"NOT\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND windspeed IS NOT NULL ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "velocityms",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "pointSize": 8,
+      "insertNulls": 1800000,
+      "spanNulls": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "B"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#1baf7a"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "C"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 10,
+   "type": "timeseries",
+   "title": "Temperature and dew point (°C, GTC)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 16,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", temperature AS \"temperature\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND temperature IS NOT NULL ORDER BY 1"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", dewpoint AS \"dew point\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND dewpoint IS NOT NULL ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "pointSize": 8,
+      "insertNulls": 1800000,
+      "spanNulls": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "B"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 11,
+   "type": "timeseries",
+   "title": "Issued forecasts: closure probability (%)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 24,
+    "w": 12,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", domeclosureprobability * 100 AS \"p\" FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND $__timeFilter(time_index) AND domeclosureprobability * 100 IS NOT NULL ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "always",
+      "pointSize": 8,
+      "insertNulls": 1800000,
+      "spanNulls": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 12,
+   "type": "timeseries",
+   "title": "Issued forecasts: seeing (″)",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "cratedb"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 24,
+    "w": 12,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "cratedb"
+     },
+     "format": "time_series",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "SELECT time_index AS \"time\", seeingforecast AS \"seeing\" FROM doc.etweatherforecast WHERE entity_id = 'urn:ngsi-ld:WeatherForecast:ORM-tonight' AND $__timeFilter(time_index) AND seeingforecast IS NOT NULL ORDER BY 1"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "always",
+      "pointSize": 8,
+      "insertNulls": 1800000,
+      "spanNulls": false
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  }
+ ]
+}

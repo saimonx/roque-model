@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Template: scripts/install_collectors.sh tonight -> ~/Library/LaunchAgents (only with José's approval) -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.jose.roque-forecast.tonight</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>__PROJECT_DIR__/scripts/update_tonight.sh</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>__PROJECT_DIR__</string>
+    <!-- every hour at minute 5: provisional forecast in the afternoon, final once the night starts -->
+    <key>StartCalendarInterval</key>
+    <dict><key>Minute</key><integer>5</integer></dict>
+    <key>StandardOutPath</key>
+    <string>__PROJECT_DIR__/data/logs/launchd_tonight.out</string>
+    <key>StandardErrorPath</key>
+    <string>__PROJECT_DIR__/data/logs/launchd_tonight.err</string>
+</dict>
+</plist>

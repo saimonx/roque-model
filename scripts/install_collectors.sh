@@ -3,14 +3,21 @@
 #   live   -> every 15 min : GTC live panel + TNG current values
 #   daily  -> 10:07, 22:07 : TNG last-24 h series + downtime
 #   weekly -> Mon 10:23    : GTC last-30-days series
-# Uninstall: scripts/install_collectors.sh --uninstall
+#   tonight -> hourly :05  : tonight's forecast + site data (only when named: install_collectors.sh tonight)
+# Uninstall: scripts/install_collectors.sh --uninstall   (or: install_collectors.sh tonight --uninstall)
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 AGENTS_DIR="$HOME/Library/LaunchAgents"
 DOMAIN="gui/$(id -u)"
 
-for name in live daily weekly; do
+NAMES="live daily weekly"
+if [[ "${1:-}" == "tonight" ]]; then
+    NAMES="tonight"
+    shift
+fi
+
+for name in $NAMES; do
     label="com.jose.roque-forecast.$name"
     target="$AGENTS_DIR/$label.plist"
     # Stop the old version if it is loaded (ignore the error if it is not).

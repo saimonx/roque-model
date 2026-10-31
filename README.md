@@ -17,9 +17,9 @@ to be lost to weather.
 | Bulk historical download (NOT 1997+, R2D2 2018+, ING nights 2007+) | done |
 | Clean tables (Parquet) and exploratory analysis — [report](reports/EDA_01.md), [notebook](notebooks/01_eda.ipynb) | done |
 | Models: dome-closure risk, seeing, hours lost, honest baselines — [report](reports/MODELS_01.md), [notebook](notebooks/02_models.ipynb) | done |
-| Tonight's forecast served live (same models, current Open-Meteo forecast) | next |
-| FIWARE `WeatherObserved` ingestion + Grafana panel | planned |
-| Bilingual (EN/ES) local web with tonight's forecast | planned |
+| Tonight's forecast, live (same models, current Open-Meteo forecast + NOT station) | done |
+| FIWARE entities (`WeatherObserved`, `WeatherForecast`) in Orion + QuantumLeap + Grafana (ES/EN) | done (local) |
+| Bilingual (ES/EN) web page with tonight's forecast and the evaluation | done (local); GitHub Pages when public |
 
 ## Results (test years 2024–2026, never used for training or tuning)
 
@@ -58,7 +58,7 @@ The results hold with forecasts issued 24 h earlier. Details and caveats are in 
 | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) | hours lost to weather / technical problems on the WHT, Moon illumination | 2007 → today |
 | [GTC atmosportal](https://atmosportal.gtc.iac.es/) (Gran Telescopio Canarias weather station) | ~11 s series (last 30 days only) and live panel incl. rain, PM10 dust and warning colours | collected by this project from Oct 2026 |
 | [TNG weather](https://tngweb.tng.iac.es/weather) (Telescopio Nazionale Galileo) | 1-min series of the last 24 h, dust counts by particle size, downtime | collected by this project from Oct 2026 |
-| [Open-Meteo](https://open-meteo.com) forecast archives ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | ECMWF IFS HRES 9 km hourly forecasts at the site: historical-forecast archive and forecasts issued 24 h earlier | 2017 → today (24 h earlier: 2025 → today) |
+| [Open-Meteo](https://open-meteo.com) forecasts and archives ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | ECMWF IFS HRES 9 km hourly forecasts at the site: today's forecast, historical-forecast archive and forecasts issued 24 h earlier | 2017 → today (24 h earlier: 2025 → today) |
 
 Downloads identify themselves with a descriptive User-Agent, wait at least 2 s between requests and
 only use pages linked from the public sites. No simulated data are used in this project; any
@@ -83,6 +83,49 @@ uv sync                                          # create .venv and install depe
 .venv/bin/python -m roque_forecast.train         # fit, compare with baselines -> reports/results/
 ```
 
+### Tonight's forecast and the web page
+
+```bash
+.venv/bin/python -m roque_forecast.tonight      # live data + models -> site/data/tonight.json
+.venv/bin/python -m roque_forecast.site_data    # evaluation + live track record -> site/data/evaluation.json
+.venv/bin/python -m http.server 8765 -d site    # open http://localhost:8765 (?lang=es or ?lang=en)
+scripts/update_tonight.sh                       # both steps (hourly job); ROQUE_PUBLISH=1 also publishes
+```
+
+![Web page, Spanish version (28 Oct 2026)](reports/figures/13_web_es.jpg)
+
+Two modes, so a forecast never uses information it could not have had:
+- **provisional** (afternoon): forecast-only models (weather forecast, last night, season);
+- **final** (from the start of astronomical night): the full models, adding the NOT station in the 2 h
+  before the night. This is the forecast evaluated in [MODELS_01](reports/MODELS_01.md).
+
+Every run is logged in `data/forecasts/issued.jsonl`. Each run also records what really happened the
+night before (`outcomes.jsonl`), so the page builds a **live track record**, scoring the first final
+forecast of each night.
+
+`scripts/publish_site.sh` force-pushes `site/` to a `gh-pages` branch as a single commit, so hourly
+updates never pile up in the history of `main`.
+
+### FIWARE + Grafana (local, Docker)
+
+```bash
+docker compose -f infra/docker-compose.yml up -d     # Orion :1027, QuantumLeap :8669, Grafana :3001
+.venv/bin/python -m roque_forecast.fiware provision  # subscription Orion -> QuantumLeap (once)
+.venv/bin/python -m roque_forecast.fiware backfill   # optional: last 30 days of both stations
+.venv/bin/python -m roque_forecast.dashboards        # regenerate the ES and EN dashboards
+```
+
+| Entity | Type ([Smart Data Models](https://github.com/smart-data-models/dataModel.Weather)) | Updated by |
+|---|---|---|
+| `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | `collect live` (every 15 min) |
+| `urn:ngsi-ld:WeatherObserved:ORM-NOT` | `WeatherObserved` | `tonight` (hourly) |
+| `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` (+ closure probability, seeing, hours lost) | `tonight` (hourly) |
+
+![Grafana dashboard, Spanish version (28 Oct 2026)](reports/figures/14_grafana_es.jpg)
+
+Ports are shifted by one from the FIWARE defaults, so the stack can run next to another FIWARE stack.
+If Docker is not running, the forecast and the collectors carry on and skip this step.
+
 ### Collectors (macOS)
 
 ```bash
@@ -95,6 +138,7 @@ scripts/install_collectors.sh --uninstall   # remove them
 | `live` | every 15 min | GTC live panel + TNG current values → `data/raw/live/YYYY-MM/YYYY-MM-DD.jsonl` |
 | `daily` | 10:07 and 22:07 | TNG last-24 h series + downtime → `data/raw/tng/YYYY-MM-DD/` |
 | `weekly` | Monday 10:23 | GTC last-30-days series → `data/raw/gtc_atmosportal/YYYY-MM-DD/` |
+| `tonight` (installed separately: `install_collectors.sh tonight`) | every hour at :05 | `scripts/update_tonight.sh` |
 
 ## Layout
 
@@ -110,6 +154,13 @@ src/roque_forecast/
   features.py        modelling table: forecast + pre-night station + persistence + season, and labels
   train.py           time-split training, baselines, metrics, permutation importance
   plotting.py        shared figure style (colour-blind-safe palette)
+  tonight.py         tonight's forecast from live data (provisional / final modes)
+  site_data.py       evaluation and live track record for the web page
+  fiware.py          NGSI-v2 entities, Orion updates, QuantumLeap subscription and backfill
+  dashboards.py      Grafana dashboards (Spanish and English) from one definition
+site/                static bilingual web page (index.html, assets/; data/ is generated)
+infra/               Docker Compose for Orion, QuantumLeap, CrateDB and Grafana
+scripts/             LaunchAgent installer, hourly update and gh-pages publishing
 notebooks/           analysis notebooks (.py source + executed .ipynb)
 reports/             written findings, figures and metric tables (reports/results/)
   sources/           one module per data source: download + parse

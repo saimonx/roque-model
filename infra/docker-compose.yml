@@ -1,0 +1,58 @@
+# Local FIWARE stack for the live weather and tonight's forecast (public images, versions pinned).
+#
+#   collect live (15 min) ---+                                  subscription
+#   tonight.py (hourly) -----+--NGSI-v2--> Orion Context Broker ------------> QuantumLeap --> CrateDB
+#                                                                                               |
+#                                                               Grafana (ES / EN dashboards) <--+ SQL
+#
+# Ports are shifted by one from the FIWARE defaults so this stack can run next to another one:
+#   Orion 1027, QuantumLeap 8669, CrateDB console 4201, Grafana 3001.
+#
+# Start:  docker compose -f infra/docker-compose.yml up -d
+#         .venv/bin/python -m roque_forecast.fiware provision   (once: history subscription)
+#         .venv/bin/python -m roque_forecast.fiware backfill    (optional: last 30 days)
+# Stop:   docker compose -f infra/docker-compose.yml down        (add -v to delete the data)
+name: roque-forecast
+
+services:
+  mongo:  # Orion keeps the current state of the entities in MongoDB
+    image: mongo:6.0
+    command: --nojournal
+    volumes: [mongo-data:/data/db]
+
+  orion:  # FIWARE Context Broker: current state of every entity (NGSI-v2 API)
+    image: fiware/orion:4.1.0
+    depends_on: [mongo]
+    command: -dbURI mongodb://mongo:27017 -logLevel WARN
+    ports: ["1027:1026"]
+
+  crate:  # time-series database used by QuantumLeap
+    image: crate:5.8.5
+    command: -Cdiscovery.type=single-node -Ccluster.name=roque
+    ports: ["4201:4200"]
+    environment:
+      CRATE_HEAP_SIZE: 512m
+    volumes: [crate-data:/data]
+
+  quantumleap:  # stores every Orion change as a time series in CrateDB
+    image: orchestracities/quantumleap:1.0.0
+    depends_on: [crate, orion]
+    ports: ["8669:8668"]
+    environment:
+      CRATE_HOST: crate
+      LOGLEVEL: WARNING
+
+  grafana:  # dashboards (anonymous read-only access for the local demo)
+    image: grafana/grafana:11.3.0
+    depends_on: [crate]
+    ports: ["3001:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+volumes:
+  mongo-data:
+  crate-data:

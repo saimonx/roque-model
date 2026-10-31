@@ -63,6 +63,12 @@ def collect_live(session: PoliteSession) -> None:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
     log.info("live snapshot -> %s", out)
 
+    # Optional: update the GTC station entity in the local FIWARE stack (skipped if it is not running).
+    if "gtc_panel" in record:
+        from roque_forecast import fiware
+
+        fiware.push_gtc_panel(record["gtc_panel"])
+
 
 def collect_daily(session: PoliteSession) -> None:
     """TNG last-24 h series (1-minute resolution) + TNG downtime table."""
