@@ -247,27 +247,71 @@
   }
 
   // ---------------------------------------------------------------- the summit, live
+  // Small charts in a grid: one variable each, same time axis, so scales never mix.
+  function miniCharts(grid, charts) {
+    // Each chart sits in its own box, so the legend the chart adds below stays with it.
+    grid.innerHTML = charts.map((_, i) => `<div class="mini"><div class="chart short" data-k="${i}"></div></div>`).join("");
+    charts.forEach((c, i) => Charts.lineChart(grid.querySelector(`[data-k="${i}"]`), c));
+  }
+
   function renderLive(d) {
     const t = T(), n = d.night;
     const fmt = (dt, long) => timeLocal(dt.toISOString(), long);
+    const kmh = (v) => (v == null ? null : v * 3.6);
+    const pts = (rows, key, f = (v) => v) => rows.map((p) => ({ t: p.t, v: p[key] == null ? null : f(p[key]) }));
+    const top = (rows, key, f, floor) => Math.max(floor, ...rows.map((p) => (p[key] == null ? 0 : f(p[key]))));
+    const night = [{ from: new Date(n.start_utc), to: new Date(n.end_utc) }];
+
+    // 1. Tonight's forecast, hour by hour (ECMWF; summit wind from GFS at 750 hPa).
+    const fc = d.hourly.map((h) => ({ ...h, t: new Date(h.t) }));
+    const base = { timeFormat: fmt, bands: night };
+    miniCharts($("fc-grid"), [
+      { ...base, series: [{ label: t.c_rh, color: "--series-1", values: pts(fc, "rh") }], yMin: 0, yMax: 100, unit: " %",
+        threshold: { v: 90, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
+      { ...base, series: [{ label: t.c_wind750, color: "--series-3", values: pts(fc, "wind750", kmh) }], yMin: 0,
+        yMax: Math.ceil(top(fc, "wind750", kmh, 80) * 1.1), unit: " km/h", threshold: { v: 80, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
+      { ...base, series: [{ label: t.c_temp, color: "--series-2", values: pts(fc, "temp") }, { label: t.c_dew, color: "--series-1", values: pts(fc, "dew") }],
+        yMin: Math.min(-2, ...fc.map((p) => Math.floor(Math.min(p.temp, p.dew) - 1))), unit: " °C", threshold: { v: 0, label: t.c_ice }, valueFormat: (v) => Math.round(v) },
+      { ...base, series: [{ label: t.c_cloud, color: "--text-3", values: pts(fc, "cloud") }], yMin: 0, yMax: 100, unit: " %", valueFormat: (v) => Math.round(v) },
+      { ...base, series: [{ label: t.c_rain, color: "--series-1", values: pts(fc, "precip") }], yMin: 0,
+        yMax: Math.max(1, ...fc.map((p) => p.precip || 0)) * 1.2, unit: " mm", valueFormat: (v) => num(v, 1) },
+    ]);
+
+    // 2. Measured at the summit: the NOT station, last 24 h.
     const s = d.station_now;
-    $("station-text").textContent = fill(t.station_text, { time: timeLocal(s.time_utc), rh: num(s.rh, 0), wind: num(s.wind), temp: num(s.temp) });
+    $("station-text").textContent = fill(t.station_text, { time: timeLocal(s.time_utc), rh: num(s.rh, 0), wind: num(kmh(s.wind), 0), temp: num(s.temp) });
     const st = d.station_24h.map((p) => ({ ...p, t: new Date(p.t) }));
-    Charts.lineChart($("chart-station"), {
-      series: [{ label: t.rh, color: "--series-1", values: st.map((p) => ({ t: p.t, v: p.rh })) }],
-      yMin: 0, yMax: 100, unit: " %", threshold: { v: 90, label: t.limit90 }, timeFormat: fmt, maxGapMs: 30 * 60e3,
-      valueFormat: (v) => Math.round(v), ariaLabel: t.station_title,
+    const sb = { timeFormat: fmt, maxGapMs: 30 * 60e3 };
+    miniCharts($("station-grid"), [
+      { ...sb, series: [{ label: t.c_rh, color: "--series-1", values: pts(st, "rh") }], yMin: 0, yMax: 100, unit: " %", threshold: { v: 90, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
+      { ...sb, series: [{ label: t.c_wind_station, color: "--series-3", values: pts(st, "wind", kmh) }], yMin: 0,
+        yMax: Math.ceil(top(st, "wind", kmh, 80) * 1.1), unit: " km/h", threshold: { v: 80, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
+      { ...sb, series: [{ label: t.c_temp, color: "--series-2", values: pts(st, "temp") }], unit: " °C", valueFormat: (v) => Math.round(v) },
+    ]);
+
+    // 3. Forecast against what was measured: humidity, last 24 h.
+    const vs = d.forecast_vs_measured.map((p) => ({ ...p, t: new Date(p.t) }));
+    Charts.lineChart($("chart-vs"), {
+      series: [{ label: t.c_vs_fc, color: "--baseline", values: pts(vs, "forecast") }, { label: t.c_vs_measured, color: "--series-2", values: pts(vs, "measured") }],
+      yMin: 0, yMax: 100, unit: " %", threshold: { v: 90, label: t.c_limit }, timeFormat: fmt, valueFormat: (v) => Math.round(v), ariaLabel: t.vs_title,
     });
-    const hourly = d.hourly.map((h) => ({ ...h, t: new Date(h.t) }));
-    Charts.lineChart($("chart-raw"), {
-      series: [{ label: t.rh, color: "--series-1", values: hourly.map((h) => ({ t: h.t, v: h.rh })) },
-               { label: t.cloud, color: "--series-3", values: hourly.map((h) => ({ t: h.t, v: h.cloud })) }],
-      yMin: 0, yMax: 100, unit: " %", threshold: { v: 90, label: t.limit90 },
-      bands: [{ from: new Date(n.start_utc), to: new Date(n.end_utc) }], timeFormat: fmt,
-      valueFormat: (v) => Math.round(v), ariaLabel: t.raw_title,
-    });
+
+    // 4. TNG, last 24 h: dust and seeing (shown only; RoqueModel does not use them).
+    const tg = d.tng_24h || {}, charts = [];
+    const tb = { timeFormat: fmt };
+    if (tg.dust && tg.dust.length) {
+      const dust = tg.dust.map((p) => ({ t: new Date(p.t), v: p.v }));
+      charts.push({ ...tb, series: [{ label: t.c_dust, color: "--warning", values: dust }], yMin: 0, unit: " µg/m³", maxGapMs: 3 * 3600e3, valueFormat: (v) => num(v, 1) });
+    }
+    if (tg.seeing && tg.seeing.length) {
+      const see = tg.seeing.map((p) => ({ t: new Date(p.t), v: p.v }));
+      charts.push({ ...tb, series: [{ label: t.c_seeing, color: "--series-1", values: see }], yMin: 0, unit: "″", maxGapMs: 30 * 60e3, valueFormat: (v) => num(v, 1) });
+    }
+    if (charts.length) miniCharts($("tng-grid"), charts);
+    else $("tng-grid").innerHTML = `<p class="muted small">${t.tng_none}</p>`;
     renderGtc(d.gtc_panel);
   }
+
 
   function renderGtc(panel) {
     const t = T(), box = $("gtc-panel");

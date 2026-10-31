@@ -44,7 +44,7 @@ import pandas as pd
 from roque_forecast import astro, config, dome, explain, features, hourly, train
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import not_mast, open_meteo, r2d2
+from roque_forecast.sources import not_mast, open_meteo, r2d2, tng
 
 log = logging.getLogger("tonight")
 
@@ -90,9 +90,10 @@ def tonight_window(now: pd.Timestamp) -> dict:
 def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> dict:
     """Fetch the three live sources and keep the raw files (as for every other source)."""
     folder.mkdir(parents=True, exist_ok=True)
-    forecast = open_meteo.download_current(session, forecast_days=3)
+    # One past day too, to show the forecast next to what the station measured.
+    forecast = open_meteo.download_current(session, forecast_days=3, past_days=1)
     (folder / "open_meteo.json").write_text(json.dumps(forecast), encoding="utf-8")
-    upper = open_meteo.download_current_upper(session, forecast_days=3)
+    upper = open_meteo.download_current_upper(session, forecast_days=3, past_days=1)
     (folder / "open_meteo_upper.json").write_text(json.dumps(upper), encoding="utf-8")
 
     start = (now - pd.Timedelta(hours=36)).to_pydatetime().replace(tzinfo=None)
@@ -104,7 +105,21 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
                                     folder / "r2d2.html")
     return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper),
             "minutes": clean_minutes(not_mast.parse(not_file)),
-            "seeing": r2d2.parse(r2d2_file)}
+            "seeing": r2d2.parse(r2d2_file), "tng": download_tng(session, folder)}
+
+
+def download_tng(session: PoliteSession, folder: Path) -> dict:
+    """TNG last 24 h of dust and seeing, shown on the page only (not used by RoqueModel).
+    Two small requests an hour; if the TNG site does not answer, the page just skips them."""
+    out = {}
+    for var in ("dust", "seeing"):
+        try:
+            raw = tng.fetch_series(session, var)
+            (folder / f"tng_{var}.json").write_bytes(raw)
+            out[var] = tng.parse_series(raw, var)
+        except Exception:  # noqa: BLE001 - a display-only source must never stop the forecast
+            log.warning("TNG %s not available", var)
+    return out
 
 
 def clean_minutes(df: pd.DataFrame) -> pd.DataFrame:
@@ -306,14 +321,41 @@ def iso(t: pd.Timestamp) -> str:
     return t.isoformat().replace("+00:00", "Z")
 
 
-def hourly_curve(forecast: pd.DataFrame, window: dict) -> list[dict]:
-    """Forecast hours from 3 h before the night to its end, for the page chart."""
+def hourly_curve(forecast: pd.DataFrame, upper: pd.DataFrame | None, window: dict) -> list[dict]:
+    """Forecast hours from 3 h before the night to its end, for the page charts."""
     hours = forecast[(forecast["time_utc"] >= window["start"] - pd.Timedelta(hours=3))
                      & (forecast["time_utc"] <= window["end"])].copy()
+    if upper is not None and "wind_speed_750hPa" in upper:
+        hours = hours.merge(upper[["time_utc", "wind_speed_750hPa"]], on="time_utc", how="left")
+    else:
+        hours["wind_speed_750hPa"] = np.nan
     hours["dark"] = astro.is_astronomical_night(hours["time_utc"])
     return [{"t": iso(h.time_utc), "dark": bool(h.dark), "rh": h.relative_humidity_2m, "wind": h.wind_speed_10m,
-             "temp": h.temperature_2m, "dew": h.dew_point_2m, "cloud": h.cloud_cover, "precip": h.precipitation}
+             "wind750": h.wind_speed_750hPa, "temp": h.temperature_2m, "dew": h.dew_point_2m, "cloud": h.cloud_cover,
+             "precip": h.precipitation}
             for h in hours.itertuples()]
+
+
+def forecast_vs_measured(forecast: pd.DataFrame, minutes: pd.DataFrame, now: pd.Timestamp) -> list[dict]:
+    """Last 24 h, hour by hour: the humidity the forecast gave and the one the NOT station measured."""
+    recent = minutes[minutes["time_utc"] > now - pd.Timedelta(hours=24)].set_index("time_utc")
+    measured = recent["humidity_pct"].resample("1h").mean()
+    fc = forecast.set_index("time_utc")["relative_humidity_2m"]
+    hours = measured.index.intersection(fc.index)
+    return [{"t": iso(t), "forecast": r(fc.loc[t], 0), "measured": r(measured.loc[t], 0)} for t in hours]
+
+
+def tng_curves(series: dict, now: pd.Timestamp) -> dict:
+    """TNG last 24 h: dust as published (2-hour means) and seeing as 10-minute medians."""
+    out = {}
+    if "dust" in series:
+        d = series["dust"][series["dust"]["time_utc"] > now - pd.Timedelta(hours=24)]
+        out["dust"] = [{"t": iso(t), "v": r(v, 2)} for t, v in zip(d["time_utc"], d["dust"])]
+    if "seeing" in series:
+        s = series["seeing"][series["seeing"]["time_utc"] > now - pd.Timedelta(hours=24)].set_index("time_utc")
+        s = s["seeing"].resample("10min").median().dropna()
+        out["seeing"] = [{"t": iso(t), "v": r(v, 2)} for t, v in s.items()]
+    return out
 
 
 def station_curve(minutes: pd.DataFrame, now: pd.Timestamp) -> list[dict]:
@@ -368,7 +410,9 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
                         "wind": last_minute.wind_speed_ms, "temp": last_minute.temp_c,
                         "pressure": last_minute.pressure_hpa},
         "gtc_panel": latest_gtc_panel(),
-        "hourly": hourly_curve(live["forecast"], window),
+        "hourly": hourly_curve(live["forecast"], live.get("upper"), window),
+        "forecast_vs_measured": forecast_vs_measured(live["forecast"], live["minutes"], now),
+        "tng_24h": tng_curves(live.get("tng", {}), now),
         "station_24h": station_curve(live["minutes"], now),
     }
     return clean(page)

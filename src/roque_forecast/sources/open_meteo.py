@@ -98,16 +98,19 @@ def download_year(session: PoliteSession, kind: str, start: date, end: date, des
     return dest
 
 
-def download_current(session: PoliteSession, forecast_days: int = 2) -> dict:
-    """Today's forecast (for "tonight"), same model and variables as the archive."""
-    params = BASE_PARAMS | {"hourly": ",".join(VARIABLES), "forecast_days": forecast_days}
+def download_current(session: PoliteSession, forecast_days: int = 2, past_days: int = 0) -> dict:
+    """Today's forecast (for "tonight"), same model and variables as the archive.
+
+    past_days adds the hours already gone (as forecast at the time), to compare the
+    forecast with what the station measured."""
+    params = BASE_PARAMS | {"hourly": ",".join(VARIABLES), "forecast_days": forecast_days, "past_days": past_days}
     return session.get(FORECAST_URL, params=params).json()
 
 
-def download_current_upper(session: PoliteSession, forecast_days: int = 2) -> dict:
+def download_current_upper(session: PoliteSession, forecast_days: int = 2, past_days: int = 0) -> dict:
     """Today's GFS jet-stream wind, same model and level as the upper archive."""
     params = BASE_PARAMS | {"models": UPPER_MODEL, "hourly": ",".join(UPPER_VARIABLES),
-                            "forecast_days": forecast_days}
+                            "forecast_days": forecast_days, "past_days": past_days}
     return session.get(FORECAST_URL, params=params).json()
 
 

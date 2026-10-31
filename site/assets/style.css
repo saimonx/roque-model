@@ -378,3 +378,7 @@ ul.rm-bars li:nth-child(2) .bar-fill { opacity: .55; }
 .note-card h3 { margin: .2rem 0 .5rem; font-size: 1rem; }
 .note-card ul { padding-left: 1.1rem; margin: 0; }
 .note-card li { margin: .45rem 0; line-height: 1.5; font-size: .9rem; }
+
+/* The summit, live: small charts in a grid, one variable each */
+.mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 6px 18px; }
+.mini-grid .chart { margin-top: .3rem; }

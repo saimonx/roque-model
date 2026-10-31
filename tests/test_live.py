@@ -88,3 +88,24 @@ def test_track_record_scores_the_first_final_forecast_of_each_night(tmp_path, mo
     record = site_data.track_record()
     # The first final forecast (20:05), not a later one issued in the middle of the night.
     assert len(record) == 1 and record[0]["mode"] == "final" and record[0]["closed_h"] == 8
+
+
+def test_forecast_vs_measured_pairs_each_hour():
+    now = pd.Timestamp("2026-10-31 12:00", tz="UTC")
+    times = pd.date_range(now - pd.Timedelta(hours=3), now, freq="min", inclusive="left")
+    minutes = pd.DataFrame({"time_utc": times, "humidity_pct": 50.0})
+    forecast = pd.DataFrame({"time_utc": pd.date_range(now - pd.Timedelta(hours=3), periods=3, freq="h"),
+                             "relative_humidity_2m": [95.0, 96.0, 97.0]})
+    rows = tonight.forecast_vs_measured(forecast, minutes, now)
+    assert [r["forecast"] for r in rows] == [95.0, 96.0, 97.0]
+    assert all(r["measured"] == 50.0 for r in rows)
+
+
+def test_tng_curves_keep_the_last_24_hours():
+    now = pd.Timestamp("2026-10-31 12:00", tz="UTC")
+    dust = pd.DataFrame({"time_utc": [now - pd.Timedelta(hours=30), now - pd.Timedelta(hours=2)], "dust": [9.0, 1.5]})
+    seeing = pd.DataFrame({"time_utc": pd.date_range(now - pd.Timedelta(hours=1), periods=20, freq="min"), "seeing": 0.7})
+    out = tonight.tng_curves({"dust": dust, "seeing": seeing}, now)
+    assert [p["v"] for p in out["dust"]] == [1.5]
+    assert out["seeing"][0]["v"] == 0.7
+    assert tonight.tng_curves({}, now) == {}
