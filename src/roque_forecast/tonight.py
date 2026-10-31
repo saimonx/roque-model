@@ -257,6 +257,17 @@ def summarise(hours: pd.DataFrame, window: dict, seeing: float, month: int) -> d
     }
 
 
+def model_card() -> dict:
+    """RoqueModel's technical facts for the page: inputs, trees, settings and training data."""
+    model = joblib.load(MODELS_DIR / "hourly.joblib")["closure"]
+    card = {"trained_on": model["trained_on"], "evaluated_on": model["evaluated_on"]}
+    for mode in ("final", "provisional"):
+        m = model[mode]
+        card[mode] = {"inputs": len(model[f"{mode}_features"]), "trees": int(m.n_iter_), "leaves": int(m.max_leaf_nodes),
+                      "learning_rate": float(m.learning_rate), "min_hours_per_leaf": int(m.min_samples_leaf)}
+    return card
+
+
 def r(value, digits: int = 1):
     """Round for the page; missing values become None (null in JSON)."""
     return None if value is None or pd.isna(value) else round(float(value), digits)
@@ -348,6 +359,7 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
         },
         "forecast": forecast,
         "hours": hours_for_page(hours),
+        "model": model_card(),
         "explain": {"base": round(hours.attrs["base"], 3), "limits": {"rh": dome.HUMIDITY_LIMIT_PCT, "wind_ms": dome.WIND_LIMIT_MS,
                                                                       "ice_temp": dome.ICE_TEMP_C}},
         "inputs": {name: row[name].iloc[0] for name in used if name in row},

@@ -237,6 +237,8 @@ def train_closure(sets: dict) -> tuple[dict, list, pd.DataFrame]:
              "provisional_features": CLOSURE_FORECAST_ONLY, "settings": settings,
              "settings_provisional": settings_fo,
              "trained_on": {"first_year": int(years.min()), "last_year": int(years.max()),
+                            "first_night": str(everything.index.get_level_values("night").min().date()),
+                            "last_night": str(everything.index.get_level_values("night").max().date()),
                             "hours": len(everything), "closed_hours": int(everything[target].sum())},
              "evaluated_on": {"trained": [int(data["train"]["year"].min()), int(data["validation"]["year"].max())],
                               "tested": [int(test["year"].min()), int(test["year"].max())]}}

@@ -193,7 +193,8 @@ an hour shows how both come out: for the model, a starting point plus the amount
 or takes away: this hour's forecast humidity, wind, temperature, cloud, rain and pressure one by one, then
 the night forecast, the summit station, last night and the time of year (exact Shapley values over ten
 groups, `explain.py`); for the forecast, which rule is met.
-Then a short "How RoqueModel works"; the evidence (label checks, scores in plain words, recent nights, reliability, live track
+Then "How RoqueModel works" in three cards (what it is, with its settings; how it was trained, with a
+timeline and the data behind it; how it forecasts, with a worked example from tonight); the evidence (label checks, scores in plain words, recent nights, reliability, live track
 record, technical scores) is folded below.
 
 Every run is logged in `data/forecasts/issued.jsonl`. Each run also records what really happened the

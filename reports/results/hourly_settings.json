@@ -12,6 +12,8 @@
   "live_models_trained_on": {
     "first_year": 2017,
     "last_year": 2026,
+    "first_night": "2017-01-01",
+    "last_night": "2026-10-26",
     "hours": 30044,
     "closed_hours": 5163
   },

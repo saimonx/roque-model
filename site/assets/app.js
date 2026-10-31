@@ -161,7 +161,68 @@
 
     $("updated").textContent = fill(t.updated, { time: timeLocal(d.issued_utc, true) });
     renderHow(d);
+    if (d.model) renderRoqueModel(d);
     renderLive(d);
+  }
+
+  // ---------------------------------------------------------------- how RoqueModel works (3 parts)
+  function renderRoqueModel(d) {
+    const t = T(), m = d.model, tr = m.trained_on, f = m.final, pr = m.provisional;
+    const n0 = (v) => num(v, 0);
+
+    // 1. What it is: four key figures and the technical settings.
+    $("rm-stats").innerHTML = [
+      [t.rm_stat_model, "1"], [t.rm_stat_inputs, `${f.inputs}`], [t.rm_stat_trees, `${f.trees}`], [t.rm_stat_out, "%"],
+    ].map(([label, value]) => `<div class="rm-stat"><span class="rm-stat-v">${value}</span><span class="rm-stat-l">${label}</span></div>`).join("");
+    const lr = (x) => num(x, x < 0.1 ? 2 : 1);
+    table($("rm-tech"), t.rm_tech_cols, [
+      [t.rm_tech.inputs, f.inputs, pr.inputs],
+      [t.rm_tech.trees, f.trees, pr.trees],
+      [t.rm_tech.leaves, f.leaves, pr.leaves],
+      [t.rm_tech.rate, lr(f.learning_rate), lr(pr.learning_rate)],
+      [t.rm_tech.min, f.min_hours_per_leaf, pr.min_hours_per_leaf],
+      [t.rm_tech.l2, "1", "1"],
+    ].map(([what, a, b]) => `<tr><th scope="row">${what[0]}</th><td>${a}</td><td>${b}</td><td class="muted">${what[1]}</td></tr>`));
+
+    // 2. How it was trained: a timeline of the years and the data it learnt from.
+    $("rm2-text").innerHTML = fill(t.rm2_text, { hours: n0(tr.hours), closed: n0(tr.closed_hours),
+      from: dateLong(tr.first_night), to: dateLong(tr.last_night) });
+    const years = [];
+    for (let y = tr.first_year; y <= tr.last_year; y++) years.push(y);
+    const [e0, e1] = m.evaluated_on.trained, [x0, x1] = m.evaluated_on.tested;
+    const cell = (y) => (y >= e0 && y <= e1 ? "learn" : y >= x0 && y <= x1 ? "test" : "");
+    const acc = state.evaluation ? pct(1 - state.evaluation.comparison.final.wrong) : "";
+    $("rm-timeline").innerHTML = `
+      <div class="tl-row"><span class="tl-label">${t.rm_tl_copy}</span><div class="tl-bar">${years.map((y) => `<span class="tl-y ${cell(y)}">${y}</span>`).join("")}</div></div>
+      <div class="tl-row"><span class="tl-label">${t.rm_tl_live}</span><div class="tl-bar">${years.map((y) => `<span class="tl-y live">${y}</span>`).join("")}</div></div>
+      <p class="tl-legend small"><span class="sw tl-learn"></span> ${t.rm_tl_learn} &nbsp; <span class="sw tl-test"></span> ${fill(t.rm_tl_test, { acc })} &nbsp; <span class="sw tl-livesw"></span> ${t.rm_tl_livetext}</p>`;
+    table($("rm-data"), t.rm_data_cols, t.rm_data.map((r) => `<tr><th scope="row">${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`));
+
+    // 3. How it forecasts: the steps, then a worked example with tonight's riskiest hour.
+    $("rm-flow").innerHTML = t.rm_flow.map((st, i) => `<li><span class="rm-step-n">${i + 1}</span><b>${st[0]}</b><span>${st[1]}</span></li>`).join("");
+    const k = d.hours.reduce((best, h, i) => (h.p_closed > d.hours[best].p_closed ? i : best), 0), h = d.hours[k];
+    $("rm-example-title").textContent = fill(t.rm_example_title, { time: h.local });
+    const HOUR = ["humidity", "wind", "temperature", "cloud", "rain", "pressure"];
+    const steps = [[t.rm_start, d.explain.base, true]];
+    const hourSum = HOUR.reduce((a, g) => a + (h.why[g] || 0), 0);
+    steps.push([t.hour_group, hourSum]);
+    ["night_forecast", "station", "last_night", "calendar"].forEach((g) => { if (g in h.why) steps.push([t.groups[g], h.why[g]]); });
+    const top = Math.max(0.5, ...steps.reduce((acc2, s2) => { const last = acc2.length ? acc2[acc2.length - 1] : 0; acc2.push(last + s2[1]); return acc2; }, []));
+    let run = 0;
+    const signed = (x) => (Math.abs(x) < 0.005 ? "≈0" : (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0)) + " %";
+    const rows = steps.map(([label, v, isBase]) => {
+      const from = isBase ? 0 : run, to = isBase ? v : run + v;
+      run = to;
+      const left = (Math.min(from, to) / top * 100).toFixed(1), width = (Math.abs(to - from) / top * 100).toFixed(1);
+      const cls = isBase ? "base" : v >= 0 ? "up" : "down";
+      return `<li><span class="wf-label">${label}</span><span class="wf-track"><span class="wf-bar ${cls}" style="left:${left}%;width:${Math.max(0.6, width)}%"></span></span><span class="wf-val">${isBase ? pct(v) : signed(v)}</span></li>`;
+    });
+    rows.push(`<li class="wf-total"><span class="wf-label">${t.rm_total}</span><span class="wf-track"><span class="wf-bar total" style="left:0;width:${(h.p_closed / top * 100).toFixed(1)}%;background:var(${COLORS[h.level]})"></span></span><span class="wf-val">${pct(h.p_closed)}</span></li>`);
+    $("rm-example").innerHTML = rows.join("");
+  }
+
+  function dateLong(iso) {
+    return new Date(iso + "T12:00:00Z").toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
   }
 
   function renderHow(d) {
@@ -214,11 +275,6 @@
   // ---------------------------------------------------------------- evidence
   function table(node, headers, rows) {
     node.innerHTML = `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
-  }
-
-  function renderRules() {
-    const t = T();
-    table($("table-rules"), t.rules_cols, t.rules_rows.map((r) => `<tr>${r.map((c, i) => i ? `<td>${c}</td>` : `<th scope="row">${c}</th>`).join("")}</tr>`));
   }
 
   // One source for every year: the Liverpool Telescope night reports, as plain counts.
@@ -284,7 +340,6 @@
   // ---------------------------------------------------------------- wiring
   function render() {
     applyTexts();
-    renderRules();
     if (state.evaluation) renderEvaluation(state.evaluation);
     if (state.tonight) renderTonight(state.tonight);
   }
