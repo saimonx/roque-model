@@ -44,7 +44,7 @@ import pandas as pd
 from roque_forecast import astro, config, dome, explain, features, hourly, train
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import not_mast, open_meteo, r2d2, tng
+from roque_forecast.sources import not_mast, open_meteo, r2d2
 
 log = logging.getLogger("tonight")
 
@@ -105,21 +105,7 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
                                     folder / "r2d2.html")
     return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper),
             "minutes": clean_minutes(not_mast.parse(not_file)),
-            "seeing": r2d2.parse(r2d2_file), "tng": download_tng(session, folder)}
-
-
-def download_tng(session: PoliteSession, folder: Path) -> dict:
-    """TNG last 24 h of dust and seeing, shown on the page only (not used by RoqueModel).
-    Two small requests an hour; if the TNG site does not answer, the page just skips them."""
-    out = {}
-    for var in ("dust", "seeing"):
-        try:
-            raw = tng.fetch_series(session, var)
-            (folder / f"tng_{var}.json").write_bytes(raw)
-            out[var] = tng.parse_series(raw, var)
-        except Exception:  # noqa: BLE001 - a display-only source must never stop the forecast
-            log.warning("TNG %s not available", var)
-    return out
+            "seeing": r2d2.parse(r2d2_file)}
 
 
 def clean_minutes(df: pd.DataFrame) -> pd.DataFrame:
@@ -153,28 +139,6 @@ def last_night(minutes: pd.DataFrame, seeing: pd.DataFrame, night: pd.Timestamp)
     return out
 
 
-def latest_gtc_panel(max_age_h: float = 1.0) -> dict | None:
-    """Most recent snapshot of the GTC live panel saved by the 15-minute collector."""
-    files = sorted((config.RAW_DIR / "live").glob("*/*.jsonl"))
-    if not files:
-        return None
-    lines = files[-1].read_text(encoding="utf-8").strip().splitlines()
-    for line in reversed(lines):
-        record = json.loads(line)
-        if "gtc_panel" in record:
-            collected = pd.Timestamp(record["collected_utc"])
-            if pd.Timestamp.now(tz="UTC") - collected > pd.Timedelta(hours=max_age_h):
-                return None
-            panel = record["gtc_panel"]
-            return {"collected_utc": record["collected_utc"], "station_time_utc": panel["station_time_utc"],
-                    "rows": [{k: r[k] for k in ("section", "name", "value", "unit", "age", "status")}
-                             for r in panel["rows"]]}
-    return None
-
-
-# --------------------------------------------------------------------------
-# Inputs
-# --------------------------------------------------------------------------
 def build_inputs(live: dict, window: dict, previous: dict, final: bool) -> pd.DataFrame:
     """One row with the night's inputs, built with the same functions as in training."""
     label = window["night"]
@@ -332,7 +296,7 @@ def hourly_curve(forecast: pd.DataFrame, upper: pd.DataFrame | None, window: dic
     hours["dark"] = astro.is_astronomical_night(hours["time_utc"])
     return [{"t": iso(h.time_utc), "dark": bool(h.dark), "rh": h.relative_humidity_2m, "wind": h.wind_speed_10m,
              "wind750": h.wind_speed_750hPa, "temp": h.temperature_2m, "dew": h.dew_point_2m, "cloud": h.cloud_cover,
-             "precip": h.precipitation}
+             "precip": h.precipitation, "pressure": h.surface_pressure}
             for h in hours.itertuples()]
 
 
@@ -345,25 +309,13 @@ def forecast_vs_measured(forecast: pd.DataFrame, minutes: pd.DataFrame, now: pd.
     return [{"t": iso(t), "forecast": r(fc.loc[t], 0), "measured": r(measured.loc[t], 0)} for t in hours]
 
 
-def tng_curves(series: dict, now: pd.Timestamp) -> dict:
-    """TNG last 24 h: dust as published (2-hour means) and seeing as 10-minute medians."""
-    out = {}
-    if "dust" in series:
-        d = series["dust"][series["dust"]["time_utc"] > now - pd.Timedelta(hours=24)]
-        out["dust"] = [{"t": iso(t), "v": r(v, 2)} for t, v in zip(d["time_utc"], d["dust"])]
-    if "seeing" in series:
-        s = series["seeing"][series["seeing"]["time_utc"] > now - pd.Timedelta(hours=24)].set_index("time_utc")
-        s = s["seeing"].resample("10min").median().dropna()
-        out["seeing"] = [{"t": iso(t), "v": r(v, 2)} for t, v in s.items()]
-    return out
-
-
 def station_curve(minutes: pd.DataFrame, now: pd.Timestamp) -> list[dict]:
-    """Last 24 h at the NOT station, as 10-minute means (small enough for the page)."""
+    """Last 24 h at the NOT station, as 10-minute means: the three readings RoqueModel takes
+    from the station before the night (humidity, wind and pressure)."""
     recent = minutes[minutes["time_utc"] > now - pd.Timedelta(hours=24)].set_index("time_utc")
-    blocks = recent[["humidity_pct", "wind_speed_ms", "temp_c"]].resample("10min").mean().dropna(how="all")
-    return [{"t": iso(t), "rh": round(r.humidity_pct, 1), "wind": round(r.wind_speed_ms, 1), "temp": round(r.temp_c, 1)}
-            for t, r in zip(blocks.index, blocks.itertuples()) if not np.isnan(r.humidity_pct)]
+    blocks = recent[["humidity_pct", "wind_speed_ms", "pressure_hpa"]].resample("10min").mean().dropna(how="all")
+    return [{"t": iso(t), "rh": round(row.humidity_pct, 1), "wind": r(row.wind_speed_ms), "pressure": r(row.pressure_hpa)}
+            for t, row in zip(blocks.index, blocks.itertuples()) if not np.isnan(row.humidity_pct)]
 
 
 def clean(value):
@@ -409,10 +361,8 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
         "station_now": {"time_utc": iso(last_minute.time_utc), "rh": last_minute.humidity_pct,
                         "wind": last_minute.wind_speed_ms, "temp": last_minute.temp_c,
                         "pressure": last_minute.pressure_hpa},
-        "gtc_panel": latest_gtc_panel(),
         "hourly": hourly_curve(live["forecast"], live.get("upper"), window),
         "forecast_vs_measured": forecast_vs_measured(live["forecast"], live["minutes"], now),
-        "tng_24h": tng_curves(live.get("tng", {}), now),
         "station_24h": station_curve(live["minutes"], now),
     }
     return clean(page)
