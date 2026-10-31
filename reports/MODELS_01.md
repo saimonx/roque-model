@@ -119,7 +119,7 @@ Sections 1–3 study the night as a whole. The live product is simpler and is th
 
 | Question | Model | Label |
 |---|---|---|
-| Is the dome closed this hour? | gradient boosting per night hour (`hourly.py`), provisional and final | `dome.closed`: humidity ≥ 90 % (reopen after 20 min), **or** gusts ≥ 22.2 m/s (80 km/h, INT limit, same reopen), **or** ice (≤ 0 °C with humidity ≥ 90 % in the previous 24 h) |
+| Is the dome closed this hour? | RoqueModel, a random forest per night hour (`hourly.py`; model and settings from `compare.py`), provisional and final | `dome.closed`: humidity ≥ 90 % (reopen after 20 min), **or** gusts ≥ 22.2 m/s (80 km/h, INT limit, same reopen), **or** ice (≤ 0 °C with humidity ≥ 90 % in the previous 24 h) |
 | How many hours closed tonight? | sum of the hourly probabilities | same label, summed over the night |
 | Seeing of the night | section 2 (`train.py`) | R2D2 median |
 
@@ -135,8 +135,8 @@ wind is added from 2021), the nightly inputs of section 1, and the position of t
 
 Hour by hour against what really happened (`site_data.comparison`): the dome was closed 1,453 of 8,577
 hours. Read literally, the weather forecast would close 6,111 hours and is wrong in 56.6 % of the hours
-(4,756 needless closures, 98 missed); the final model calls 1,432 hours and is wrong in 9.1 % (380 / 401);
-provisional 12.5 %. Always "open" is wrong in 16.9 %.
+(4,756 needless closures, 98 missed); the final model calls 1,390 hours and is wrong in 8.9 % (351 / 414);
+provisional 11.5 %. Always "open" is wrong in 16.9 %.
 
 
 | Dome closed, each hour (8,577 hours, 17 % closed) | Brier ↓ | Skill | AUC | Right when it says "closed" | Closed hours caught |
@@ -145,16 +145,16 @@ provisional 12.5 %. Always "open" is wrong in 16.9 %.
 | Raw forecast, read literally | 0.566 | −3.16 | 0.63 | 22 % | 93 % |
 | Persistence (same hour last night) | 0.120 | 0.12 | 0.69 | 52 % | 47 % |
 | Precasting (humidity before night) | 0.081 | 0.41 | 0.85 | 67 % | 77 % |
-| Model, provisional | 0.089 | 0.35 | 0.90 | 64 % | 62 % |
-| **Model, final** | **0.067** | **0.51** | **0.95** | **73 %** | **72 %** |
+| Model, provisional | 0.084 | 0.38 | 0.91 | 69 % | 59 % |
+| **Model, final** | **0.063** | **0.54** | **0.95** | **75 %** | **72 %** |
 
 | Closed hours of the night (1,028 nights) | MAE | RMSE |
 |---|---|---|
 | Climatology (month) | 1.95 h | 2.87 h |
 | Persistence (last night) | 1.33 h | 2.94 h |
 | Raw forecast | 4.67 h | 5.93 h |
-| Model, provisional | 1.08 h | 2.13 h |
-| **Model, final** | **0.78 h** | **1.74 h** |
+| Model, provisional | 1.24 h | 2.06 h |
+| **Model, final** | **0.87 h** | **1.68 h** |
 
 The provisional model loses to precasting on the hour: precasting already uses the station just before
 the night, which the provisional model cannot have. Once the night starts the final model uses it too and
@@ -184,8 +184,18 @@ Sources looked at and not used, because they do not cover every year in the same
 The scores above come from models trained on 2017–2023 and tested on 2024–2026. Once measured, the live
 RoqueModel (final and provisional) is refitted with the same settings on every labelled year, 2017–2026
 (30,044 hours, 5,163 closed). Before doing it: trained on 2017–2023 vs 2017–2024 with the same settings and
-scored on 2025–2026, the extra year improved Brier 0.0698 → 0.0652 (final) and 0.0943 → 0.0894
+scored on 2025–2026, the extra year improved Brier 0.0655 → 0.0622 (final) and 0.0879 → 0.0847
 (provisional). The live track record keeps scoring the refitted models on new nights.
+
+### Model choice: random forest (31 Oct 2026, `compare.py`)
+
+Gradient boosting (162 combinations) and random forest (288) got equally wide settings searches on the
+validation years 2021–2023; logistic regression and an MLP smaller ones. Validation Brier, final /
+provisional: gradient boosting 0.0594 / 0.0856, random forest 0.0595 / 0.0869 (per year the two swap:
+final 0.0516 / 0.0559 / 0.0708 against 0.0521 / 0.0568 / 0.0695). Within 2 %, so the test decides:
+random forest 0.0628 / 0.0839 against 0.0667 / 0.0859 (right 91.1 % / 88.5 % against 90.7 % / 88.2 %).
+That choice looked at the test years, so those scores may be slightly optimistic. Night totals: MAE
+0.87 h against 0.77 h (worse), RMSE 1.68 h against 1.75 h (better).
 
 ### Tried and dropped
 

@@ -176,15 +176,13 @@
     $("rm-stats").innerHTML = [
       [t.rm_stat_model, "1"], [t.rm_stat_inputs, `${f.inputs}`], [t.rm_stat_trees, `${f.trees}`], [t.rm_stat_out, "%"],
     ].map(([label, value]) => `<div class="rm-stat"><span class="rm-stat-v">${value}</span><span class="rm-stat-l">${label}</span></div>`).join("");
-    const lr = (x) => num(x, x < 0.1 ? 2 : 1);
+    // The technical settings, whatever kind of model RoqueModel is (the search decides).
+    const kind = f.model, names = t.set_names[kind], desc = t.set_desc[kind];
     table($("rm-tech"), t.rm_tech_cols, [
-      [t.rm_tech.inputs, f.inputs, pr.inputs],
-      [t.rm_tech.trees, f.trees, pr.trees],
-      [t.rm_tech.leaves, f.leaves, pr.leaves],
-      [t.rm_tech.rate, lr(f.learning_rate), lr(pr.learning_rate)],
-      [t.rm_tech.min, f.min_hours_per_leaf, pr.min_hours_per_leaf],
-      [t.rm_tech.l2, num(f.l2, 0), num(pr.l2, 0)],
-    ].map(([what, a, b]) => `<tr><th scope="row">${what[0]}</th><td>${a}</td><td>${b}</td><td class="muted">${what[1]}</td></tr>`));
+      `<tr><th scope="row">${t.rm_tech.inputs[0]}</th><td>${f.inputs}</td><td>${pr.inputs}</td><td class="muted">${t.rm_tech.inputs[1]}</td></tr>`,
+      ...Object.keys(names).map((k) => `<tr><th scope="row">${names[k]}</th><td>${settingValue(k, f[k])}</td><td>${settingValue(k, pr[k])}</td><td class="muted">${desc[k]}</td></tr>`),
+    ]);
+    $("rm1-text").innerHTML = t.rm1_text[kind];
 
     // 2. How it was trained: a timeline of the years and the data it learnt from.
     $("rm2-text").innerHTML = fill(t.rm2_text, { hours: n0(tr.hours), closed: n0(tr.closed_hours),
@@ -249,39 +247,49 @@
   function renderModelSearch(search) {
     const t = T();
     if (!search) return;
-    const fin = search.modes.final, prov = search.modes.provisional, ch = fin.chosen;
-    const shown = (k, v) => (k === "learning_rate" ? num(v, 2) : k === "l2_regularization" ? num(v, 0) : v);
-    $("rm1-search-text").innerHTML = fill(t.rm1_search_text, { n: fin.combinations, years: search.validation_years.join(", ") });
-    $("rm1-settings").innerHTML = Object.keys(t.set_names).map((k) => {
-      const rows = fin.one_at_a_time[k].map((r) => `<tr class="${r.value === ch[k] ? "chosen" : ""}"><td>${shown(k, r.value)}${r.value === ch[k] ? " ✓" : ""}</td><td>${num(r.right * 100, 1)} %</td><td>${num(r.brier, 4)}</td></tr>`).join("");
-      return `<div class="setting"><h5>${t.set_names[k]}</h5><table class="small"><thead><tr><th>${t.set_cols[0]}</th><th>${t.set_cols[1]}</th><th>${t.set_cols[2]}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const kind = search.roquemodel, fin = search.modes.final, prov = search.modes.provisional;
+    const ours = fin.searches[kind], ch = ours.chosen;
+    $("rm1-search-text").innerHTML = fill(t.rm1_search_text, { n: ours.combinations, years: search.validation_years.join(", ") });
+    $("rm1-settings").innerHTML = Object.keys(t.set_names[kind]).map((k) => {
+      const rows = ours.one_at_a_time[k].map((r) => `<tr class="${r.value === ch[k] ? "chosen" : ""}"><td>${settingValue(k, r.value)}${r.value === ch[k] ? " ✓" : ""}</td><td>${num(r.right * 100, 1)} %</td><td>${num(r.brier, 4)}</td></tr>`).join("");
+      return `<div class="setting"><h5>${t.set_names[kind][k]}</h5><table class="small"><thead><tr><th>${t.set_cols[0]}</th><th>${t.set_cols[1]}</th><th>${t.set_cols[2]}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }).join("");
 
     // Card 5: every kind of model with the same data, years and rule for choosing settings.
     const byName = (list) => Object.fromEntries(list.map((m) => [m.name, m]));
     const pv = byName(prov.models);
-    const models = [...fin.models].sort((a, b) => a.validation_brier - b.validation_brier);
-    const best = models[0];
-    $("rm5-text").innerHTML = fill(t.rm5_text, { years: search.validation_years.join(", "), t0: search.test_years[0], t1: search.test_years[1],
-      best: t.model_names[best.name] });
+    const models = [...fin.models].sort((a, b) => (b.name === search.roquemodel) - (a.name === search.roquemodel) || a.validation_brier - b.validation_brier);
+    const name = (m) => t.model_names[m] + (m === kind ? " (RoqueModel)" : "");
+    const other = Object.keys(fin.searches).find((m) => m !== kind);
+    const a = fin.models.find((m) => m.name === kind), b = fin.models.find((m) => m.name === other);
+    const pa = prov.models.find((m) => m.name === kind), pb = prov.models.find((m) => m.name === other);
+    const vals = { years: search.validation_years.join(", "), t0: search.test_years[0], t1: search.test_years[1],
+      n: ours.combinations, m: fin.searches[other].combinations,
+      ours: t.model_names[kind].toLowerCase(), other: t.model_names[other].toLowerCase(),
+      a: num(a.test.right * 100, 1), b: num(b.test.right * 100, 1), pa: num(pa.test.right * 100, 1), pb: num(pb.test.right * 100, 1),
+      ea: num(a.test.brier, 4), eb: num(b.test.brier, 4), gap: num(search.choice.gap_pct, 1) };
+    $("rm5-text").innerHTML = fill(t.rm5_text, vals) + " " + fill(search.choice.tie ? t.rm5_tie : t.rm5_val, vals);
     const raw = state.evaluation && state.evaluation.comparison ? 1 - state.evaluation.comparison.raw.wrong : null;
-    const bars = models.map((m) => [t.model_names[m.name], m.test.right, m.name === "gradient_boosting" ? "--series-1" : "--text-3"]);
+    const bars = models.map((m) => [name(m.name), m.test.right, m.name === kind ? "--series-1" : "--text-3"]);
     if (raw != null) bars.push([t.rm4_bars.raw, raw, "--critical"]);
     $("rm5-bars").innerHTML = bars.map(([label, v, color]) => `<li><span class="bar-label">${label}</span>
       <span class="bar-track"><span class="bar-fill" style="width:${(v * 100).toFixed(1)}%;background:var(${color})"></span></span>
       <span class="bar-val">${pct(v)}</span></li>`).join("");
-    table($("rm5-table"), t.rm5_cols, models.map((m) => `<tr class="${m.name === "gradient_boosting" ? "chosen" : ""}"><th scope="row">${t.model_names[m.name]}</th>
-      <td class="muted">${t.model_desc[m.name]}</td><td>${num(m.test.right * 100, 1)} %</td><td>${pv[m.name] ? num(pv[m.name].test.right * 100, 1) + " %" : t.na}</td>
-      <td>${num(m.test.brier, 4)}</td><td>${num(m.test.auc, 3)}</td><td>${num(m.test.fit_seconds, 1)} s</td></tr>`));
-    // Said plainly when another model does as well or better on the test years.
-    const gb = models.find((m) => m.name === "gradient_boosting");
-    const rival = [...models].sort((x, y) => x.test.brier - y.test.brier)[0];
-    const close = rival.name !== "gradient_boosting"
-      ? " " + fill(t.rm5_close, { other: t.model_names[rival.name], a: num(rival.test.right * 100, 1), b: num(gb.test.right * 100, 1),
-        ea: num(rival.test.brier, 4), eb: num(gb.test.brier, 4), sa: num(rival.test.fit_seconds, 1), sb: num(gb.test.fit_seconds, 1) })
-      : "";
-    $("rm5-text").innerHTML += close;
+    table($("rm5-table"), t.rm5_cols, models.map((m) => `<tr class="${m.name === kind ? "chosen" : ""}"><th scope="row">${name(m.name)}</th>
+      <td class="muted">${t.model_desc[m.name]}</td><td>${num(m.combinations, 0)}</td><td>${num(m.validation_brier, 4)}</td>
+      <td>${num(m.test.right * 100, 1)} %</td><td>${pv[m.name] ? num(pv[m.name].test.right * 100, 1) + " %" : t.na}</td>
+      <td>${num(m.test.brier, 4)}</td><td>${num(m.test.auc, 3)}</td></tr>`));
     $("rm5-note").innerHTML = t.rm5_note;
+  }
+
+  // A setting's value as shown on the page (words for the named ones, % for shares).
+  function settingValue(key, v) {
+    const t = T();
+    if (key === "learning_rate") return num(v, 2);
+    if (key === "l2_regularization") return num(v, 0);
+    if (key === "max_features") return typeof v === "number" ? `${num(v * 100, 0)} %` : t.set_values[v] || v;
+    if (key === "min_samples_leaf" && v === 1) return "1";
+    return t.set_values[v] !== undefined ? t.set_values[v] : v;
   }
 
   function dateLong(iso) {

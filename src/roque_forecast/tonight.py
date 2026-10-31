@@ -240,11 +240,9 @@ def model_card() -> dict:
     """RoqueModel's technical facts for the page: inputs, trees, settings and training data."""
     model = joblib.load(MODELS_DIR / "hourly.joblib")["closure"]
     card = {"trained_on": model["trained_on"], "evaluated_on": model["evaluated_on"]}
-    for mode in ("final", "provisional"):
-        m = model[mode]
-        card[mode] = {"inputs": len(model[f"{mode}_features"]), "trees": int(m.n_iter_), "leaves": int(m.max_leaf_nodes),
-                      "learning_rate": float(m.learning_rate), "min_hours_per_leaf": int(m.min_samples_leaf),
-                      "l2": float(m.l2_regularization)}
+    for mode, key in (("final", "settings"), ("provisional", "settings_provisional")):
+        # The settings as chosen (model kind, trees and the kind's own settings).
+        card[mode] = {"inputs": len(model[f"{mode}_features"]), **model[key]}
     return card
 
 
