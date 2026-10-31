@@ -388,3 +388,15 @@ ul.rm-bars li:nth-child(2) .bar-fill { opacity: .55; }
 .rm-part .note-card h4 { margin: .2rem 0 .5rem; }
 ul.refs { padding-left: 1.1rem; margin: .4rem 0; }
 ul.refs li { margin: .5rem 0; line-height: 1.5; }
+
+/* Each RoqueModel card folds: closed by default, an arrow on the right opens and closes it */
+details.rm-part > summary { list-style: none; cursor: pointer; margin-bottom: 0; }
+details.rm-part > summary::-webkit-details-marker { display: none; }
+details.rm-part[open] > summary { margin-bottom: 8px; }
+.rm-arrow { margin-left: auto; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: transform .2s ease, background .2s ease; }
+.rm-arrow::before { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--text-2); border-bottom: 2px solid var(--text-2);
+  transform: translateY(-2px) rotate(45deg); }
+details.rm-part[open] > summary .rm-arrow { transform: rotate(180deg); }
+details.rm-part > summary:hover .rm-arrow { background: var(--surface-2); }
+details.rm-part > summary:focus-visible { outline: 2px solid var(--series-1); outline-offset: 3px; border-radius: 8px; }
