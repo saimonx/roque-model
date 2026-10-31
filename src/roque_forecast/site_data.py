@@ -128,6 +128,8 @@ def build() -> dict:
     return clean({
         "generated_utc": pd.Timestamp.now(tz="UTC").floor("min").isoformat().replace("+00:00", "Z"),
         "comparison": comparison(),
+        # Settings search and other models tried (compare.py), for RoqueModel's cards 1 and 5.
+        "search": json.loads((RESULTS / "model_search.json").read_text()) if (RESULTS / "model_search.json").exists() else None,
         "plain": plain_summary(),
         "technical": technical(),
         "reliability": reliability(),

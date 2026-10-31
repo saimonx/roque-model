@@ -243,7 +243,8 @@ def model_card() -> dict:
     for mode in ("final", "provisional"):
         m = model[mode]
         card[mode] = {"inputs": len(model[f"{mode}_features"]), "trees": int(m.n_iter_), "leaves": int(m.max_leaf_nodes),
-                      "learning_rate": float(m.learning_rate), "min_hours_per_leaf": int(m.min_samples_leaf)}
+                      "learning_rate": float(m.learning_rate), "min_hours_per_leaf": int(m.min_samples_leaf),
+                      "l2": float(m.l2_regularization)}
     return card
 
 

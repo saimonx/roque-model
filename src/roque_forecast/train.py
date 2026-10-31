@@ -111,7 +111,7 @@ def grid_settings() -> list[dict]:
 
 
 def gradient_boosting(kind: str, **settings):
-    common = dict(max_iter=300, l2_regularization=1.0, random_state=SEED, **settings)
+    common = {"max_iter": 300, "l2_regularization": 1.0, "random_state": SEED, **settings}
     if kind == "classifier":
         return HistGradientBoostingClassifier(**common)
     return HistGradientBoostingRegressor(**common)

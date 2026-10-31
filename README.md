@@ -23,13 +23,30 @@ dome be open, and how sharp will the stars be?**
 - **What it gets:** about 30 inputs: this hour's forecast (humidity, wind, temperature, cloud, rain,
   pressure), the forecast for the whole night, the summit station just before the night, last night, and
   the time of year and hour of the night.
-- **How it learnt:** first a copy was trained on night hours 2017–2023 (settings chosen on 2023) and tested on
+- **How it learnt:** first a copy was trained on night hours 2017–2023 (settings chosen by the search below) and tested on
   2024–2026, which it had not seen: every score in this README comes from that copy. Then the live model was
   refitted with the same settings on all of 2017–2026 (30,044 hours, 5,163 closed). Checked beforehand: with
   the same settings, adding 2024 to the training improved the 2025–2026 scores (wrong in 9.7 % → 9.2 % of
   hours; provisional 13.2 % → 12.0 %).
 - **Inside:** gradient boosting (scikit-learn `HistGradientBoostingClassifier`): hundreds of small decision
   trees, each correcting a little of what the previous ones got wrong.
+- **Why gradient boosting, and why these settings** (`compare.py`, `results/model_search.json`): 162
+  combinations of settings (learning rate, leaves per tree, minimum hours per leaf, L2 regularisation and
+  150/300/600 trees) were scored on three validation years (2021, 2022, 2023, each learning from the other
+  years of 2017–2023). Chosen: final 300 trees, rate 0.03, 15 leaves, 100 hours per leaf, no L2;
+  provisional 150 trees, rate 0.03, 15 leaves, 100 hours per leaf, L2 = 1. With the same data, years and
+  rule, random forest, logistic regression and a small neural network were tuned and tested too:
+
+  | Model (2024–2026 test, final) | Right | Brier | AUC | Validation Brier |
+  |---|---|---|---|---|
+  | **Gradient boosting** | 90.7 % | 0.0667 | 0.951 | **0.0594** |
+  | Random forest | 90.9 % | 0.0647 | 0.951 | 0.0607 |
+  | Neural network (MLP) | 90.4 % | 0.0718 | 0.949 | 0.0650 |
+  | Logistic regression | 88.6 % | 0.0814 | 0.930 | 0.0669 |
+
+  Gradient boosting wins on the validation years (the rule set beforehand); on the test the random forest
+  is level (slightly lower Brier), a difference small enough to be chance. Gradient boosting stays: it
+  handles missing inputs natively and trains faster (0.8 s against 1.4 s).
 - **Two versions:** provisional (before the night, every input except the summit station, which does not
   exist yet) and final (from the start of the night, all inputs).
 - **Each hour's breakdown** on the page is worked out afterwards (`explain.py`): how much the percentage
@@ -97,8 +114,8 @@ model probability ≥ 50 %):
 |---|---|---|---|---|
 | What really happened (measured at the summit) | 1,453 h | — | — | — |
 | Weather forecast alone | 6,111 h | 57 of every 100 hours | 4,756 h | 98 h |
-| **Our model (final)** | **1,432 h** | **9 of every 100 hours** | 380 h | 401 h |
-| Our model (provisional) | 1,411 h | 13 of every 100 hours | 515 h | 557 h |
+| **Our model (final)** | **1,416 h** | **9 of every 100 hours** | 381 h | 418 h |
+| Our model (provisional) | 1,286 h | 12 of every 100 hours | 423 h | 590 h |
 
 Saying "open" every hour would be wrong in 17 of every 100 hours (the closed ones), so the model beats that
 floor too.
@@ -107,7 +124,7 @@ floor too.
 | Forecast | Simplest references | Our forecast (final) |
 |---|---|---|
 | Dome closed, each hour (8,577 hours) | raw forecast: right 2 in 10 "close" calls; humidity just before the night: right 7 in 10 | **right 7 in 10, catches 7 in 10**; Brier 0.067 (skill 0.51), AUC 0.95 |
-| Closed hours of the night (1,028 nights) | usual for the month: off by 2.0 h; same as last night: 1.3 h; raw forecast: 4.7 h | **off by 0.8 h on average** (provisional, before the night: 1.1 h) |
+| Closed hours of the night (1,028 nights) | usual for the month: off by 2.0 h; same as last night: 1.3 h; raw forecast: 4.7 h | **off by 0.8 h on average** (provisional, before the night: 1.2 h) |
 | Seeing of the night (780 nights) | usual for the month: off by 0.23″; same as last night: 0.28″ | **off by 0.20″** (RMSE 0.284″ against 0.350″) |
 
 Two modes, so a forecast never uses information it could not have had: **provisional** (afternoon:

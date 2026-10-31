@@ -198,8 +198,17 @@ def train_closure(sets: dict) -> tuple[dict, list, pd.DataFrame]:
     def scorer(inputs):
         return lambda model, frame: brier_score_loss(frame[target], model.predict_proba(frame[inputs])[:, 1])
 
-    settings = train.choose_settings(make, data, target, scorer(CLOSURE_FEATURES), CLOSURE_FEATURES)
-    settings_fo = train.choose_settings(make, data, target, scorer(CLOSURE_FORECAST_ONLY), CLOSURE_FORECAST_ONLY)
+    # Settings: those chosen by the wide search over three validation years (compare.py,
+    # reports/results/model_search.json). Without that file, the small grid on 2023 only.
+    from roque_forecast import compare  # imported here: compare.py itself imports this module
+    searched = compare.chosen_settings("final"), compare.chosen_settings("provisional")
+    if all(searched):
+        (settings, trees), (settings_fo, trees_fo) = searched
+        settings = {**settings, "max_iter": trees, "early_stopping": False}
+        settings_fo = {**settings_fo, "max_iter": trees_fo, "early_stopping": False}
+    else:
+        settings = train.choose_settings(make, data, target, scorer(CLOSURE_FEATURES), CLOSURE_FEATURES)
+        settings_fo = train.choose_settings(make, data, target, scorer(CLOSURE_FORECAST_ONLY), CLOSURE_FORECAST_ONLY)
     fit_on = pd.concat([data["train"], data["validation"]])
     final = make(settings).fit(fit_on[CLOSURE_FEATURES], fit_on[target])
     provisional = make(settings_fo).fit(fit_on[CLOSURE_FORECAST_ONLY], fit_on[target])
