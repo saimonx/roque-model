@@ -4,7 +4,7 @@ Three kinds of evidence, kept apart on the page:
 
 1. **How well the two forecasts work** on 2024-2026 (nights never used for training
    or for any choice), against the simplest references, in plain words and in the
-   usual technical scores (reports/results/hourly_scores.csv, seeing_metrics.csv).
+   usual technical scores (reports/results/hourly_scores.csv).
 2. **Whether the closure label reflects reality**: the check against the Liverpool
    Telescope night reports, year by year (validate.py, validation.json).
 3. **Live track record**: every forecast issued by tonight.py next to what really
@@ -33,11 +33,6 @@ def scores() -> pd.DataFrame:
     return pd.read_csv(RESULTS / "hourly_scores.csv")
 
 
-def seeing_scores() -> pd.DataFrame:
-    seeing = pd.read_csv(RESULTS / "seeing_metrics.csv")
-    return seeing[seeing["inputs"] == "forecast archive"]
-
-
 def pick(table: pd.DataFrame, **match) -> pd.Series:
     for key, value in match.items():
         table = table[table[key] == value]
@@ -48,13 +43,11 @@ def plain_summary() -> list[dict]:
     """The evaluation in plain words: our forecast and the simplest references, in units
     anyone can read. Yes/no: "right" = of the "closed" calls, the share that was right;
     "caught" = of the closed hours, the share that was called. Numbers: mean error."""
-    s, seeing = scores(), seeing_scores()
+    s = scores()
     hour = {m: pick(s, forecast="hour closed", method=m) for m in
             ["raw forecast", "precasting", "model, provisional", "model, final"]}
     night = {m: pick(s, forecast="night closed hours", method=m) for m in
              ["climatology", "persistence", "raw forecast", "model, provisional", "model, final"]}
-    see = {m: pick(seeing, method=m)["mae"] for m in
-           ["climatology (month)", "persistence (last night)", "gradient boosting, forecast only", "gradient boosting"]}
     return [
         {"key": "hour", "kind": "yesno",
          "ours": {m: {"right": hour[f"model, {m}"]["right"], "caught": hour[f"model, {m}"]["caught"]}
@@ -65,10 +58,6 @@ def plain_summary() -> list[dict]:
          "ours": {m: night[f"model, {m}"]["mae"] for m in ("final", "provisional")},
          "refs": [{"name": n, "value": night[k]["mae"]} for n, k in
                   [("climatology", "climatology"), ("persistence", "persistence"), ("raw", "raw forecast")]]},
-        {"key": "seeing", "kind": "number", "unit": "″", "digits": 2,
-         "ours": {"final": see["gradient boosting"], "provisional": see["gradient boosting, forecast only"]},
-         "refs": [{"name": "climatology", "value": see["climatology (month)"]},
-                  {"name": "persistence", "value": see["persistence (last night)"]}]},
     ]
 
 
@@ -95,8 +84,7 @@ def comparison() -> dict:
 def technical() -> dict:
     s = scores()
     return {"hour": s[s["forecast"] == "hour closed"].to_dict(orient="records"),
-            "night": s[s["forecast"] == "night closed hours"].to_dict(orient="records"),
-            "seeing": seeing_scores().to_dict(orient="records")}
+            "night": s[s["forecast"] == "night closed hours"].to_dict(orient="records")}
 
 
 def reliability() -> list[dict]:
@@ -112,12 +100,6 @@ def recent_nights() -> list[dict]:
     nights = pd.read_parquet(config.PROCESSED_DIR / "night_predictions.parquet").tail(RECENT_NIGHTS)
     return [{"night": str(n.date()), "closed_h": r.closed, "forecast_h": r.p_final, "raw_h": r.raw}
             for n, r in zip(nights.index, nights.itertuples())]
-
-
-def seeing_quantiles() -> list[float]:
-    """Percentiles 1-99 of the nightly median seeing (R2D2, all nights): the scale on the page."""
-    nights = pd.read_parquet(config.PROCESSED_DIR / "nights.parquet", columns=["seeing_median"])
-    return [round(float(v), 3) for v in nights["seeing_median"].dropna().quantile(np.arange(1, 100) / 100)]
 
 
 def read_jsonl(path) -> pd.DataFrame:
@@ -137,7 +119,7 @@ def track_record() -> list[dict]:
     last_provisional = last_provisional[~last_provisional["night"].isin(first_final["night"])]
     best = pd.concat([first_final, last_provisional])
     joined = best.merge(outcomes, on="night", how="inner").sort_values("night", ascending=False)
-    return joined[["night", "mode", "closed_h", "seeing_arcsec", "dome_closed_h", "seeing_median"]].to_dict(
+    return joined[["night", "mode", "closed_h", "dome_closed_h"]].to_dict(
         orient="records")
 
 
@@ -150,7 +132,6 @@ def build() -> dict:
         "validation": json.loads((RESULTS / "validation.json").read_text()),
         "reliability": reliability(),
         "recent": recent_nights(),
-        "seeing_quantiles": seeing_quantiles(),
         "track_record": track_record(),
     })
 

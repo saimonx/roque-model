@@ -12,8 +12,7 @@ window.I18N = {
     mode_final_text: "Ya usa lo que midió la estación de la cumbre justo antes de la noche, que es lo que más ayuda, además de la previsión del tiempo, lo de anoche y la época del año. Cuando dice «cerrar», acierta el {fin} de las veces (en provisional, el {prov}).",
     headline: "Se podrá observar unas {open} de las {total} horas de noche",
     cell_title: "{time}: {p} de que la cúpula esté cerrada",
-    moon_up_word: "Luna sobre el horizonte",
-    strip_legend: "<b>Toca una hora</b> para ver cómo sale cada línea. RoqueModel da la probabilidad de que la cúpula esté cerrada por humedad, viento o hielo (<span class=\"sw\" style=\"background:var(--good)\"></span> menos del 20 %, <span class=\"sw\" style=\"background:var(--warning)\"></span> 20–50 %, <span class=\"sw\" style=\"background:var(--critical)\"></span> más del 50 %). La previsión sola solo dice sí o no (<span class=\"sw\" style=\"background:var(--critical)\"></span> cerrar, <span class=\"sw\" style=\"background:var(--good)\"></span> abrir). ☾ = Luna sobre el horizonte.",
+    strip_legend: "<b>Toca una hora</b> para ver cómo sale cada línea. RoqueModel da la probabilidad de que la cúpula esté cerrada por humedad, viento o hielo (<span class=\"sw\" style=\"background:var(--good)\"></span> menos del 20 %, <span class=\"sw\" style=\"background:var(--warning)\"></span> 20–50 %, <span class=\"sw\" style=\"background:var(--critical)\"></span> más del 50 %). La previsión sola solo dice sí o no (<span class=\"sw\" style=\"background:var(--critical)\"></span> cerrar, <span class=\"sw\" style=\"background:var(--good)\"></span> abrir).",
     line_model: "RoqueModel",
     line_raw: "Solo la previsión del tiempo",
     line_acc: "acierto histórico medio: {p} de las horas, comparado con lo que realmente se cerró",
@@ -33,7 +32,7 @@ window.I18N = {
     gd_pressure: "{p} hPa",
     gd_night: "humedad media {rh} % (máxima {rhmax} %), nubes {cloud} %",
     gd_station: "humedad media {rh} % (máxima {rhmax} %), viento {wind} km/h",
-    gd_last: "cúpula cerrada el {p} de la noche",
+    gd_last: "cúpula cerrada el {p} de la noche; seeing de anoche {s}",
     gd_calendar: "{month}, hora {k} de {total} de la noche",
     station_missing: "Aún no se usa: el pronóstico es provisional. Entra a las {time}, cuando empieza la noche.",
     model_total: "Total: {p} → {color} ({rule}).",
@@ -49,15 +48,6 @@ window.I18N = {
     raw_verdict_open: "No se cumple ninguna regla → abrir (verde).",
     raw_note: "Son las mismas reglas que deciden «cerrada» en la cumbre, aplicadas a la previsión tal cual. Esta línea no tiene naranja: solo dice sí o no. La previsión mira un punto más bajo y húmedo que la cumbre, por eso cierra de más.",
     raw_wind10: "* Viento a 10 m: no hay dato a la altura de la cumbre para esta hora.",
-    fact_seeing: "Nitidez (seeing) prevista", fact_moon: "Luna", fact_usual: "Lo normal",
-    seeing_excellent: "Excelente", seeing_good: "Buena", seeing_average: "Normal", seeing_poor: "Mala",
-    seeing_better: "Mejor que el {p} % de las noches del Roque. Menos es mejor.",
-    moon_rises: "Sale a las {time}", moon_sets: "Se pone a las {time}",
-    moon_all_night: "Arriba toda la noche", moon_none: "No sale en toda la noche",
-    moon_text: "{phase}. {when}. Noche oscura sin Luna: {dark} h.",
-    moon_phases: { new: "Luna nueva", waxing_crescent: "Creciente", first_quarter: "Cuarto creciente", waxing_gibbous: "Gibosa creciente",
-      full: "Luna llena", waning_gibbous: "Gibosa menguante", last_quarter: "Cuarto menguante", waning_crescent: "Menguante" },
-    usual_text: "Horas de cúpula cerrada en una noche normal de {month}. Esta noche se esperan {h} h.",
     updated: "Pronóstico emitido: {time} hora canaria.",
     how_title: "Cómo lo sabemos",
     rm_title: "Cómo funciona RoqueModel",
@@ -109,7 +99,6 @@ window.I18N = {
     track_text: "Cada pronóstico emitido por esta web frente a lo que pasó. Se llena noche a noche.",
     track_empty: "Todavía no hay noches terminadas con pronóstico emitido.",
     col_night: "Noche", col_mode: "Tipo", col_fc_h: "Cerrada (pronóstico)", col_real_h: "Cerrada (real)",
-    col_fc_seeing: "Seeing (pronóstico)", col_real_seeing: "Seeing (real)",
     technical: "Ver las cifras técnicas (para especialistas)",
     glossary: `<ul>
 <li><b>Brier:</b> error medio de un porcentaje (0 es perfecto). <b>Skill:</b> cuánto error quita frente a «lo normal del mes» (0 nada, 1 todo).</li>
@@ -126,7 +115,7 @@ window.I18N = {
 <tr><td><b>Entradas:</b> la estación 2 h antes de la noche y lo que pasó anoche</td><td>Estación del NOT y R2D2</td><td>en directo</td></tr>
 <tr><td><b>Comprobar la etiqueta</b></td><td><a href="https://telescope.livjm.ac.uk/Reports/">partes del Liverpool Telescope</a> (horas perdidas por meteo)</td><td>2007 → hoy</td></tr>
 <tr><td><b>Solo se muestra</b></td><td><a href="https://atmosportal.gtc.iac.es/">Panel de la estación del GTC</a></td><td>en directo</td></tr>
-<tr><td><b>Calculado aquí</b></td><td>Noche astronómica y Luna (fórmulas astronómicas propias)</td><td>—</td></tr>
+<tr><td><b>Calculado aquí</b></td><td>Noche astronómica (fórmulas astronómicas propias)</td><td>—</td></tr>
 </tbody></table></div>
 <p class="muted small">Probado y descartado por no aportar: calima prevista (CAMS), cielo despejado (partes del Liverpool) y seeing hora a hora. Las descargas se identifican, esperan entre peticiones y solo usan páginas enlazadas desde las webs públicas.</p>`,
     fold_live: "La cumbre en directo",
@@ -161,8 +150,7 @@ window.I18N = {
     mode_final_text: "It now uses what the summit station measured just before the night, which helps the most, on top of the weather forecast, last night and the time of year. When it says \"close\", it is right {fin} of the time (provisional: {prov}).",
     headline: "About {open} of the {total} night hours should be observable",
     cell_title: "{time}: {p} chance that the dome is closed",
-    moon_up_word: "Moon above the horizon",
-    strip_legend: "<b>Tap an hour</b> to see how each line comes out. RoqueModel gives the chance that the dome is closed for humidity, wind or ice (<span class=\"sw\" style=\"background:var(--good)\"></span> below 20 %, <span class=\"sw\" style=\"background:var(--warning)\"></span> 20–50 %, <span class=\"sw\" style=\"background:var(--critical)\"></span> above 50 %). The forecast alone only says yes or no (<span class=\"sw\" style=\"background:var(--critical)\"></span> close, <span class=\"sw\" style=\"background:var(--good)\"></span> open). ☾ = Moon above the horizon.",
+    strip_legend: "<b>Tap an hour</b> to see how each line comes out. RoqueModel gives the chance that the dome is closed for humidity, wind or ice (<span class=\"sw\" style=\"background:var(--good)\"></span> below 20 %, <span class=\"sw\" style=\"background:var(--warning)\"></span> 20–50 %, <span class=\"sw\" style=\"background:var(--critical)\"></span> above 50 %). The forecast alone only says yes or no (<span class=\"sw\" style=\"background:var(--critical)\"></span> close, <span class=\"sw\" style=\"background:var(--good)\"></span> open).",
     line_model: "RoqueModel",
     line_raw: "Weather forecast alone",
     line_acc: "average historical accuracy: {p} of hours, compared with what really closed",
@@ -182,7 +170,7 @@ window.I18N = {
     gd_pressure: "{p} hPa",
     gd_night: "humidity mean {rh} % (highest {rhmax} %), cloud {cloud} %",
     gd_station: "mean humidity {rh} % (highest {rhmax} %), wind {wind} km/h",
-    gd_last: "dome closed {p} of the night",
+    gd_last: "dome closed {p} of the night; last night's seeing {s}",
     gd_calendar: "{month}, hour {k} of {total} of the night",
     station_missing: "Not used yet: the forecast is provisional. It comes in at {time}, when the night starts.",
     model_total: "Total: {p} → {color} ({rule}).",
@@ -198,15 +186,6 @@ window.I18N = {
     raw_verdict_open: "No rule is met → open (green).",
     raw_note: "These are the same rules that decide \"closed\" at the summit, applied to the forecast as it is. This line has no orange: it only says yes or no. The forecast looks at a point lower and wetter than the summit, so it closes too often.",
     raw_wind10: "* Wind at 10 m: no summit-height value for this hour.",
-    fact_seeing: "Forecast sharpness (seeing)", fact_moon: "Moon", fact_usual: "Usual",
-    seeing_excellent: "Excellent", seeing_good: "Good", seeing_average: "Average", seeing_poor: "Poor",
-    seeing_better: "Better than {p} % of Roque nights. Lower is better.",
-    moon_rises: "Rises at {time}", moon_sets: "Sets at {time}",
-    moon_all_night: "Up all night", moon_none: "Does not rise tonight",
-    moon_text: "{phase}. {when}. Moonless dark time: {dark} h.",
-    moon_phases: { new: "New Moon", waxing_crescent: "Waxing crescent", first_quarter: "First quarter", waxing_gibbous: "Waxing gibbous",
-      full: "Full Moon", waning_gibbous: "Waning gibbous", last_quarter: "Last quarter", waning_crescent: "Waning crescent" },
-    usual_text: "Closed hours on a usual {month} night. Tonight: {h} h expected.",
     updated: "Forecast issued: {time} Canary time.",
     how_title: "How we know",
     rm_title: "How RoqueModel works",
@@ -258,7 +237,6 @@ window.I18N = {
     track_text: "Every forecast issued by this page against what happened. It fills up night by night.",
     track_empty: "No finished night with an issued forecast yet.",
     col_night: "Night", col_mode: "Type", col_fc_h: "Closed (forecast)", col_real_h: "Closed (actual)",
-    col_fc_seeing: "Seeing (forecast)", col_real_seeing: "Seeing (actual)",
     technical: "Show the technical figures (for specialists)",
     glossary: `<ul>
 <li><b>Brier:</b> average error of a percentage (0 is perfect). <b>Skill:</b> how much error it removes against "the usual for the month" (0 none, 1 all).</li>
@@ -275,7 +253,7 @@ window.I18N = {
 <tr><td><b>Inputs:</b> the station 2 h before the night and last night</td><td>NOT station and R2D2</td><td>live</td></tr>
 <tr><td><b>Checking the label</b></td><td><a href="https://telescope.livjm.ac.uk/Reports/">Liverpool Telescope night reports</a> (hours lost to weather)</td><td>2007 → today</td></tr>
 <tr><td><b>Shown only</b></td><td><a href="https://atmosportal.gtc.iac.es/">GTC weather station panel</a></td><td>live</td></tr>
-<tr><td><b>Computed here</b></td><td>Astronomical night and Moon (own astronomical formulas)</td><td>—</td></tr>
+<tr><td><b>Computed here</b></td><td>Astronomical night (own astronomical formulas)</td><td>—</td></tr>
 </tbody></table></div>
 <p class="muted small">Tried and dropped because they added nothing: forecast dust (CAMS), clear sky (Liverpool reports) and hour-by-hour seeing. Downloads identify themselves, wait between requests and only use pages linked from the public sites.</p>`,
     fold_live: "The summit, live",

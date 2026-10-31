@@ -56,7 +56,7 @@
     const cell = (h, i, inner) => `<button type="button" class="cell${sel === i ? " selected" : ""}" data-i="${i}" aria-pressed="${sel === i}"
       title="${h.local}">${inner}</button>`;
     $("strip").innerHTML = d.hours.map((h, i) => cell(h, i, `
-        <span class="cell-hour">${h.local.slice(0, 2)}h${h.moon_up ? ' <span class="cell-moon" title="' + t.moon_up_word + '">☾</span>' : ""}</span>
+        <span class="cell-hour">${h.local.slice(0, 2)}h</span>
         <span class="cell-bar" style="background:var(${COLORS[h.level]})"></span>
         <span class="cell-p">${pct(h.p_closed)}</span>`)).join("");
     $("strip-raw").innerHTML = d.hours.map((h, i) => cell(h, i, `
@@ -90,7 +90,7 @@
       pressure: fill(t.gd_pressure, { p: num(h.raw.pressure, 0) }),
       night_forecast: fill(t.gd_night, { rh: num(h.night.rh_mean, 0), rhmax: num(h.night.rh_max, 0), cloud: num(h.night.cloud_mean, 0) }),
       station: fill(t.gd_station, { rh: num(h.night.station_rh, 0), rhmax: num(h.night.station_rh_max, 0), wind: kmh(h.night.station_wind) }),
-      last_night: fill(t.gd_last, { p: pct(h.night.last_night_closed) }),
+      last_night: fill(t.gd_last, { p: pct(h.night.last_night_closed), s: h.night.last_night_seeing == null ? t.na : num(h.night.last_night_seeing, 2) + "″" }),
       calendar: fill(t.gd_calendar, { month: monthName(n.date), k: i + 1, total: d.hours.length }),
     };
     const HOUR = ["humidity", "wind", "temperature", "cloud", "rain", "pressure"];
@@ -269,14 +269,13 @@
     if (!e.track_record.length) {
       table($("table-track"), [t.col_night], [`<tr><td class="empty">${t.track_empty}</td></tr>`]);
     } else {
-      table($("table-track"), [t.col_night, t.col_mode, t.col_fc_h, t.col_real_h, t.col_fc_seeing, t.col_real_seeing],
-        e.track_record.map((r) => `<tr><td>${r.night}</td><td>${r.mode === "final" ? t.final_word : t.provisional_word}</td><td>${num(r.closed_h)} h</td><td>${r.dome_closed_h != null ? num(r.dome_closed_h) + " h" : t.na}</td><td>${num(r.seeing_arcsec, 2)}″</td><td>${r.seeing_median != null ? num(r.seeing_median, 2) + "″" : t.na}</td></tr>`));
+      table($("table-track"), [t.col_night, t.col_mode, t.col_fc_h, t.col_real_h],
+        e.track_record.map((r) => `<tr><td>${r.night}</td><td>${r.mode === "final" ? t.final_word : t.provisional_word}</td><td>${num(r.closed_h)} h</td><td>${r.dome_closed_h != null ? num(r.dome_closed_h) + " h" : t.na}</td></tr>`));
     }
 
     const tech = [
       ...e.technical.hour.map((r) => `<tr><td>${t.what.hour}</td><td>${r.method}</td><td>Brier ${num(r.brier, 3)} · skill ${num(r.brier_skill, 2)} · AUC ${num(r.auc, 2)}</td></tr>`),
       ...e.technical.night.map((r) => `<tr><td>${t.what.night}</td><td>${r.method}</td><td>MAE ${num(r.mae, 2)} h · RMSE ${num(r.rmse, 2)} h · skill ${num(r.mae_skill, 2)}</td></tr>`),
-      ...e.technical.seeing.map((r) => `<tr><td>${t.what.seeing}</td><td>${r.method}</td><td>MAE ${num(r.mae, 3)}″ · RMSE ${num(r.rmse, 3)}″ · skill ${num(r.rmse_skill_vs_climatology, 2)}</td></tr>`),
     ];
     table($("table-tech"), [t.col_what, t.col_method, t.col_scores], tech);
     renderChecks(e.validation);

@@ -221,8 +221,6 @@ def forecast_hours(live: dict, window: dict, row: pd.DataFrame, final: bool) -> 
     table = table.join(parts.add_prefix("why_"))
     table.attrs["base"] = base
     table["raw_closed"] = hourly.raw_literal(table)
-    mid = pd.DatetimeIndex(table["hour"]) + pd.Timedelta(minutes=30)
-    table["moon_up"] = astro.moon_altitude_deg(mid) > 0
     return table
 
 
@@ -271,7 +269,7 @@ def hours_for_page(hours: pd.DataFrame) -> list[dict]:
         wind_summit = h.h_wind_750 if not pd.isna(h.h_wind_750) else h.h_wind
         out.append({
             "t": iso(h.hour), "local": h.hour.tz_convert(LOCAL_TZ).strftime("%H:%M"),
-            "dark_minutes": int(h.dark_minutes), "moon_up": bool(h.moon_up),
+            "dark_minutes": int(h.dark_minutes),
             # Line 1: our model.
             "p_closed": round(float(h.p_closed), 3), "level": level(h.p_closed, HOUR_LEVELS),
             "why": {g: round(float(getattr(h, f"why_{g}")), 3) for g in explain.GROUPS if hasattr(h, f"why_{g}")},
@@ -284,7 +282,8 @@ def hours_for_page(hours: pd.DataFrame) -> list[dict]:
             "night": {"rh_mean": r(h.fc_rh_mean, 0), "rh_max": r(h.fc_rh_max, 0), "wind_mean": r(h.fc_wind_mean),
                       "cloud_mean": r(h.fc_cloud_mean, 0), "station_rh": r(getattr(h, "pre_humidity_mean", None), 0),
                       "station_rh_max": r(getattr(h, "pre_humidity_max", None), 0),
-                      "station_wind": r(getattr(h, "pre_wind_mean", None)), "last_night_closed": r(h.prev_dome_closed_frac, 2)},
+                      "station_wind": r(getattr(h, "pre_wind_mean", None)), "last_night_closed": r(h.prev_dome_closed_frac, 2),
+                      "last_night_seeing": r(h.prev_seeing_median, 2)},
         })
     return out
 
@@ -351,7 +350,6 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
         "hours": hours_for_page(hours),
         "explain": {"base": round(hours.attrs["base"], 3), "limits": {"rh": dome.HUMIDITY_LIMIT_PCT, "wind_ms": dome.WIND_LIMIT_MS,
                                                                       "ice_temp": dome.ICE_TEMP_C}},
-        "moon": astro.moon_during(window["start"], window["end"]),
         "inputs": {name: row[name].iloc[0] for name in used if name in row},
         "last_night": previous,
         "station_now": {"time_utc": iso(last_minute.time_utc), "rh": last_minute.humidity_pct,

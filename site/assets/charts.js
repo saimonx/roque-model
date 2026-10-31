@@ -247,17 +247,5 @@
 
   /** Moon icon: the lit part drawn with two arcs (the limb and the terminator ellipse).
    *  Seen from the northern hemisphere: a waxing Moon is lit on the right. */
-  function moonIcon(svg, illumination, waxing) {
-    svg.innerHTML = "";
-    const c = 20, r = 17, k = Math.min(1, Math.max(0, illumination));
-    el("circle", { cx: c, cy: c, r, fill: css("--surface-2"), stroke: css("--border"), "stroke-width": 1.5 }, svg);
-    if (k < 0.01) return;
-    const rx = r * Math.abs(2 * k - 1), gibbous = k > 0.5;
-    const outer = waxing ? 1 : 0;           // limb: right side when waxing, left when waning
-    const inner = gibbous === waxing ? 1 : 0;  // terminator bulges away from the lit limb when gibbous
-    el("path", { d: `M${c},${c - r} A${r},${r} 0 0 ${outer} ${c},${c + r} A${rx},${r} 0 0 ${inner} ${c},${c - r} Z`,
-      fill: css("--moon") }, svg);
-  }
-
-  window.Charts = { lineChart, nightsChart, skillBars, reliability, moonIcon };
+  window.Charts = { lineChart, nightsChart, skillBars, reliability };
 })();
