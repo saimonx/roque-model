@@ -3,7 +3,7 @@
 // every piece of evidence folded below it.
 (function () {
   const LOCAL_TZ = "Atlantic/Canary";
-  const state = { lang: pickLang(), tonight: null, evaluation: null };
+  const state = { lang: pickLang(), tonight: null, evaluation: null, hour: null };
 
   function pickLang() {
     const fromUrl = new URLSearchParams(location.search).get("lang");
@@ -39,6 +39,94 @@
     return h ? { final: h.ours.final.right, provisional: h.ours.provisional.right, raw: h.refs.find((r) => r.name === "raw").right } : {};
   }
 
+  // ---------------------------------------------------------------- the two lines, hour by hour
+  // Line 1: our model (probability, coloured green / orange / red).
+  // Line 2: the weather forecast read literally (close / open, red / green).
+  // Clicking an hour opens a panel that shows how both lines come out for that hour.
+  function renderLines(d) {
+    const t = T(), c = state.evaluation && state.evaluation.comparison;
+    if (c) {
+      const model = d.mode === "final" ? c.final : c.provisional;
+      $("acc-model").textContent = "(" + fill(t.line_acc, { p: pct(1 - model.wrong) }) + ")";
+      $("acc-raw").textContent = "(" + fill(t.line_acc, { p: pct(1 - c.raw.wrong) }) + ")";
+      $("acc-note").textContent = fill(t.acc_note, { open: Math.round((1 - c.always_open_wrong) * 100) });
+    }
+    const sel = state.hour;
+    $("strip").parentElement.style.setProperty("--n", d.hours.length);
+    const cell = (h, i, inner) => `<button type="button" class="cell${sel === i ? " selected" : ""}" data-i="${i}" aria-pressed="${sel === i}"
+      title="${h.local}">${inner}</button>`;
+    $("strip").innerHTML = d.hours.map((h, i) => cell(h, i, `
+        <span class="cell-hour">${h.local.slice(0, 2)}h${h.moon_up ? ' <span class="cell-moon" title="' + t.moon_up_word + '">☾</span>' : ""}</span>
+        <span class="cell-bar" style="background:var(${COLORS[h.level]})"></span>
+        <span class="cell-p">${pct(h.p_closed)}</span>`)).join("");
+    $("strip-raw").innerHTML = d.hours.map((h, i) => cell(h, i, `
+        <span class="cell-bar" style="background:var(${h.raw_closed ? "--critical" : "--good"})"></span>
+        <span class="cell-p">${h.raw_closed ? t.raw_close_word : t.raw_open_word}</span>`)).join("");
+    document.querySelectorAll("#strip .cell, #strip-raw .cell").forEach((b) => b.addEventListener("click", () => {
+      const i = +b.dataset.i;
+      state.hour = state.hour === i ? null : i;
+      renderLines(d);
+    }));
+    renderHourDetail(d);
+  }
+
+  function renderHourDetail(d) {
+    const box = $("hour-detail"), i = state.hour;
+    if (i == null || !d.hours[i]) { box.hidden = true; box.innerHTML = ""; return; }
+    const t = T(), h = d.hours[i], n = d.night, ex = d.explain;
+    const end = new Date(new Date(h.t).getTime() + 3600e3).toISOString();
+    const kmh = (ms) => (ms == null ? t.na : num(ms * 3.6, 0));
+    const pts = (x) => (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0);
+    const maxAbs = Math.max(0.05, ...Object.values(h.why).map(Math.abs));
+
+    // How our model gets its percentage: starting point + one amount per group of inputs.
+    const detail = {
+      hour_forecast: fill(t.gd_hour, { rh: num(h.raw.rh, 0), wind: kmh(h.raw.wind_ms), temp: num(h.raw.temp, 1), cloud: num(h.raw.cloud, 0), precip: num(h.raw.precip, 1) }),
+      night_forecast: fill(t.gd_night, { rh: num(h.night.rh_mean, 0), rhmax: num(h.night.rh_max, 0), wind: kmh(h.night.wind_mean), cloud: num(h.night.cloud_mean, 0) }),
+      station: fill(t.gd_station, { rh: num(h.night.station_rh, 0), rhmax: num(h.night.station_rh_max, 0), wind: kmh(h.night.station_wind) }),
+      last_night: fill(t.gd_last, { p: pct(h.night.last_night_closed) }),
+      calendar: fill(t.gd_calendar, { month: monthName(n.date), k: i + 1, total: d.hours.length }),
+    };
+    const rows = Object.keys(t.groups).map((g) => {
+      if (!(g in h.why)) {
+        return `<li class="why-row missing"><span class="why-text"><b>${t.groups[g]}</b><br><span class="muted">${fill(t.station_missing, { time: timeLocal(n.final_from_utc) })}</span></span><span class="why-val">—</span></li>`;
+      }
+      const v = h.why[g], w = (Math.abs(v) / maxAbs * 50).toFixed(1);
+      return `<li class="why-row"><span class="why-text"><b>${t.groups[g]}</b><br><span class="muted">${detail[g]}</span></span>
+        <span class="why-bar"><span class="${v >= 0 ? "up" : "down"}" style="width:${w}%"></span></span>
+        <span class="why-val">${pts(v)}</span></li>`;
+    }).join("");
+    const color = t.colors[h.level];
+    const model = `<div class="why-col">
+      <h4>${fill(t.model_title, { p: pct(h.p_closed), color })}</h4>
+      <p class="small">${fill(t.model_base, { p: pct(ex.base) })}</p>
+      <ul class="why">${rows}</ul>
+      <p class="small"><b>${fill(t.model_total, { p: pct(h.p_closed), color, rule: t.rules_color[h.level] })}</b></p>
+      <p class="muted small">${t.model_how}</p></div>`;
+
+    // How the weather forecast alone decides: the label's three rules on the forecast values.
+    const L = ex.limits, r = h.raw;
+    const humid = r.rh != null && r.rh >= L.rh, windy = r.wind_ms != null && r.wind_ms >= L.wind_ms;
+    const ice = humid && r.temp != null && r.temp <= L.ice_temp;
+    const yes = (b) => `<td class="${b ? "rule-yes" : ""}">${b ? t.yes : t.no}</td>`;
+    const rawRows = [
+      `<tr><th scope="row">${t.raw_rows.humidity}</th><td>${num(r.rh, 0)} %</td><td>${t.raw_cond.humidity}</td>${yes(humid)}</tr>`,
+      `<tr><th scope="row">${t.raw_rows.wind}${r.wind_level === "10m" ? " *" : ""}</th><td>${kmh(r.wind_ms)} km/h</td><td>${t.raw_cond.wind}</td>${yes(windy)}</tr>`,
+      `<tr><th scope="row">${t.raw_rows.ice}</th><td>${num(r.temp, 1)} °C</td><td>${t.raw_cond.ice}</td>${yes(ice)}</tr>`,
+    ];
+    const raw = `<div class="why-col">
+      <h4>${fill(t.raw_detail_title, { verdict: h.raw_closed ? t.raw_close_word : t.raw_open_word, color: t.colors[h.raw_closed ? "high" : "low"] })}</h4>
+      <div class="table-wrap"><table class="small rules-raw"><thead><tr>${t.raw_cols.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>${rawRows.join("")}</tbody></table></div>
+      <p class="small"><b>${h.raw_closed ? t.raw_verdict_close : t.raw_verdict_open}</b></p>
+      <p class="muted small">${t.raw_note}${r.wind_level === "10m" ? " " + t.raw_wind10 : ""}</p></div>`;
+
+    box.hidden = false;
+    box.innerHTML = `<div class="detail-head"><h3>${fill(t.detail_title, { start: h.local, end: timeLocal(end) })}</h3>
+      <button type="button" class="detail-close" aria-label="${t.detail_close}">×</button></div>
+      <div class="why-cols">${model}${raw}</div>`;
+    box.querySelector(".detail-close").addEventListener("click", () => { state.hour = null; renderLines(d); });
+  }
+
   // ---------------------------------------------------------------- tonight
   function renderTonight(d) {
     const t = T(), f = d.forecast, n = d.night, month = monthName(n.date);
@@ -55,14 +143,7 @@
     const open = Math.round(f.open_h), total = Math.round(n.length_h);
     $("headline").innerHTML = `<span class="dot-big" style="background:var(${COLORS[f.risk]})"></span>${fill(t.headline, { open, total })}`;
 
-    // The night, hour by hour: one cell per hour, coloured by the chance that the dome is closed.
-    $("strip").innerHTML = d.hours.map((h) => `
-      <div class="cell" title="${fill(t.cell_title, { time: h.local, p: pct(h.p_closed) })}${h.moon_up ? " · " + t.moon_up_word : ""}">
-        <span class="cell-hour">${h.local.slice(0, 2)}h</span>
-        <span class="cell-bar" style="background:var(${COLORS[h.level]})"></span>
-        <span class="cell-p">${pct(h.p_closed)}</span>
-        <span class="cell-moon">${h.moon_up ? "☾" : ""}</span>
-      </div>`).join("");
+    renderLines(d);
 
     // Seeing: value, a 0.4-2" scale and how it ranks among Roque nights.
     $("seeing").textContent = num(f.seeing_arcsec, 2) + "″";

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roque Night Forecast</title>
   <meta name="description" content="Tonight at the Roque de los Muchachos Observatory (La Palma), hour by hour: will the dome be open, and how sharp will the stars be. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=14">
+  <link rel="stylesheet" href="assets/style.css?v=17">
 </head>
 <body>
   <header class="top">
@@ -33,8 +33,15 @@
       <p class="muted small night-line"><span id="night-window"></span></p>
       <details class="info"><summary id="mode"></summary><p id="mode-text"></p></details>
       <p class="headline" id="headline"></p>
-      <div class="strip" id="strip"></div>
+      <div class="lines">
+        <p class="line-head"><b data-i18n="line_model"></b> <span class="muted small" id="acc-model"></span></p>
+        <div class="strip" id="strip"></div>
+        <p class="line-head"><b data-i18n="line_raw"></b> <span class="muted small" id="acc-raw"></span></p>
+        <div class="strip strip-raw" id="strip-raw"></div>
+      </div>
+      <div class="hour-detail" id="hour-detail" hidden></div>
       <p class="muted small" data-i18n-html="strip_legend"></p>
+      <p class="muted small" id="acc-note"></p>
 
       <div class="facts">
         <div class="fact">
@@ -140,8 +147,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=14"></script>
-  <script src="assets/charts.js?v=14"></script>
-  <script src="assets/app.js?v=14"></script>
+  <script src="assets/i18n.js?v=17"></script>
+  <script src="assets/charts.js?v=17"></script>
+  <script src="assets/app.js?v=17"></script>
 </body>
 </html>

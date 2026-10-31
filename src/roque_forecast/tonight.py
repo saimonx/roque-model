@@ -41,7 +41,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from roque_forecast import astro, config, features, hourly, train
+from roque_forecast import astro, config, dome, explain, features, hourly, train
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
 from roque_forecast.sources import not_mast, open_meteo, r2d2
@@ -216,6 +216,10 @@ def forecast_hours(live: dict, window: dict, row: pd.DataFrame, final: bool) -> 
     table = table.join(pd.concat([night] * len(table), ignore_index=True))
     inputs = model[f"{mode}_features"]
     table["p_closed"] = model[mode].predict_proba(table[inputs].astype(float))[:, 1]
+    # Why each percentage: starting point + one amount per group of inputs (explain.py).
+    base, parts = explain.contributions(model[mode], inputs, table, explain.background(inputs))
+    table = table.join(parts.add_prefix("why_"))
+    table.attrs["base"] = base
     table["raw_closed"] = hourly.raw_literal(table)
     mid = pd.DatetimeIndex(table["hour"]) + pd.Timedelta(minutes=30)
     table["moon_up"] = astro.moon_altitude_deg(mid) > 0
@@ -255,11 +259,33 @@ def summarise(hours: pd.DataFrame, window: dict, seeing: float, month: int) -> d
     }
 
 
+def r(value, digits: int = 1):
+    """Round for the page; missing values become None (null in JSON)."""
+    return None if value is None or pd.isna(value) else round(float(value), digits)
+
+
 def hours_for_page(hours: pd.DataFrame) -> list[dict]:
-    return [{"t": iso(h.hour), "local": h.hour.tz_convert(LOCAL_TZ).strftime("%H:%M"),
-             "dark_minutes": int(h.dark_minutes), "p_closed": round(float(h.p_closed), 3),
-             "level": level(h.p_closed, HOUR_LEVELS), "raw_closed": bool(h.raw_closed), "moon_up": bool(h.moon_up)}
-            for h in hours.itertuples()]
+    """Each hour of tonight, with what both lines used, so the page can show how each colour comes out."""
+    out = []
+    for h in hours.itertuples():
+        wind_summit = h.h_wind_750 if not pd.isna(h.h_wind_750) else h.h_wind
+        out.append({
+            "t": iso(h.hour), "local": h.hour.tz_convert(LOCAL_TZ).strftime("%H:%M"),
+            "dark_minutes": int(h.dark_minutes), "moon_up": bool(h.moon_up),
+            # Line 1: our model.
+            "p_closed": round(float(h.p_closed), 3), "level": level(h.p_closed, HOUR_LEVELS),
+            "why": {g: round(float(getattr(h, f"why_{g}")), 3) for g in explain.GROUPS if hasattr(h, f"why_{g}")},
+            # Line 2: the weather forecast read literally (the label's three rules).
+            "raw_closed": bool(h.raw_closed),
+            "raw": {"rh": r(h.h_rh, 0), "wind_ms": r(wind_summit), "wind_level": "750hPa" if not pd.isna(h.h_wind_750) else "10m",
+                    "temp": r(h.h_temp), "cloud": r(h.h_cloud, 0), "precip": r(h.h_precip, 1)},
+            # What the model also used for the whole night (same for every hour).
+            "night": {"rh_mean": r(h.fc_rh_mean, 0), "rh_max": r(h.fc_rh_max, 0), "wind_mean": r(h.fc_wind_mean),
+                      "cloud_mean": r(h.fc_cloud_mean, 0), "station_rh": r(getattr(h, "pre_humidity_mean", None), 0),
+                      "station_rh_max": r(getattr(h, "pre_humidity_max", None), 0),
+                      "station_wind": r(getattr(h, "pre_wind_mean", None)), "last_night_closed": r(h.prev_dome_closed_frac, 2)},
+        })
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -322,6 +348,8 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
         },
         "forecast": forecast,
         "hours": hours_for_page(hours),
+        "explain": {"base": round(hours.attrs["base"], 3), "limits": {"rh": dome.HUMIDITY_LIMIT_PCT, "wind_ms": dome.WIND_LIMIT_MS,
+                                                                      "ice_temp": dome.ICE_TEMP_C}},
         "moon": astro.moon_during(window["start"], window["end"]),
         "inputs": {name: row[name].iloc[0] for name in used if name in row},
         "last_night": previous,

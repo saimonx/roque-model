@@ -169,8 +169,12 @@ uv sync                                          # create .venv and install depe
 scripts/update_tonight.sh                       # both steps (hourly job); ROQUE_PUBLISH=1 also publishes
 ```
 
-The page answers the question first (how many hours should be observable, and which), with the seeing
-and the Moon; the evidence (label checks, scores in plain words, recent nights, reliability, live track
+The page answers the question first (how many hours should be observable, and which), with two lines of
+hours: **our model** (probability, green / orange / red) and **the weather forecast alone** (the label's
+rules read literally: close / open), each with its historical accuracy against what really closed. Clicking
+an hour shows how both come out: for the model, a starting point plus the amount each group of inputs adds
+or takes away (exact Shapley values over five groups, `explain.py`); for the forecast, which rule is met.
+Then the seeing and the Moon; the evidence (label checks, scores in plain words, recent nights, reliability, live track
 record, technical scores) is folded below.
 
 Every run is logged in `data/forecasts/issued.jsonl`. Each run also records what really happened the
@@ -228,6 +232,7 @@ src/roque_forecast/
   features.py        modelling table: forecast + pre-night station + persistence + season, and labels
   train.py           nightly models: seeing (used live), closure and WHT hours (study only)
   hourly.py          hourly closure model, provisional and final, against baselines
+  explain.py         why each hour gets its percentage: starting point + one amount per group of inputs
   validate.py        checks the label against the Liverpool Telescope night reports, year by year
   plotting.py        shared figure style (colour-blind-safe palette)
   tonight.py         tonight's forecast from live data (provisional / final modes)

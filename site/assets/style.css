@@ -270,3 +270,33 @@ table.compare tr.ours th, table.compare tr.ours td { font-weight: 700; }
 table.compare th, table.compare td, #table-years th { white-space: normal; }
 table.compare thead th, #table-years thead th { vertical-align: bottom; }
 @media (max-width: 600px) { table.compare th, table.compare td, #table-years th, #table-years td { padding: 6px 5px; } }
+
+/* Two lines of hours (our model, the weather forecast alone) and the "how it is calculated" panel. */
+.line-head { margin: .9rem 0 .35rem; font-size: .95rem; }
+.cell { background: none; border: 2px solid transparent; border-radius: 8px; padding: 3px 2px; cursor: pointer; color: inherit; font: inherit; }
+.cell:hover { border-color: var(--border); }
+.cell.selected { border-color: var(--text-2); }
+.cell:focus-visible { outline: 2px solid var(--series-1); outline-offset: 1px; }
+.strip-raw .cell-bar { height: 22px; }
+.cell-moon { font-size: .8rem; }
+.hour-detail { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 10px 0; background: var(--surface-2); }
+.detail-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.detail-head h3 { margin: 0; font-size: 1rem; }
+.detail-close { background: none; border: 1px solid var(--border); border-radius: 6px; width: 30px; height: 30px; cursor: pointer; color: inherit; font-size: 1.1rem; }
+.why-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+@media (max-width: 760px) { .why-cols { grid-template-columns: 1fr; } }
+.why-col h4 { margin: .4rem 0; font-size: .95rem; }
+ul.why { list-style: none; padding: 0; margin: 6px 0; }
+.why-row { display: grid; grid-template-columns: 1fr 90px 52px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: .85rem; }
+.why-row.missing { grid-template-columns: 1fr 52px; }
+.why-bar { position: relative; height: 10px; background: linear-gradient(to right, transparent calc(50% - 0.5px), var(--text-3) calc(50% - 0.5px), var(--text-3) calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
+.why-bar span { position: absolute; top: 0; height: 10px; border-radius: 3px; }
+.why-bar .up { left: 50%; background: var(--critical); }
+.why-bar .down { right: 50%; background: var(--good); }
+.why-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+table.rules-raw th, table.rules-raw td { text-align: left; white-space: normal; }
+table.rules-raw td.rule-yes { color: var(--critical); font-weight: 700; }
+/* On narrow screens both lines scroll sideways together, so the hours stay aligned. */
+.lines { overflow-x: auto; }
+.lines .strip { overflow: visible; min-width: calc(var(--n, 10) * 48px); }
+.lines .line-head { position: sticky; left: 0; }
