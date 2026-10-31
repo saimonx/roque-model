@@ -160,7 +160,6 @@
     renderLines(d);
 
     $("updated").textContent = fill(t.updated, { time: timeLocal(d.issued_utc, true) });
-    renderHow(d);
     if (d.model) { renderRoqueModel(d); renderRoqueAccuracy(d); }
     renderLive(d);
   }
@@ -245,19 +244,6 @@
 
   function dateLong(iso) {
     return new Date(iso + "T12:00:00Z").toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
-  }
-
-  function renderHow(d) {
-    const t = T(), e = state.evaluation;
-    const right = hourRight(e);
-    const night = e && e.plain && e.plain.find((r) => r.key === "night");
-    const items = [
-      fill(t.how1, { n: d.forecast.raw_closed_hours, total: d.hours.length, r: ten(right.raw) }),
-      t.how2,
-      fill(t.how3, { r: ten(right.final), err: night ? num(night.ours.final, 1) : t.na,
-        clim: night ? num(night.refs.find((x) => x.name === "climatology").value, 1) : t.na }),
-    ];
-    $("how").innerHTML = items.map((i) => `<li>${i}</li>`).join("");
   }
 
   // ---------------------------------------------------------------- the summit, live
