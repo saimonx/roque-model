@@ -106,13 +106,17 @@
     const hourSum = HOUR.reduce((a, g) => a + (h.why[g] || 0), 0);
     const rows = `<li class="why-head"><b>${t.hour_group}</b><span class="why-val">${signed(hourSum)}</span></li>` +
       HOUR.map(line).join("") + ["night_forecast", "station", "last_night", "calendar"].map(line).join("");
+    // A worked example with this hour's biggest amount, so the method reads as plain words.
+    const top = Object.entries(h.why).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+    const how = fill(t.model_how, { name: t.groups[top[0]].toLowerCase(), dir: top[1] >= 0 ? t.would_drop : t.would_rise,
+      x: num(Math.abs(top[1] * 100), 0), v: signed(top[1]) });
     const color = t.colors[h.level];
     const model = `<div class="why-col">
       <h4>${fill(t.model_title, { p: pct(h.p_closed), color })}</h4>
       <p class="small">${fill(t.model_base, { p: pct(ex.base) })}</p>
       <ul class="why">${rows}</ul>
       <p class="small"><b>${fill(t.model_total, { p: pct(h.p_closed), color, rule: t.rules_color[h.level] })}</b></p>
-      <p class="muted small">${t.model_how}</p></div>`;
+      <p class="muted small">${how}</p></div>`;
 
     // How the weather forecast alone decides: the label's three rules on the forecast values.
     const L = ex.limits, r = h.raw;
