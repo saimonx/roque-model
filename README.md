@@ -233,8 +233,10 @@ from `uv.lock`, downloads the trained models and the few tables they need from t
 (`scripts/build_runtime.sh` packs and uploads them; run it again after retraining), reads the forecast log
 back from the published site, runs `tonight` and `site_data`, and publishes. `scripts/publish_site.sh`
 force-pushes `site/` (with the forecast log in `forecasts/`) to a `gh-pages` branch as a single commit, so
-hourly updates never pile up in the history of `main`. The Mac's hourly job does the same locally,
-without publishing, to feed FIWARE and Grafana.
+hourly updates never pile up in the history of `main`. GitHub's own schedule skips most runs on a quiet
+repository (it ran 1 of 40 on 1 Nov 2026), so the Mac's hourly job (`scripts/update_tonight.sh`, which
+runs the forecast locally for FIWARE and Grafana) also starts the workflow, which begins at once; the
+schedule stays as a fallback when the Mac is off.
 
 ### FIWARE + Grafana (local, Docker)
 
