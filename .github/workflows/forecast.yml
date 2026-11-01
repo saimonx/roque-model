@@ -4,7 +4,10 @@ name: Tonight's forecast
 
 on:
   schedule:
-    - cron: "5 * * * *"        # every hour at :05 (GitHub may start it some minutes late)
+    # Every 15 minutes, off the round hour. GitHub runs scheduled jobs when it has spare
+    # capacity and skips many (with one run per hour, only 2 of 12 ran on 31 Oct), so several
+    # chances per hour keep the page fresh.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:            # and by hand, from the Actions tab
 
 permissions:
