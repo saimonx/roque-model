@@ -16,7 +16,15 @@ if [[ "${ROQUE_PUBLISH:-0}" == "1" ]]; then
 fi
 if [[ "${ROQUE_TRIGGER_CLOUD:-1}" == "1" ]]; then
     GH="$(command -v gh || echo /opt/homebrew/bin/gh)"
-    # perl alarm: give up after 60 s so a stuck request never blocks the next hourly run.
-    perl -e 'alarm 60; exec @ARGV' "$GH" workflow run forecast.yml -R saimonx/roque-night-forecast \
-        && echo "cloud forecast started" || echo "could not start the cloud forecast" >&2
+    # Up to 3 tries, 30 s apart (a single network timeout left a 2-hour gap on 2 Nov).
+    # perl alarm: each try gives up after 60 s, so a stuck request never blocks the next hourly run.
+    started=0
+    for try in 1 2 3; do
+        if perl -e 'alarm 60; exec @ARGV' "$GH" workflow run forecast.yml -R saimonx/roque-night-forecast; then
+            started=1; echo "cloud forecast started (try $try)"; break
+        fi
+        echo "try $try to start the cloud forecast failed" >&2
+        [[ $try -lt 3 ]] && sleep 30
+    done
+    [[ $started == 1 ]] || echo "could not start the cloud forecast" >&2
 fi
