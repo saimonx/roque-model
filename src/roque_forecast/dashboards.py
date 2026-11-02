@@ -28,8 +28,8 @@ BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
 GOOD, WARNING, CRITICAL = "#0ca30c", "#fab219", "#d03b3b"
 
 TEXT = {
-    "title": {"es": "Roque Night Forecast — meteo y pronóstico de la noche",
-              "en": "Roque Night Forecast — weather and night forecast"},
+    "title": {"es": "RoqueModel — meteo y pronóstico de la noche",
+              "en": "RoqueModel — weather and night forecast"},
     "about": {
         "es": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: "
               "estación del GTC (atmosportal) y del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). "

@@ -44,6 +44,12 @@ a { color: var(--series-1); }
 .grafana-link { flex: none; font-size: 0.875rem; font-weight: 600; text-decoration: none; padding: 6px 12px;
   border: 1px solid var(--series-1); border-radius: 8px; white-space: nowrap; }
 .grafana-link:hover { background: var(--series-1); color: #fff; }
+/* Training-data download (card 3) */
+.data-download { margin-top: 0.9rem; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface-2); }
+.data-link { display: inline-block; font-weight: 600; text-decoration: none; padding: 6px 12px; margin: 0 8px 6px 0;
+  border: 1px solid var(--series-1); border-radius: 8px; }
+.data-link:hover { background: var(--series-1); color: #fff; }
 .notice.stale { border-left-color: var(--warning); margin: 0.6rem 0 0; }
 .notice {
   margin: 1.2rem 0 0; padding: 10px 14px; border-left: 3px solid var(--series-1);

@@ -1,10 +1,13 @@
-# Roque Night Forecast
+# RoqueModel
+
+Dome-opening forecast for observing at the Roque de los Muchachos (repository `roque-night-forecast`).
 
 Tonight at the **Roque de los Muchachos Observatory** (La Palma, Canary Islands), hour by hour: **will the
 dome be open, and how sharp will the stars be?**
 
-**Live page (Spanish), updated every hour:** https://saimonx.github.io/roque-night-forecast/
-**Public Grafana dashboard** (Grafana Cloud, same data): https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8 (built by `src/roque_forecast/cloud_dashboard.py`; it reads the published `tonight.json` with the Infinity data source)
+- **Live page (Spanish), updated every hour:** https://saimonx.github.io/roque-night-forecast/
+- **Public Grafana dashboard** (Grafana Cloud, same data): https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8 (built by `src/roque_forecast/cloud_dashboard.py`; it reads the published `tonight.json` with the Infinity data source)
+- **Training data, to download and check:** https://github.com/saimonx/roque-night-forecast/releases/download/training-data/roquemodel_data.zip (see [Data](#data))
 
 > **Independent project.** This is a personal portfolio project. It is **not affiliated with,
 > endorsed by or produced for** GRANTECAN, the IAC, the ING, the NOT, the TNG, the Liverpool Telescope or
@@ -160,6 +163,16 @@ All data are **real and public**; nothing in this project is simulated.
 | Checking the label | [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/): hours lost to weather per night | 2007 → today |
 | Nightly study only | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) (WHT hours lost) | 2007 → today |
 | Live, shown only | [GTC atmosportal](https://atmosportal.gtc.iac.es/) panel; [TNG weather](https://tngweb.tng.iac.es/weather) (stored for later) | live |
+
+**Download the training data** (1 MB zip, [`training-data` release](https://github.com/saimonx/roque-night-forecast/releases/tag/training-data),
+written by `src/roque_forecast/export_data.py`):
+
+- `roquemodel_training_hours.csv`: the 30,044 night hours (2017–2026) the live RoqueModel was fitted on, each
+  with the label and every input;
+- `roquemodel_test_predictions.csv`: the tested copy's answer for each 2024–2026 hour, the forecast-alone
+  answer and what happened, so the scores below can be recomputed;
+- `README.md`: unit, meaning and public source of every column, and how to fetch any hour again from the
+  original source.
 
 Downloads identify themselves with a descriptive User-Agent, wait between requests and only use pages
 linked from the public sites.

@@ -104,6 +104,7 @@ window.I18N = {
       ["Época del año y hora de la noche", "Calculado", "—", "En invierno se cierra más, y unas horas de la noche más que otras."],
     ],
     rm2_note: "<b>¿Por qué desde 2017?</b> Antes no hay archivo de lo que se pronosticó para cada hora, y sin eso no puede aprender a corregir la previsión.",
+    rm2_download: "<a class=\"data-link\" href=\"https://github.com/saimonx/roque-night-forecast/releases/download/training-data/roquemodel_data.zip\">Descargar los datos de entrenamiento ↓</a> <span class=\"muted small\">Las mismas horas con las que aprendió RoqueModel, cada una con la respuesta y todos sus datos de entrada (CSV dentro de un ZIP, 1 MB). Trae qué es cada columna y de qué fuente pública sale, para comprobar cualquier hora en el original. Nada es simulado.</span>",
     rm3_title: "Cómo pronostica",
     rm_flow: [
       ["Cada hora, a los :05", "descarga la previsión del tiempo, lo que mide la estación del NOT y el seeing de anoche"],
@@ -119,6 +120,7 @@ window.I18N = {
     rm4_text: "Para medirlo con horas que no había visto, se entrenó una copia igual de RoqueModel con <b>{e0}–{e1}</b> y se comprobó con las <b>{hours} horas de noche de {x0}–{x1}</b>, que no había visto. Si la entrenamos con esos años y la medimos con esas noches, acierta si la cúpula está abierta o cerrada en el <b>{fin} de las horas</b> ({prov} en provisional). Usando solo la previsión del tiempo con las mismas condiciones de cierre, sin modelo, se acierta el <b>{raw}</b>.",
     rm4_bars: { final: "RoqueModel (definitivo)", provisional: "RoqueModel (provisional)", raw: "Solo la previsión del tiempo, sin modelo" },
     rm4_note: "Ojo: decir siempre «abierta» acertaría el {open}, porque la cúpula está abierta casi siempre; RoqueModel también lo mejora. Con un año más de datos acierta algo más (se comprobó), por eso el RoqueModel de cada noche aprende con todos los años.",
+    rm4_download: "<b>Compruébalo:</b> el <a href=\"https://github.com/saimonx/roque-night-forecast/releases/download/training-data/roquemodel_data.zip\">archivo de datos</a> trae también la respuesta de esa copia en cada hora de prueba, la de la previsión sola y lo que pasó; con él, estas cifras se recalculan en una línea de Python.",
     fold_live: "Datos en tiempo real",
     live_intro: "Solo los datos que usa RoqueModel: la previsión para cada hora y lo que mide la estación del NOT en la cumbre.",
     station_title: "Medido en la cumbre: estación del NOT, últimas 24 horas",
