@@ -7,6 +7,11 @@ It downloads, every run:
    night" inputs and last night's closure);
 3. the R2D2 seeing monitor for the last two nights (last night's seeing).
 
+If a source does not answer (the NOT website was down on 2 Nov 2026, for example), the
+last copy that did download is used instead, and the page says which source is old
+and from when. The last good copies live in data/raw/tonight/last/ (in GitHub Actions
+they travel with the published site, in its cache/ folder).
+
 and applies the two forecasts of the project:
 - **dome closed, hour by hour** (hourly.py): for each night hour, the probability
   that the dome is closed for humidity, wind or ice. The night's expected closed
@@ -32,6 +37,7 @@ Usage:
 import argparse
 import json
 import logging
+import shutil
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -40,6 +46,7 @@ from zoneinfo import ZoneInfo
 import joblib
 import numpy as np
 import pandas as pd
+import requests
 
 from roque_forecast import astro, config, dome, explain, features, hourly, train
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
@@ -52,6 +59,9 @@ LOCAL_TZ = ZoneInfo("Atlantic/Canary")  # La Palma local time (WET/WEST)
 SITE_DATA_DIR = config.PROJECT_DIR / "site" / "data"
 FORECASTS_DIR = config.DATA_DIR / "forecasts"
 MODELS_DIR = config.DATA_DIR / "models"
+# The last copy of each live source that downloaded well, and when it was fetched.
+LAST_DIR = config.RAW_DIR / "tonight" / "last"
+LAST_TIMES = LAST_DIR / "fetched.json"
 
 # Levels shown on the page. For one hour: the probability that the dome is closed.
 # For the night: the share of the night expected closed.
@@ -88,24 +98,60 @@ def tonight_window(now: pd.Timestamp) -> dict:
 # Live data
 # --------------------------------------------------------------------------
 def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> dict:
-    """Fetch the three live sources and keep the raw files (as for every other source)."""
-    folder.mkdir(parents=True, exist_ok=True)
-    # One past day too, to show the forecast next to what the station measured.
-    forecast = open_meteo.download_current(session, forecast_days=3, past_days=1)
-    (folder / "open_meteo.json").write_text(json.dumps(forecast), encoding="utf-8")
-    upper = open_meteo.download_current_upper(session, forecast_days=3, past_days=1)
-    (folder / "open_meteo_upper.json").write_text(json.dumps(upper), encoding="utf-8")
+    """Fetch the live sources and keep the raw files (as for every other source).
 
+    Each source that fails falls back to its last good copy; `stale` lists those
+    sources with the time their copy was fetched.
+    """
+    folder.mkdir(parents=True, exist_ok=True)
     start = (now - pd.Timedelta(hours=36)).to_pydatetime().replace(tzinfo=None)
-    not_file = not_mast.download_range(session, start, now.to_pydatetime().replace(tzinfo=None),
-                                       folder / "not.tsv.gz")
     today = now.date()
+
+    def save_json(dest, fetch):
+        dest.write_text(json.dumps(fetch()), encoding="utf-8")
+        return dest
+
+    stale = {}
+    # One past day too, to show the forecast next to what the station measured.
+    forecast_file = fetch_or_last("open_meteo", folder / "open_meteo.json", now, stale,
+                                  lambda dest: save_json(dest, lambda: open_meteo.download_current(session, forecast_days=3, past_days=1)))
+    upper_file = fetch_or_last("open_meteo_upper", folder / "open_meteo_upper.json", now, stale,
+                               lambda dest: save_json(dest, lambda: open_meteo.download_current_upper(session, forecast_days=3, past_days=1)))
+    not_file = fetch_or_last("not", folder / "not.tsv.gz", now, stale,
+                             lambda dest: not_mast.download_range(session, start, now.to_pydatetime().replace(tzinfo=None), dest))
     # date2 is exclusive: today + 1 includes this morning's data.
-    r2d2_file = r2d2.download_range(session, today - timedelta(days=2), today + timedelta(days=1),
-                                    folder / "r2d2.html")
-    return {"forecast": open_meteo.parse(forecast), "upper": open_meteo.parse_upper(upper),
+    r2d2_file = fetch_or_last("r2d2", folder / "r2d2.html", now, stale,
+                              lambda dest: r2d2.download_range(session, today - timedelta(days=2), today + timedelta(days=1), dest))
+    return {"forecast": open_meteo.parse(json.loads(forecast_file.read_text(encoding="utf-8"))),
+            "upper": open_meteo.parse_upper(json.loads(upper_file.read_text(encoding="utf-8"))),
             "minutes": clean_minutes(not_mast.parse(not_file)),
-            "seeing": r2d2.parse(r2d2_file)}
+            "seeing": r2d2.parse(r2d2_file),
+            "stale": stale}
+
+
+def fetch_or_last(source: str, dest: Path, now: pd.Timestamp, stale: dict, fetch) -> Path:
+    """Download one source with `fetch(dest)`; if that fails, use its last good copy.
+
+    A good download is also copied to LAST_DIR, with the time it was fetched. When the
+    last copy is used, `stale[source]` gets that time, so the page can say so. With no
+    copy at all the error is raised: there is nothing to forecast with.
+    """
+    LAST_DIR.mkdir(parents=True, exist_ok=True)
+    times = json.loads(LAST_TIMES.read_text(encoding="utf-8")) if LAST_TIMES.exists() else {}
+    last = LAST_DIR / dest.name
+    try:
+        fetch(dest)
+    except (requests.RequestException, RuntimeError) as error:
+        if not last.exists():
+            raise
+        log.warning("%s did not answer (%s): using its last copy, fetched %s", source, error, times.get(source, "?"))
+        shutil.copyfile(last, dest)
+        stale[source] = times.get(source)
+        return dest
+    shutil.copyfile(dest, last)
+    times[source] = iso(now)
+    LAST_TIMES.write_text(json.dumps(times, indent=1), encoding="utf-8")
+    return dest
 
 
 def clean_minutes(df: pd.DataFrame) -> pd.DataFrame:
@@ -363,6 +409,8 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
         "hourly": hourly_curve(live["forecast"], live.get("upper"), window),
         "forecast_vs_measured": forecast_vs_measured(live["forecast"], live["minutes"], now),
         "station_24h": station_curve(live["minutes"], now),
+        # Sources that did not answer this run: their last copy was used, fetched at this time.
+        "stale": live["stale"],
     }
     return clean(page)
 

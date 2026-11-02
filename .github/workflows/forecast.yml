@@ -47,6 +47,15 @@ jobs:
             done
           fi
 
+      - name: Restore the last good copy of each live source (used if a source is down)
+        run: |
+          if git rev-parse -q --verify FETCH_HEAD >/dev/null; then
+            mkdir -p data/raw/tonight/last
+            for f in $(git ls-tree --name-only FETCH_HEAD cache/ 2>/dev/null); do
+              git show "FETCH_HEAD:$f" > "data/raw/tonight/last/$(basename "$f")"
+            done
+          fi
+
       - name: Tonight's forecast
         run: uv run --no-dev python -m roque_forecast.tonight --no-fiware
 

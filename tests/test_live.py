@@ -100,3 +100,37 @@ def test_forecast_vs_measured_pairs_each_hour():
     assert [r["forecast"] for r in rows] == [95.0, 96.0, 97.0]
     assert all(r["measured"] == 50.0 for r in rows)
 
+
+
+def test_a_source_that_fails_falls_back_to_its_last_good_copy(tmp_path, monkeypatch):
+    import requests
+    monkeypatch.setattr(tonight, "LAST_DIR", tmp_path / "last")
+    monkeypatch.setattr(tonight, "LAST_TIMES", tmp_path / "last" / "fetched.json")
+    first, second = pd.Timestamp("2026-11-02 08:05", tz="UTC"), pd.Timestamp("2026-11-02 09:05", tz="UTC")
+    stale = {}
+
+    # A good download is kept as the last copy, with its time.
+    tonight.fetch_or_last("not", tmp_path / "a" / "not.tsv.gz", first, stale,
+                          lambda dest: (dest.parent.mkdir(parents=True, exist_ok=True), dest.write_text("good")))
+    assert stale == {}
+
+    # The next run fails: the last copy is used and the page is told when it is from.
+    def down(dest):
+        raise requests.ConnectionError("NOT is down")
+    dest = tmp_path / "b" / "not.tsv.gz"
+    dest.parent.mkdir()
+    tonight.fetch_or_last("not", dest, second, stale, down)
+    assert dest.read_text() == "good"
+    assert stale == {"not": "2026-11-02T08:05:00Z"}
+
+
+def test_a_source_that_fails_with_no_copy_still_raises(tmp_path, monkeypatch):
+    import pytest
+    import requests
+    monkeypatch.setattr(tonight, "LAST_DIR", tmp_path / "last")
+    monkeypatch.setattr(tonight, "LAST_TIMES", tmp_path / "last" / "fetched.json")
+
+    def down(dest):
+        raise requests.ConnectionError("down")
+    with pytest.raises(requests.ConnectionError):
+        tonight.fetch_or_last("r2d2", tmp_path / "r2d2.html", pd.Timestamp("2026-11-02", tz="UTC"), {}, down)

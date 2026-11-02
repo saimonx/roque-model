@@ -143,6 +143,12 @@
     $("night-title").textContent = fill(t.night_of, { date });
     $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: stampLocal(d.issued_utc) });
 
+    // Sources that did not answer this run: the forecast used their last good copy.
+    const stale = Object.entries(d.stale || {});
+    $("stale").hidden = !stale.length;
+    $("stale").textContent = stale.map(([k, when]) => fill(t.stale, { name: t.stale_names[k] || k,
+      time: when ? stampLocal(when, true) : t.stale_unknown })).join(" ");
+
     // Which model is forecasting now: provisional until the night starts, final from then on,
     // each with its historical accuracy (share of 2024-2026 night hours it got right).
     const c = state.evaluation && state.evaluation.comparison;

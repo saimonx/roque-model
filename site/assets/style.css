@@ -41,6 +41,7 @@ a { color: var(--series-1); }
 .top { border-bottom: 1px solid var(--border); background: var(--surface-2); }
 .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; padding-bottom: 14px; }
 .sub { margin: 2px 0 0; color: var(--text-2); font-size: 0.9rem; }
+.notice.stale { border-left-color: var(--warning); margin: 0.6rem 0 0; }
 .notice {
   margin: 1.2rem 0 0; padding: 10px 14px; border-left: 3px solid var(--series-1);
   background: var(--surface-2); font-size: 0.9rem; color: var(--text-2);

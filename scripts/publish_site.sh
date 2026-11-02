@@ -13,6 +13,11 @@ if ls "$PROJECT_DIR"/data/forecasts/*.jsonl >/dev/null 2>&1; then
     mkdir -p "$TMP/forecasts"
     cp "$PROJECT_DIR"/data/forecasts/*.jsonl "$TMP/forecasts/"
 fi
+# The last good copy of each live source (tonight.py falls back to it if a source is down).
+if [[ -d "$PROJECT_DIR/data/raw/tonight/last" ]]; then
+    mkdir -p "$TMP/cache"
+    cp "$PROJECT_DIR"/data/raw/tonight/last/* "$TMP/cache/"
+fi
 cd "$TMP"
 git init -q -b gh-pages
 git add -A
