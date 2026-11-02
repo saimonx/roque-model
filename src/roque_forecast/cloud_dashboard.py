@@ -21,8 +21,8 @@ from roque_forecast.dashboards import AQUA, BLUE, CRITICAL, GOOD, ORANGE, WARNIN
 
 OUT_FILE = config.PROJECT_DIR / "infra" / "grafana" / "cloud" / "roquemodel.json"
 DATASOURCE = {"type": "yesoreyeram-infinity-datasource", "uid": "roquemodel-pages"}
-DATA_URL = "https://saimonx.github.io/roque-night-forecast/data/tonight.json"
-WEB_URL = "https://saimonx.github.io/roque-night-forecast/"
+DATA_URL = "https://saimonx.github.io/roque-model/data/tonight.json"
+WEB_URL = "https://saimonx.github.io/roque-model/"
 GREY = "#8e8d87"
 
 

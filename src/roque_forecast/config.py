@@ -27,7 +27,7 @@ LOG_DIR = DATA_DIR / "logs"
 # These are small public servers run by observatories, not big APIs.
 # We identify ourselves honestly and wait between requests.
 USER_AGENT = (
-    "roque-night-forecast/0.1 "
+    "roque-model/0.1 "
     "(independent research/portfolio project; https://github.com/saimonx)"
 )
 MIN_SECONDS_BETWEEN_REQUESTS = 2.0

@@ -27,7 +27,7 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "**RoqueModel**: probabilidad, hora a hora, de que la cúpula esté cerrada esta noche en el Observatorio del Roque de los Muchachos (La Palma), por humedad, viento o hielo. Explicación completa del modelo en la [web del proyecto](https://saimonx.github.io/roque-night-forecast/). Se actualiza cada hora (GitHub Actions). **Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del NOT y previsiones ECMWF y NOAA GFS vía Open-Meteo (CC BY 4.0). Horas en hora canaria."
+    "content": "**RoqueModel**: probabilidad, hora a hora, de que la cúpula esté cerrada esta noche en el Observatorio del Roque de los Muchachos (La Palma), por humedad, viento o hielo. Explicación completa del modelo en la [web del proyecto](https://saimonx.github.io/roque-model/). Se actualiza cada hora (GitHub Actions). **Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del NOT y previsiones ECMWF y NOAA GFS vía Open-Meteo (CC BY 4.0). Horas en hora canaria."
    }
   },
   {
@@ -56,7 +56,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -134,7 +134,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -212,7 +212,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -298,7 +298,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -368,7 +368,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -461,7 +461,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -556,7 +556,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -661,7 +661,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -781,7 +781,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -888,7 +888,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -977,7 +977,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -1065,7 +1065,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -1152,7 +1152,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -1258,7 +1258,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },
@@ -1379,7 +1379,7 @@
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
      "url_options": {
       "method": "GET"
      },

@@ -146,7 +146,7 @@ def readme(training: pd.DataFrame, test: pd.DataFrame) -> str:
     return f"""# RoqueModel: the data it learnt from
 
 Independent portfolio project, not affiliated with GRANTECAN or any observatory.
-Code: https://github.com/saimonx/roque-night-forecast · Page: https://saimonx.github.io/roque-night-forecast/
+Code: https://github.com/saimonx/roque-model · Page: https://saimonx.github.io/roque-model/
 
 ## Files
 

@@ -1,5 +1,5 @@
 [project]
-name = "roque-night-forecast"
+name = "roque-model"
 version = "0.1.0"
 description = "Observing-conditions forecasting for the Roque de los Muchachos Observatory (independent portfolio project)."
 readme = "README.md"

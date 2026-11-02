@@ -20,7 +20,7 @@ if [[ "${ROQUE_TRIGGER_CLOUD:-1}" == "1" ]]; then
     # perl alarm: each try gives up after 60 s, so a stuck request never blocks the next hourly run.
     started=0
     for try in 1 2 3; do
-        if perl -e 'alarm 60; exec @ARGV' "$GH" workflow run forecast.yml -R saimonx/roque-night-forecast; then
+        if perl -e 'alarm 60; exec @ARGV' "$GH" workflow run forecast.yml -R saimonx/roque-model; then
             started=1; echo "cloud forecast started (try $try)"; break
         fi
         echo "try $try to start the cloud forecast failed" >&2
