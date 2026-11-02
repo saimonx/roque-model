@@ -1,4 +1,4 @@
-/* Roque Night Forecast — one stylesheet, light and dark.
+/* RoqueModel — one stylesheet, light only.
    Colours are tokens: the same validated palette as the figures and the Grafana panels. */
 
 :root {
@@ -19,23 +19,6 @@
   --moon: #d9b54a;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --surface: #1a1a19; --surface-2: #242423; --border: #383835;
-    --text: #f0efec; --text-2: #c3c2b7; --text-3: #9d9c95;
-    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --baseline: #5c5b57;
-    --shade: rgba(57, 135, 229, 0.12); --moon: #f1d77a;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --surface: #1a1a19; --surface-2: #242423; --border: #383835;
-  --text: #f0efec; --text-2: #c3c2b7; --text-3: #9d9c95;
-  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --baseline: #5c5b57;
-  --shade: rgba(57, 135, 229, 0.12); --moon: #f1d77a;
-  color-scheme: dark;
-}
-
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -58,13 +41,6 @@ a { color: var(--series-1); }
 .top { border-bottom: 1px solid var(--border); background: var(--surface-2); }
 .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; padding-bottom: 14px; }
 .sub { margin: 2px 0 0; color: var(--text-2); font-size: 0.9rem; }
-.controls { display: flex; gap: 8px; align-items: center; }
-.lang { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.lang button, .theme {
-  font: inherit; font-size: 0.85rem; padding: 6px 10px; border: 0; background: transparent; color: var(--text-2); cursor: pointer;
-}
-.lang button[aria-pressed="true"] { background: var(--series-1); color: #fff; }
-.theme { border: 1px solid var(--border); border-radius: 8px; }
 .notice {
   margin: 1.2rem 0 0; padding: 10px 14px; border-left: 3px solid var(--series-1);
   background: var(--surface-2); font-size: 0.9rem; color: var(--text-2);
@@ -222,12 +198,24 @@ table.text td:first-child { min-width: 180px; }
 /* ===== Tonight, simple version (28 Oct 2026) ===== */
 #tonight h2 { margin-bottom: 0.2rem; }
 .night-line { margin: 0; }
+/* Which model forecasts now: provisional, then final, each with its accuracy on the right */
+.mode-box { margin: 0.6rem 0 0; }
+.mode-label { margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-2); }
+.mode-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 4px; max-width: 560px; }
+.mode-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; padding: 5px 10px;
+  border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; color: var(--text-3); }
+.mode-list li.current { color: var(--text); background: var(--surface-2); }
+.mode-list li.provisional.current { border-color: var(--warning); }
+.mode-list li.final.current { border-color: var(--good); }
+.mode-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); flex: none; }
+.mode-list li.provisional.current .mode-dot { background: var(--warning); }
+.mode-list li.final.current .mode-dot { background: var(--good); }
+.mode-now { font-size: 0.75rem; padding: 0 6px; border-radius: 99px; border: 1px solid currentColor; }
+.mode-acc { margin-left: auto; font-size: 0.85rem; }
 details.info { display: inline-block; margin: 0.3rem 0 0; font-size: 0.85rem; }
 details.info summary { cursor: pointer; list-style: none; display: inline-block; padding: 2px 10px; border-radius: 99px;
   border: 1px solid var(--border); color: var(--text-2); }
 details.info summary::-webkit-details-marker { display: none; }
-details.info summary.provisional { border-color: var(--warning); }
-details.info summary.final { border-color: var(--good); }
 details.info p { margin: 0.5rem 0 0; max-width: 820px; color: var(--text-2); }
 .headline { font-size: 1.6rem; font-weight: 700; line-height: 1.25; margin: 1rem 0 0.8rem; display: flex; align-items: center; gap: 12px; }
 .dot-big { flex: none; width: 16px; height: 16px; border-radius: 50%; }
@@ -371,10 +359,11 @@ ul.rm-bars li:nth-child(2) .bar-fill { opacity: .55; }
 @media (max-width: 600px) { ul.rm-bars li, ul.rm-waterfall li { grid-template-columns: 1fr 48px; } .bar-label, .wf-label { grid-column: 1 / -1; } }
 
 /* Data to keep in mind: three cards with a coloured edge */
-.notes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 10px; }
+.notes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; margin-top: 10px; }
 .note-card { border: 1px solid var(--border); border-left: 5px solid var(--series-1); border-radius: 12px; padding: 12px 16px; background: var(--surface); min-width: 0; }
 .note-card.missing { border-left-color: var(--warning); }
 .note-card.limits { border-left-color: var(--text-3); }
+.note-card.compute { border-left-color: var(--series-3); }
 .note-card h3 { margin: .2rem 0 .5rem; font-size: 1rem; }
 .note-card ul { padding-left: 1.1rem; margin: 0; }
 .note-card li { margin: .45rem 0; line-height: 1.5; font-size: .9rem; }
@@ -406,3 +395,16 @@ details.rm-part > summary:focus-visible { outline: 2px solid var(--series-1); ou
 .setting h5 { margin: .4rem 0 .2rem; font-size: .85rem; }
 .setting table td, .setting table th { text-align: left; padding: 4px 6px; }
 tr.chosen td, tr.chosen th { font-weight: 700; background: var(--surface-2); }
+
+/* Card 1: how the model works, in plain prose */
+.rm-prose { max-width: 820px; }
+.rm-prose ul { margin: 0.3rem 0 0.6rem; padding-left: 1.3rem; }
+.rm-prose li { margin: 0.25rem 0; }
+
+/* Colour legend under the two hour lines */
+.color-legend { margin: 0.6rem 0 0; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; color: var(--text-2); }
+.color-legend h3 { margin: 0 0 0.3rem; font-size: 0.9rem; color: var(--text); }
+.legend-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 24px; }
+.color-legend ul { list-style: none; margin: 0.3rem 0 0; padding: 0; }
+.color-legend li { margin: 0.2rem 0; }
+.color-legend .sw { margin-right: 6px; }

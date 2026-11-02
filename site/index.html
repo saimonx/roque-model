@@ -3,23 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Roque Night Forecast</title>
-  <meta name="description" content="Tonight at the Roque de los Muchachos Observatory (La Palma), hour by hour: will the dome be open, and how sharp will the stars be. Independent project with real, public data.">
-  <link rel="stylesheet" href="assets/style.css?v=45">
+  <title>RoqueModel</title>
+  <meta name="description" content="RoqueModel: previsión hora a hora de si la cúpula podrá estar abierta para observar esta noche en el Observatorio del Roque de los Muchachos (La Palma). Proyecto independiente con datos reales y públicos.">
+  <link rel="stylesheet" href="assets/style.css?v=47">
 </head>
 <body>
   <header class="top">
     <div class="wrap top-row">
       <div>
-        <h1>Roque Night Forecast</h1>
+        <h1>RoqueModel</h1>
         <p class="sub" data-i18n="subtitle"></p>
-      </div>
-      <div class="controls">
-        <div class="lang" role="group" aria-label="Language">
-          <button type="button" data-lang="es">ES</button>
-          <button type="button" data-lang="en">EN</button>
-        </div>
-        <button type="button" class="theme" id="theme" data-i18n-title="theme" aria-label="theme">◐</button>
       </div>
     </div>
   </header>
@@ -31,7 +24,11 @@
     <section id="tonight">
       <h2 id="night-title"></h2>
       <p class="muted small night-line"><span id="night-window"></span></p>
-      <details class="info"><summary id="mode"></summary><p id="mode-text"></p></details>
+      <div class="mode-box">
+        <p class="mode-label" data-i18n="mode_label"></p>
+        <ul class="mode-list" id="mode-list"></ul>
+        <details class="info"><summary data-i18n="mode_why"></summary><p id="mode-text"></p></details>
+      </div>
       <p class="headline" id="headline"></p>
       <div class="lines">
         <p class="line-head"><b data-i18n="line_model"></b> <span class="muted small" id="acc-model"></span></p>
@@ -41,7 +38,10 @@
       </div>
       <div class="hour-detail" id="hour-detail" hidden></div>
       <p class="muted small" data-i18n-html="strip_legend"></p>
-      <p class="muted small" id="acc-note"></p>
+      <div class="color-legend small">
+        <h3 data-i18n="legend_title"></h3>
+        <div class="legend-cols" data-i18n-html="legend_html"></div>
+      </div>
 
     </section>
 
@@ -52,8 +52,12 @@
       <div class="rm-parts">
         <details class="rm-part">
           <summary class="rm-head"><span class="rm-num">1</span><h3 data-i18n="rm1_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
-          <p id="rm1-text"></p>
           <div class="rm-stats" id="rm-stats"></div>
+          <div class="rm-prose" id="rm1-text"></div>
+        </details>
+        <details class="rm-part" id="tuning">
+          <summary class="rm-head"><span class="rm-num">2</span><h3 data-i18n="tune_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <p data-i18n-html="tune_intro"></p>
           <div class="table-wrap"><table class="small rm-table" id="rm-tech"></table></div>
           <p class="muted small" data-i18n-html="rm1_note"></p>
           <h4 data-i18n="rm1_search_title"></h4>
@@ -61,35 +65,36 @@
           <div class="settings-grid" id="rm1-settings"></div>
         </details>
         <details class="rm-part">
-          <summary class="rm-head"><span class="rm-num">2</span><h3 data-i18n="rm2_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <summary class="rm-head"><span class="rm-num">3</span><h3 data-i18n="rm2_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <p id="rm2-text"></p>
           <div class="rm-timeline" id="rm-timeline"></div>
           <div class="table-wrap"><table class="small rm-table" id="rm-data"></table></div>
           <p class="muted small" data-i18n-html="rm2_note"></p>
         </details>
         <details class="rm-part">
-          <summary class="rm-head"><span class="rm-num">3</span><h3 data-i18n="rm3_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <summary class="rm-head"><span class="rm-num">4</span><h3 data-i18n="rm3_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <ol class="rm-flow" id="rm-flow"></ol>
           <h4 id="rm-example-title"></h4>
           <ul class="rm-waterfall" id="rm-example"></ul>
           <p class="muted small" data-i18n-html="rm3_note"></p>
         </details>
         <details class="rm-part">
-          <summary class="rm-head"><span class="rm-num">4</span><h3 data-i18n="rm4_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <summary class="rm-head"><span class="rm-num">5</span><h3 data-i18n="rm4_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <p id="rm4-text"></p>
           <div class="rm-timeline" id="rm4-timeline"></div>
           <ul class="rm-bars" id="rm4-bars"></ul>
           <p class="muted small" id="rm4-note"></p>
         </details>
         <details class="rm-part" id="models">
-          <summary class="rm-head"><span class="rm-num">5</span><h3 data-i18n="rm5_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <summary class="rm-head"><span class="rm-num">6</span><h3 data-i18n="rm5_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <p id="rm5-text"></p>
           <ul class="rm-bars" id="rm5-bars"></ul>
           <div class="table-wrap"><table class="small rm-table" id="rm5-table"></table></div>
           <p class="muted small" id="rm5-note"></p>
+          <div class="rm-prose" id="rm5-more"></div>
         </details>
         <details class="rm-part" id="live">
-          <summary class="rm-head"><span class="rm-num">6</span><h3 data-i18n="fold_live"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <summary class="rm-head"><span class="rm-num">7</span><h3 data-i18n="fold_live"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <p data-i18n="live_intro"></p>
           <h4 data-i18n="live_fc_title"></h4>
           <p class="muted small" data-i18n="live_fc_text"></p>
@@ -102,16 +107,17 @@
           <div class="chart short" id="chart-vs"></div>
         </details>
         <details class="rm-part" id="notes">
-          <summary class="rm-head"><span class="rm-num">7</span><h3 data-i18n="notes_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <summary class="rm-head"><span class="rm-num">8</span><h3 data-i18n="notes_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <p class="muted" data-i18n="notes_intro"></p>
           <div class="notes-grid">
             <section class="note-card why"><h4 data-i18n="notes_why_title"></h4><ul data-i18n-html="notes_why"></ul></section>
             <section class="note-card missing"><h4 data-i18n="notes_missing_title"></h4><ul data-i18n-html="notes_missing"></ul></section>
             <section class="note-card limits"><h4 data-i18n="notes_limits_title"></h4><ul data-i18n-html="notes_limits"></ul></section>
+            <section class="note-card compute"><h4 data-i18n="notes_compute_title"></h4><ul data-i18n-html="notes_compute"></ul></section>
           </div>
         </details>
         <details class="rm-part" id="refs">
-          <summary class="rm-head"><span class="rm-num">8</span><h3 data-i18n="fold_refs"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
+          <summary class="rm-head"><span class="rm-num">9</span><h3 data-i18n="fold_refs"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <ul class="refs" data-i18n-html="refs_html"></ul>
         </details>
       </div>
@@ -126,8 +132,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=45"></script>
-  <script src="assets/charts.js?v=45"></script>
-  <script src="assets/app.js?v=45"></script>
+  <script src="assets/i18n.js?v=47"></script>
+  <script src="assets/charts.js?v=47"></script>
+  <script src="assets/app.js?v=47"></script>
 </body>
 </html>

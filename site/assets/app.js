@@ -3,42 +3,36 @@
 // every piece of evidence folded below it.
 (function () {
   const LOCAL_TZ = "Atlantic/Canary";
-  const state = { lang: pickLang(), tonight: null, evaluation: null, hour: null };
+  const state = { tonight: null, evaluation: null, hour: null };
 
-  function pickLang() {
-    const fromUrl = new URLSearchParams(location.search).get("lang");
-    if (fromUrl === "es" || fromUrl === "en") return fromUrl;
-    try { const saved = localStorage.getItem("lang"); if (saved) return saved; } catch (e) { /* private mode */ }
-    return (navigator.language || "es").toLowerCase().startsWith("es") ? "es" : "en";
-  }
-
-  const T = () => window.I18N[state.lang];
+  const T = () => window.I18N.es;
   const fill = (text, values) => text.replace(/\{(\w+)\}/g, (_, k) => (values[k] != null ? values[k] : ""));
   const $ = (id) => document.getElementById(id);
-  const locale = () => (state.lang === "es" ? "es-ES" : "en-GB");
+  const locale = () => "es-ES";
   const num = (v, digits = 1) => (v == null ? T().na : v.toLocaleString(locale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }));
   const pct = (p) => (p == null ? T().na : Math.round(p * 100) + " %");
   const ten = (p) => (p == null ? T().na : Math.round(p * 10));
   const timeLocal = (iso, withDate) => new Date(iso).toLocaleString(locale(), {
     timeZone: LOCAL_TZ, hour: "2-digit", minute: "2-digit", ...(withDate ? { day: "numeric", month: "short" } : {}) });
+  // The update time with a.m./p.m. and the Canary offset from UTC (UTC+0 in winter, UTC+1 in summer).
+  const stampLocal = (iso, withDate) => {
+    const d = new Date(iso);
+    const time = d.toLocaleString(locale(), { timeZone: LOCAL_TZ, hour: "numeric", minute: "2-digit", hour12: true,
+      ...(withDate ? { day: "numeric", month: "short" } : {}) });
+    const gmt = new Intl.DateTimeFormat("en-US", { timeZone: LOCAL_TZ, timeZoneName: "shortOffset" })
+      .formatToParts(d).find((p) => p.type === "timeZoneName").value;
+    return fill(T().canary_time, { time, offset: gmt.replace("GMT", "UTC") === "UTC" ? "UTC+0" : gmt.replace("GMT", "UTC") });
+  };
   const monthName = (dateStr) => T().months[+dateStr.slice(5, 7) - 1];
   const COLORS = { low: "--good", medium: "--warning", high: "--critical",
     excellent: "--good", good: "--good", average: "--warning", poor: "--critical" };
 
   function applyTexts() {
-    document.documentElement.lang = state.lang;
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = T()[n.dataset.i18n] || ""; });
     document.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = T()[n.dataset.i18nHtml] || ""; });
     document.querySelectorAll("[data-i18n-title]").forEach((n) => { n.title = T()[n.dataset.i18nTitle]; });
     // External links (references, sources) open in a new tab, so the page stays open.
     document.querySelectorAll('a[href^="http"]').forEach((l) => { l.target = "_blank"; l.rel = "noopener"; });
-    document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
-  }
-
-  // How often "closed" is right, final and provisional (from the 2024-2026 evaluation).
-  function hourRight(e) {
-    const h = e && e.plain && e.plain.find((r) => r.key === "hour");
-    return h ? { final: h.ours.final.right, provisional: h.ours.provisional.right, raw: h.refs.find((r) => r.name === "raw").right } : {};
   }
 
   // ---------------------------------------------------------------- the two lines, hour by hour
@@ -51,7 +45,6 @@
       const model = d.mode === "final" ? c.final : c.provisional;
       $("acc-model").textContent = "(" + fill(t.line_acc, { p: pct(1 - model.wrong) }) + ")";
       $("acc-raw").textContent = "(" + fill(t.line_acc, { p: pct(1 - c.raw.wrong) }) + ")";
-      $("acc-note").textContent = fill(t.acc_note, { open: Math.round((1 - c.always_open_wrong) * 100) });
     }
     const sel = state.hour;
     $("strip").parentElement.style.setProperty("--n", d.hours.length);
@@ -148,31 +141,37 @@
     const t = T(), f = d.forecast, n = d.night;
     const date = new Date(n.date + "T12:00:00Z").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
     $("night-title").textContent = fill(t.night_of, { date });
-    $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: timeLocal(d.issued_utc) });
+    $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: stampLocal(d.issued_utc) });
 
-    const right = hourRight(state.evaluation);
-    $("mode").textContent = fill(d.mode === "final" ? t.mode_final : t.mode_provisional, { time: timeLocal(n.final_from_utc) });
-    $("mode").className = d.mode;
+    // Which model is forecasting now: provisional until the night starts, final from then on,
+    // each with its historical accuracy (share of 2024-2026 night hours it got right).
+    const c = state.evaluation && state.evaluation.comparison;
+    const from = timeLocal(n.final_from_utc), until = timeLocal(new Date(Date.parse(n.final_from_utc) - 60e3).toISOString());
+    const acc = (m) => (c ? pct(1 - c[m].wrong) : T().na);
+    $("mode-list").innerHTML = [["provisional", fill(t.mode_provisional, { time: until })], ["final", fill(t.mode_final, { time: from })]]
+      .map(([m, label]) => `<li class="${m}${d.mode === m ? " current" : ""}"><span class="mode-dot"></span><b>${label}</b>${d.mode === m ? `<span class="mode-now">${t.mode_now}</span>` : ""}
+        <span class="mode-acc">${fill(t.mode_acc, { p: acc(m) })}</span></li>`).join("");
     $("mode-text").innerHTML = fill(d.mode === "final" ? t.mode_final_text : t.mode_provisional_text,
-      { time: timeLocal(n.final_from_utc), prov: pct(right.provisional), fin: pct(right.final) });
+      { time: from, until, prov: acc("provisional"), fin: acc("final") });
 
     const open = Math.round(f.open_h), total = Math.round(n.length_h);
     $("headline").innerHTML = `<span class="dot-big" style="background:var(${COLORS[f.risk]})"></span>${fill(t.headline, { open, total })}`;
 
     renderLines(d);
 
-    $("updated").textContent = fill(t.updated, { time: timeLocal(d.issued_utc, true) });
+    $("updated").textContent = fill(t.updated, { time: stampLocal(d.issued_utc, true) });
     if (d.model) { renderRoqueModel(d); renderRoqueAccuracy(d); }
     if (state.evaluation) renderModelSearch(state.evaluation.search);
     renderLive(d);
   }
 
-  // ---------------------------------------------------------------- how RoqueModel works (3 parts)
+  // ---------------------------------------------------------------- how RoqueModel works (numbered cards)
   function renderRoqueModel(d) {
     const t = T(), m = d.model, tr = m.trained_on, f = m.final, pr = m.provisional;
     const n0 = (v) => num(v, 0);
 
-    // 1. What it is: four key figures and the technical settings.
+    // 1. What it is: four key figures, how the model works and what it is built with.
+    // 2. How it was tuned: the technical settings (and, in renderModelSearch, the search).
     $("rm-stats").innerHTML = [
       [t.rm_stat_model, "1"], [t.rm_stat_inputs, `${f.inputs}`], [t.rm_stat_trees, `${f.trees}`], [t.rm_stat_out, "%"],
     ].map(([label, value]) => `<div class="rm-stat"><span class="rm-stat-v">${value}</span><span class="rm-stat-l">${label}</span></div>`).join("");
@@ -182,9 +181,13 @@
       `<tr><th scope="row">${t.rm_tech.inputs[0]}</th><td>${f.inputs}</td><td>${pr.inputs}</td><td class="muted">${t.rm_tech.inputs[1]}</td></tr>`,
       ...Object.keys(names).map((k) => `<tr><th scope="row">${names[k]}</th><td>${settingValue(k, f[k])}</td><td>${settingValue(k, pr[k])}</td><td class="muted">${desc[k]}</td></tr>`),
     ]);
-    $("rm1-text").innerHTML = t.rm1_text[kind];
+    // max_features as scikit-learn reads it: a share of the inputs, or the square root of their number.
+    const feat = typeof f.max_features === "number" ? Math.max(1, Math.floor(f.max_features * f.inputs))
+      : f.max_features === "sqrt" ? Math.floor(Math.sqrt(f.inputs)) : f.inputs;
+    $("rm1-text").innerHTML = fill(t.rm1_text[kind], { inputs: f.inputs, trees: f.trees, feat })
+      + fill(t.rm1_stack, { cls: t.rm1_class[kind] });
 
-    // 2. How it was trained: a timeline of the years and the data it learnt from.
+    // 3. How it was trained: a timeline of the years and the data it learnt from.
     $("rm2-text").innerHTML = fill(t.rm2_text, { hours: n0(tr.hours), closed: n0(tr.closed_hours),
       from: dateLong(tr.first_night), to: dateLong(tr.last_night) });
     const years = [];
@@ -194,7 +197,7 @@
       <p class="tl-legend small"><span class="sw tl-livesw"></span> ${t.rm_tl_livetext}</p>`;
     table($("rm-data"), t.rm_data_cols, t.rm_data.map((r) => `<tr><th scope="row">${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`));
 
-    // 3. How it forecasts: the steps, then a worked example with tonight's riskiest hour.
+    // 4. How it forecasts: the steps, then a worked example with tonight's riskiest hour.
     $("rm-flow").innerHTML = t.rm_flow.map((st, i) => `<li><span class="rm-step-n">${i + 1}</span><b>${st[0]}</b><span>${st[1]}</span></li>`).join("");
     const k = d.hours.reduce((best, h, i) => (h.p_closed > d.hours[best].p_closed ? i : best), 0), h = d.hours[k];
     $("rm-example-title").textContent = fill(t.rm_example_title, { time: h.local });
@@ -217,7 +220,7 @@
     $("rm-example").innerHTML = rows.join("");
   }
 
-  // 4. How good it is: a copy trained on the early years, checked on the later ones,
+  // 5. How good it is: a copy trained on the early years, checked on the later ones,
   // against the weather forecast alone read with the same closing rules.
   function renderRoqueAccuracy(d) {
     const t = T(), m = d.model, c = state.evaluation && state.evaluation.comparison;
@@ -243,7 +246,7 @@
     $("rm4-note").innerHTML = fill(t.rm4_note, vals);
   }
 
-  // Card 1 (settings search) and card 5 (other models), from compare.py's results.
+  // Card 2 (settings search) and card 6 (other models), from compare.py's results.
   function renderModelSearch(search) {
     const t = T();
     if (!search) return;
@@ -255,7 +258,7 @@
       return `<div class="setting"><h5>${t.set_names[kind][k]}</h5><table class="small"><thead><tr><th>${t.set_cols[0]}</th><th>${t.set_cols[1]}</th><th>${t.set_cols[2]}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }).join("");
 
-    // Card 5: every kind of model with the same data, years and rule for choosing settings.
+    // Card 6: every kind of model with the same data, years and rule for choosing settings.
     const byName = (list) => Object.fromEntries(list.map((m) => [m.name, m]));
     const pv = byName(prov.models);
     const models = [...fin.models].sort((a, b) => (b.name === search.roquemodel) - (a.name === search.roquemodel) || a.validation_brier - b.validation_brier);
@@ -280,6 +283,10 @@
       <td>${num(m.test.right * 100, 1)} %</td><td>${pv[m.name] ? num(pv[m.name].test.right * 100, 1) + " %" : t.na}</td>
       <td>${num(m.test.brier, 4)}</td><td>${num(m.test.auc, 3)}</td></tr>`));
     $("rm5-note").innerHTML = t.rm5_note;
+    // Why these four, what was left out, and whether more computing power would help.
+    const treesLine = ours.one_at_a_time.trees.map((r) => fill(t.trees_item, { n: r.value, e: num(r.brier, 4) })).join("; ");
+    const inputs = state.tonight && state.tonight.model ? state.tonight.model.final.inputs : "";
+    $("rm5-more").innerHTML = fill(t.rm5_more, { inputs, trees_line: treesLine });
   }
 
   // A setting's value as shown on the page (words for the named ones, % for shares).
@@ -361,20 +368,6 @@
     if (state.tonight) renderTonight(state.tonight);
   }
 
-  document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => {
-    state.lang = b.dataset.lang;
-    try { localStorage.setItem("lang", state.lang); } catch (e) { /* ignore */ }
-    render();
-  }));
-  $("theme").addEventListener("click", () => {
-    const dark = document.documentElement.dataset.theme
-      ? document.documentElement.dataset.theme === "dark"
-      : matchMedia("(prefers-color-scheme: dark)").matches;
-    document.documentElement.dataset.theme = dark ? "light" : "dark";
-    try { localStorage.setItem("theme", document.documentElement.dataset.theme); } catch (e) { /* ignore */ }
-    render();
-  });
-  try { const th = localStorage.getItem("theme"); if (th) document.documentElement.dataset.theme = th; } catch (e) { /* ignore */ }
   // Charts inside a closed <details> have no width: draw them again when it opens.
   document.querySelectorAll("details").forEach((el) => el.addEventListener("toggle", () => { if (el.open) render(); }));
   let resizeTimer;

@@ -1,5 +1,5 @@
 // Small hand-written SVG charts (no library): line chart with hover, bars + markers, skill bars.
-// Colours come from the CSS tokens, so light and dark themes work without redrawing logic.
+// Colours come from the CSS tokens, so the palette lives in one place (style.css).
 (function () {
   const NS = "http://www.w3.org/2000/svg";
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
