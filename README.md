@@ -3,7 +3,8 @@
 Tonight at the **Roque de los Muchachos Observatory** (La Palma, Canary Islands), hour by hour: **will the
 dome be open, and how sharp will the stars be?**
 
-**Live page (ES/EN), updated every hour:** https://saimonx.github.io/roque-night-forecast/
+**Live page (Spanish), updated every hour:** https://saimonx.github.io/roque-night-forecast/
+**Public Grafana dashboard** (Grafana Cloud, same data): https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8 (built by `src/roque_forecast/cloud_dashboard.py`; it reads the published `tonight.json` with the Infinity data source)
 
 > **Independent project.** This is a personal portfolio project. It is **not affiliated with,
 > endorsed by or produced for** GRANTECAN, the IAC, the ING, the NOT, the TNG, the Liverpool Telescope or

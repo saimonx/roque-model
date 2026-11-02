@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RoqueModel</title>
   <meta name="description" content="RoqueModel: previsión hora a hora de si la cúpula podrá estar abierta para observar esta noche en el Observatorio del Roque de los Muchachos (La Palma). Proyecto independiente con datos reales y públicos.">
-  <link rel="stylesheet" href="assets/style.css?v=48">
+  <link rel="stylesheet" href="assets/style.css?v=49">
 </head>
 <body>
   <header class="top">
@@ -14,6 +14,7 @@
         <h1>RoqueModel</h1>
         <p class="sub" data-i18n="subtitle"></p>
       </div>
+      <a class="grafana-link" href="https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8" data-i18n="grafana_link" data-i18n-title="grafana_title"></a>
     </div>
   </header>
 
@@ -97,6 +98,7 @@
         <details class="rm-part" id="live">
           <summary class="rm-head"><span class="rm-num">7</span><h3 data-i18n="fold_live"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
           <p data-i18n="live_intro"></p>
+          <p class="small" data-i18n-html="live_grafana"></p>
           <h4 data-i18n="live_fc_title"></h4>
           <p class="muted small" data-i18n="live_fc_text"></p>
           <div class="mini-grid" id="fc-grid"></div>
@@ -128,13 +130,13 @@
 
   <footer class="wrap foot">
     <p id="updated" class="muted small"></p>
-    <p class="muted small" data-i18n="footer"></p>
+    <p class="muted small" data-i18n-html="footer"></p>
     <p class="muted small" data-i18n-html="credits"></p>
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=48"></script>
-  <script src="assets/charts.js?v=48"></script>
-  <script src="assets/app.js?v=48"></script>
+  <script src="assets/i18n.js?v=49"></script>
+  <script src="assets/charts.js?v=49"></script>
+  <script src="assets/app.js?v=49"></script>
 </body>
 </html>
