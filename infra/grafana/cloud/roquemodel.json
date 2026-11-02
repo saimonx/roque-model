@@ -1,0 +1,1493 @@
+{
+ "uid": "roquemodel-public",
+ "title": "RoqueModel — previsión de cierre de cúpula esta noche",
+ "tags": [
+  "roquemodel",
+  "public"
+ ],
+ "timezone": "Atlantic/Canary",
+ "refresh": "1h",
+ "schemaVersion": 39,
+ "editable": false,
+ "graphTooltip": 1,
+ "time": {
+  "from": "now-24h",
+  "to": "now+24h"
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "text",
+   "title": "",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 3
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**RoqueModel**: probabilidad, hora a hora, de que la cúpula esté cerrada esta noche en el Observatorio del Roque de los Muchachos (La Palma), por humedad, viento o hielo. Explicación completa del modelo en la [web del proyecto](https://saimonx.github.io/roque-night-forecast/). Se actualiza cada hora (GitHub Actions). **Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del NOT y previsiones ECMWF y NOAA GFS vía Open-Meteo (CC BY 4.0). Horas en hora canaria."
+   }
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "Horas que se podrá observar",
+   "description": "Horas de noche menos las horas de cúpula cerrada previstas por RoqueModel.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "forecast",
+     "columns": [
+      {
+       "selector": "open_h",
+       "text": "Horas",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "h",
+     "decimals": 0,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#d03b3b"
+       },
+       {
+        "value": 3,
+        "color": "#fab219"
+       },
+       {
+        "value": 6,
+        "color": "#0ca30c"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "Horas de cúpula cerrada previstas",
+   "description": "Suma de las probabilidades de todas las horas de la noche.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "forecast",
+     "columns": [
+      {
+       "selector": "closed_h",
+       "text": "Horas",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "h",
+     "decimals": 1,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#0ca30c"
+       },
+       {
+        "value": 2,
+        "color": "#fab219"
+       },
+       {
+        "value": 5,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "Modelo actual",
+   "description": "Provisional antes de que empiece la noche (sin la estación de la cumbre); definitivo desde su inicio.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "",
+     "columns": [
+      {
+       "selector": "mode",
+       "text": "Modelo",
+       "type": "string"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0,
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "provisional": {
+         "text": "Provisional",
+         "color": "#fab219",
+         "index": 0
+        },
+        "final": {
+         "text": "Definitivo",
+         "color": "#0ca30c",
+         "index": 1
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#2a78d6"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 5,
+   "type": "stat",
+   "title": "Horas de noche astronómica",
+   "description": "Duración de la noche astronómica de esta noche.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "night",
+     "columns": [
+      {
+       "selector": "length_h",
+       "text": "Horas",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "h",
+     "decimals": 1,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#2a78d6"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 6,
+   "type": "barchart",
+   "title": "RoqueModel: probabilidad de cúpula cerrada por hora",
+   "description": "Verde: menos del 20 %. Amarillo: del 20 al 50 %. Rojo: más del 50 %.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 7,
+    "w": 16,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hours",
+     "columns": [
+      {
+       "selector": "local",
+       "text": "Hora",
+       "type": "string"
+      },
+      {
+       "selector": "p_closed",
+       "text": "RoqueModel",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "min": 0,
+     "max": 1,
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#0ca30c"
+       },
+       {
+        "value": 0.2,
+        "color": "#fab219"
+       },
+       {
+        "value": 0.5,
+        "color": "#d03b3b"
+       }
+      ]
+     },
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "xField": "Hora",
+    "showValue": "always",
+    "barWidth": 0.85,
+    "groupWidth": 0.7,
+    "orientation": "vertical",
+    "colorByField": "RoqueModel",
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single"
+    }
+   }
+  },
+  {
+   "id": 7,
+   "type": "state-timeline",
+   "title": "Solo la previsión del tiempo: cerrar o abrir",
+   "description": "Las reglas de cierre (humedad ≥ 90 %, viento ≥ 80 km/h o hielo) aplicadas a la previsión tal cual.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 7,
+    "w": 8,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hours",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "raw_closed",
+       "text": "Solo la previsión",
+       "type": "boolean"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "true": {
+         "text": "cerrar",
+         "color": "#d03b3b"
+        },
+        "false": {
+         "text": "abrir",
+         "color": "#0ca30c"
+        }
+       }
+      }
+     ],
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#8e8d87"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "showValue": "auto",
+    "mergeValues": false,
+    "rowHeight": 0.8,
+    "legend": {
+     "showLegend": false
+    }
+   }
+  },
+  {
+   "id": 8,
+   "type": "timeseries",
+   "title": "Previsión: humedad (%)",
+   "description": "Humedad prevista en la cumbre. La cúpula se cierra al 90 %.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourly",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "rh",
+       "text": "Humedad",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "max": 100,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 90,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Humedad"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 9,
+   "type": "timeseries",
+   "title": "Previsión: viento a 750 hPa (km/h)",
+   "description": "Viento previsto a la altura de la cumbre (GFS). Límite: 80 km/h.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourly",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "wind750",
+       "text": "wind750",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [
+    {
+     "id": "calculateField",
+     "options": {
+      "mode": "binary",
+      "alias": "Viento",
+      "replaceFields": false,
+      "binary": {
+       "left": {
+        "matrix": null,
+        "fixed": "wind750"
+       },
+       "operator": "*",
+       "right": {
+        "fixed": "3.6"
+       }
+      }
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "wind750": true
+      }
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "velocitykmh",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 80,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Viento"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#1baf7a"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 10,
+   "type": "timeseries",
+   "title": "Previsión: temperatura y punto de rocío (°C)",
+   "description": "Si se juntan, hay riesgo de condensación; bajo 0 °C, de hielo.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourly",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "temp",
+       "text": "Temperatura",
+       "type": "number"
+      },
+      {
+       "selector": "dew",
+       "text": "Punto de rocío",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Temperatura"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Punto de rocío"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 11,
+   "type": "timeseries",
+   "title": "Previsión: nubes (%)",
+   "description": "Nubosidad total prevista.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 24,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourly",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "cloud",
+       "text": "Nubes",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000
+     },
+     "min": 0,
+     "max": 100
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Nubes"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#8e8d87"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 12,
+   "type": "timeseries",
+   "title": "Previsión: lluvia (mm)",
+   "description": "Precipitación prevista por hora.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 24,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourly",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "precip",
+       "text": "Lluvia",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "lengthmm",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 2,
+      "fillOpacity": 80,
+      "showPoints": "never",
+      "spanNulls": false
+     },
+     "min": 0
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Lluvia"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 13,
+   "type": "timeseries",
+   "title": "Previsión: presión (hPa)",
+   "description": "Presión prevista en la cumbre.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 24,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourly",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "pressure",
+       "text": "Presión",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "pressurehpa",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Presión"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#8e8d87"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 14,
+   "type": "timeseries",
+   "title": "Estación del NOT, últimas 24 h: humedad (%)",
+   "description": "Medida real en la cumbre. La cúpula se cierra al 90 %.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 31,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "station_24h",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "rh",
+       "text": "Humedad",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "max": 100,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 90,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Humedad"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 15,
+   "type": "timeseries",
+   "title": "Estación del NOT, últimas 24 h: viento (km/h)",
+   "description": "Medida real en la cumbre. Límite: 80 km/h.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 31,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "station_24h",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "wind",
+       "text": "wind",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [
+    {
+     "id": "calculateField",
+     "options": {
+      "mode": "binary",
+      "alias": "Viento",
+      "replaceFields": false,
+      "binary": {
+       "left": {
+        "matrix": null,
+        "fixed": "wind"
+       },
+       "operator": "*",
+       "right": {
+        "fixed": "3.6"
+       }
+      }
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "wind": true
+      }
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "velocitykmh",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 80,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Viento"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#1baf7a"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 16,
+   "type": "timeseries",
+   "title": "Previsto frente a medido: humedad, últimas 24 h (%)",
+   "description": "La previsión mira un punto más bajo y húmedo que la cumbre: por eso cierra de más.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-pages"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 31,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-pages"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://saimonx.github.io/roque-night-forecast/data/tonight.json",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "forecast_vs_measured",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hora",
+       "type": "timestamp"
+      },
+      {
+       "selector": "forecast",
+       "text": "Previsto",
+       "type": "number"
+      },
+      {
+       "selector": "measured",
+       "text": "Medido (NOT)",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "max": 100,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 90,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Previsto"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#8e8d87"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Medido (NOT)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  }
+ ]
+}
