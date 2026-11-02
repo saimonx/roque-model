@@ -36,12 +36,14 @@ def query(ref: str, root: str, columns: list[tuple[str, str, str]]) -> dict:
             "columns": [{"selector": s, "text": name, "type": kind} for s, name, kind in columns]}
 
 
-def to_kmh(field: str, name: str) -> list[dict]:
-    """Transformations: a new field = `field` × 3.6 (m/s to km/h, as on the web page), keeping only it and the time."""
-    return [{"id": "calculateField", "options": {"mode": "binary", "alias": name, "replaceFields": False,
-                                                  "binary": {"left": {"matrix": None, "fixed": field}, "operator": "*",
-                                                             "right": {"fixed": "3.6"}}}},
-            {"id": "organize", "options": {"excludeByName": {field: True}}}]
+def kmh(target: dict, field: str, name: str) -> dict:
+    """Add to an Infinity query a column `name` = `field` × 3.6 (m/s to km/h, as on the web page)."""
+    return {**target, "computed_columns": [{"selector": f"{field} * 3.6", "text": name, "type": "number"}]}
+
+
+def hide(field: str) -> list[dict]:
+    """Transformation that drops `field` (the m/s column once km/h is computed)."""
+    return [{"id": "organize", "options": {"excludeByName": {field: True}}}]
 
 
 def thresholds(steps: list[tuple[float | None, str]], show: bool = False) -> dict:
@@ -53,7 +55,8 @@ def thresholds(steps: list[tuple[float | None, str]], show: bool = False) -> dic
 
 def series(pid: int, title: str, description: str, targets: list[dict], grid: dict, unit: str,
            colors: dict[str, str], *, bars: bool = False, limits: list[tuple[float | None, str]] | None = None,
-           minimum: float | None = None, maximum: float | None = None, transformations: list | None = None) -> dict:
+           minimum: float | None = None, maximum: float | None = None, transformations: list | None = None,
+           last_24h: bool = False) -> dict:
     """A time series panel; `colors` gives each field its fixed colour (same as the web page)."""
     defaults = {"unit": unit, "custom": {"drawStyle": "bars" if bars else "line", "lineWidth": 2,
                                          "fillOpacity": 80 if bars else 0, "showPoints": "never",
@@ -68,11 +71,14 @@ def series(pid: int, title: str, description: str, targets: list[dict], grid: di
     overrides = [{"matcher": {"id": "byName", "options": name},
                   "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": color}}]}
                  for name, color in colors.items()]
-    return {"id": pid, "type": "timeseries", "title": title, "description": description, "datasource": DATASOURCE,
+    panel = {"id": pid, "type": "timeseries", "title": title, "description": description, "datasource": DATASOURCE,
             "gridPos": grid, "targets": targets, "transformations": transformations or [],
             "fieldConfig": {"defaults": defaults, "overrides": overrides},
             "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": True},
                         "tooltip": {"mode": "multi", "sort": "none"}}}
+    if last_24h:
+        panel["timeFrom"] = "24h"
+    return panel
 
 
 def stat(pid: int, title: str, description: str, target: dict, grid: dict, unit: str, steps: list,
@@ -82,12 +88,12 @@ def stat(pid: int, title: str, description: str, target: dict, grid: dict, unit:
             "fieldConfig": {"defaults": {"unit": unit, "decimals": decimals, "mappings": mappings or [],
                                          **thresholds(steps)}, "overrides": []},
             "options": {"colorMode": "background", "graphMode": "none", "textMode": "value",
-                        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": False}}}
+                        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "/.*/", "values": False}}}
 
 
 def dashboard() -> dict:
     hours = query("A", "hours", [("local", "Hora", "string"), ("p_closed", "RoqueModel", "number")])
-    raw = query("A", "hours", [("t", "Hora", "timestamp"), ("raw_closed", "Solo la previsión", "boolean")])
+    raw = query("A", "hours", [("local", "Hora", "string"), ("raw_closed", "Solo la previsión", "boolean")])
     fc = lambda cols: query("A", "hourly", [("t", "Hora", "timestamp"), *cols])
     st = lambda cols: query("A", "station_24h", [("t", "Hora", "timestamp"), *cols])
     one = lambda root, sel, name, kind="number": query("A", root, [(sel, name, kind)])
@@ -107,13 +113,13 @@ def dashboard() -> dict:
         {"id": 1, "type": "text", "title": "", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 3},
          "options": {"mode": "markdown", "content": about}},
         stat(2, "Horas que se podrá observar", "Horas de noche menos las horas de cúpula cerrada previstas por RoqueModel.",
-             one("forecast", "open_h", "Horas"), {"x": 0, "y": 3, "w": 6, "h": 4}, "h", [(None, CRITICAL), (3, WARNING), (6, GOOD)]),
+             one("forecast", "open_h", "Horas"), {"x": 0, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, CRITICAL), (3, WARNING), (6, GOOD)]),
         stat(3, "Horas de cúpula cerrada previstas", "Suma de las probabilidades de todas las horas de la noche.",
-             one("forecast", "closed_h", "Horas"), {"x": 6, "y": 3, "w": 6, "h": 4}, "h", [(None, GOOD), (2, WARNING), (5, CRITICAL)], 1),
+             one("forecast", "closed_h", "Horas"), {"x": 6, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, GOOD), (2, WARNING), (5, CRITICAL)], 1),
         stat(4, "Modelo actual", "Provisional antes de que empiece la noche (sin la estación de la cumbre); definitivo desde su inicio.",
              one("", "mode", "Modelo", "string"), {"x": 12, "y": 3, "w": 6, "h": 4}, "none", [(None, BLUE)], mappings=mode_map),
         stat(5, "Horas de noche astronómica", "Duración de la noche astronómica de esta noche.",
-             one("night", "length_h", "Horas"), {"x": 18, "y": 3, "w": 6, "h": 4}, "h", [(None, BLUE)], 1),
+             one("night", "length_h", "Horas"), {"x": 18, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, BLUE)], 1),
 
         # One bar per night hour (local time), coloured by level like the web page.
         {"id": 6, "type": "barchart", "title": "RoqueModel: probabilidad de cúpula cerrada por hora",
@@ -125,21 +131,23 @@ def dashboard() -> dict:
          "options": {"xField": "Hora", "showValue": "always", "barWidth": 0.85, "groupWidth": 0.7,
                      "orientation": "vertical", "colorByField": "RoqueModel",
                      "legend": {"showLegend": False}, "tooltip": {"mode": "single"}}},
-        {"id": 7, "type": "state-timeline", "title": "Solo la previsión del tiempo: cerrar o abrir",
+        {"id": 7, "type": "table", "title": "Solo la previsión del tiempo: cerrar o abrir",
          "description": "Las reglas de cierre (humedad ≥ 90 %, viento ≥ 80 km/h o hielo) aplicadas a la previsión tal cual.",
          "datasource": DATASOURCE, "gridPos": {"x": 16, "y": 7, "w": 8, "h": 9}, "targets": [raw],
-         "fieldConfig": {"defaults": {"mappings": [{"type": "value", "options": {
-             "true": {"text": "cerrar", "color": CRITICAL}, "false": {"text": "abrir", "color": GOOD}}}],
-             "color": {"mode": "thresholds"}, **thresholds([(None, GREY)])}, "overrides": []},
-         "options": {"showValue": "auto", "mergeValues": False, "rowHeight": 0.8, "legend": {"showLegend": False}}},
+         "fieldConfig": {"defaults": {"custom": {"align": "center"}}, "overrides": [
+             {"matcher": {"id": "byName", "options": "Solo la previsión"}, "properties": [
+                 {"id": "mappings", "value": [{"type": "value", "options": {
+                     "true": {"text": "cerrar", "color": CRITICAL}, "false": {"text": "abrir", "color": GOOD}}}]},
+                 {"id": "custom.cellOptions", "value": {"type": "color-background", "mode": "basic"}}]}]},
+         "options": {"showHeader": True, "cellHeight": "sm", "footer": {"show": False}}},
 
         series(8, "Previsión: humedad (%)", "Humedad prevista en la cumbre. La cúpula se cierra al 90 %.",
                [fc([("rh", "Humedad", "number")])], {"x": 0, "y": 16, "w": 8, "h": 8}, "percent",
                {"Humedad": BLUE}, limits=[(None, "transparent"), (90, CRITICAL)], minimum=0, maximum=100),
         series(9, "Previsión: viento a 750 hPa (km/h)", "Viento previsto a la altura de la cumbre (GFS). Límite: 80 km/h.",
-               [fc([("wind750", "wind750", "number")])], {"x": 8, "y": 16, "w": 8, "h": 8}, "velocitykmh",
+               [kmh(fc([("wind750", "wind750", "number")]), "wind750", "Viento")], {"x": 8, "y": 16, "w": 8, "h": 8}, "velocitykmh",
                {"Viento": AQUA}, limits=[(None, "transparent"), (80, CRITICAL)], minimum=0,
-               transformations=to_kmh("wind750", "Viento")),
+               transformations=hide("wind750")),
         series(10, "Previsión: temperatura y punto de rocío (°C)", "Si se juntan, hay riesgo de condensación; bajo 0 °C, de hielo.",
                [fc([("temp", "Temperatura", "number"), ("dew", "Punto de rocío", "number")])],
                {"x": 16, "y": 16, "w": 8, "h": 8}, "celsius", {"Temperatura": ORANGE, "Punto de rocío": BLUE}),
@@ -154,21 +162,21 @@ def dashboard() -> dict:
 
         series(14, "Estación del NOT, últimas 24 h: humedad (%)", "Medida real en la cumbre. La cúpula se cierra al 90 %.",
                [st([("rh", "Humedad", "number")])], {"x": 0, "y": 31, "w": 8, "h": 8}, "percent", {"Humedad": BLUE},
-               limits=[(None, "transparent"), (90, CRITICAL)], minimum=0, maximum=100),
+               limits=[(None, "transparent"), (90, CRITICAL)], minimum=0, maximum=100, last_24h=True),
         series(15, "Estación del NOT, últimas 24 h: viento (km/h)", "Medida real en la cumbre. Límite: 80 km/h.",
-               [st([("wind", "wind", "number")])], {"x": 8, "y": 31, "w": 8, "h": 8}, "velocitykmh", {"Viento": AQUA},
-               limits=[(None, "transparent"), (80, CRITICAL)], minimum=0, transformations=to_kmh("wind", "Viento")),
+               [kmh(st([("wind", "wind", "number")]), "wind", "Viento")], {"x": 8, "y": 31, "w": 8, "h": 8}, "velocitykmh", {"Viento": AQUA},
+               limits=[(None, "transparent"), (80, CRITICAL)], minimum=0, transformations=hide("wind"), last_24h=True),
         series(16, "Previsto frente a medido: humedad, últimas 24 h (%)",
                "La previsión mira un punto más bajo y húmedo que la cumbre: por eso cierra de más.",
                [query("A", "forecast_vs_measured", [("t", "Hora", "timestamp"), ("forecast", "Previsto", "number"),
                                                     ("measured", "Medido (NOT)", "number")])],
                {"x": 16, "y": 31, "w": 8, "h": 8}, "percent", {"Previsto": GREY, "Medido (NOT)": ORANGE},
-               limits=[(None, "transparent"), (90, CRITICAL)], minimum=0, maximum=100),
+               limits=[(None, "transparent"), (90, CRITICAL)], minimum=0, maximum=100, last_24h=True),
     ]
     return {
         "uid": "roquemodel-public", "title": "RoqueModel — previsión de cierre de cúpula esta noche",
         "tags": ["roquemodel", "public"], "timezone": "Atlantic/Canary", "refresh": "1h", "schemaVersion": 39,
-        "editable": False, "graphTooltip": 1, "time": {"from": "now-24h", "to": "now+24h"}, "panels": panels,
+        "editable": False, "graphTooltip": 1, "time": {"from": "now-12h", "to": "now+22h"}, "panels": panels,
     }
 
 

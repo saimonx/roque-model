@@ -11,8 +11,8 @@
  "editable": false,
  "graphTooltip": 1,
  "time": {
-  "from": "now-24h",
-  "to": "now+24h"
+  "from": "now-12h",
+  "to": "now+22h"
  },
  "panels": [
   {
@@ -72,7 +72,7 @@
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "h",
+     "unit": "suffix: h",
      "decimals": 0,
      "mappings": [],
      "thresholds": {
@@ -103,7 +103,7 @@
      "calcs": [
       "lastNotNull"
      ],
-     "fields": "",
+     "fields": "/.*/",
      "values": false
     }
    }
@@ -150,7 +150,7 @@
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "h",
+     "unit": "suffix: h",
      "decimals": 1,
      "mappings": [],
      "thresholds": {
@@ -181,7 +181,7 @@
      "calcs": [
       "lastNotNull"
      ],
-     "fields": "",
+     "fields": "/.*/",
      "values": false
     }
    }
@@ -267,7 +267,7 @@
      "calcs": [
       "lastNotNull"
      ],
-     "fields": "",
+     "fields": "/.*/",
      "values": false
     }
    }
@@ -314,7 +314,7 @@
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "h",
+     "unit": "suffix: h",
      "decimals": 1,
      "mappings": [],
      "thresholds": {
@@ -337,7 +337,7 @@
      "calcs": [
       "lastNotNull"
      ],
-     "fields": "",
+     "fields": "/.*/",
      "values": false
     }
    }
@@ -437,7 +437,7 @@
   },
   {
    "id": 7,
-   "type": "state-timeline",
+   "type": "table",
    "title": "Solo la previsión del tiempo: cerrar o abrir",
    "description": "Las reglas de cierre (humedad ≥ 90 %, viento ≥ 80 km/h o hielo) aplicadas a la previsión tal cual.",
    "datasource": {
@@ -468,9 +468,9 @@
      "root_selector": "hours",
      "columns": [
       {
-       "selector": "t",
+       "selector": "local",
        "text": "Hora",
-       "type": "timestamp"
+       "type": "string"
       },
       {
        "selector": "raw_closed",
@@ -482,42 +482,51 @@
    ],
    "fieldConfig": {
     "defaults": {
-     "mappings": [
-      {
-       "type": "value",
-       "options": {
-        "true": {
-         "text": "cerrar",
-         "color": "#d03b3b"
-        },
-        "false": {
-         "text": "abrir",
-         "color": "#0ca30c"
-        }
-       }
-      }
-     ],
-     "color": {
-      "mode": "thresholds"
-     },
-     "thresholds": {
-      "mode": "absolute",
-      "steps": [
+     "custom": {
+      "align": "center"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Solo la previsión"
+      },
+      "properties": [
        {
-        "value": null,
-        "color": "#8e8d87"
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "true": {
+            "text": "cerrar",
+            "color": "#d03b3b"
+           },
+           "false": {
+            "text": "abrir",
+            "color": "#0ca30c"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "basic"
+        }
        }
       ]
      }
-    },
-    "overrides": []
+    ]
    },
    "options": {
-    "showValue": "auto",
-    "mergeValues": false,
-    "rowHeight": 0.8,
-    "legend": {
-     "showLegend": false
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
     }
    }
   },
@@ -668,28 +677,17 @@
        "text": "wind750",
        "type": "number"
       }
+     ],
+     "computed_columns": [
+      {
+       "selector": "wind750 * 3.6",
+       "text": "Viento",
+       "type": "number"
+      }
      ]
     }
    ],
    "transformations": [
-    {
-     "id": "calculateField",
-     "options": {
-      "mode": "binary",
-      "alias": "Viento",
-      "replaceFields": false,
-      "binary": {
-       "left": {
-        "matrix": null,
-        "fixed": "wind750"
-       },
-       "operator": "*",
-       "right": {
-        "fixed": "3.6"
-       }
-      }
-     }
-    },
     {
      "id": "organize",
      "options": {
@@ -1231,7 +1229,8 @@
      "mode": "multi",
      "sort": "none"
     }
-   }
+   },
+   "timeFrom": "24h"
   },
   {
    "id": 15,
@@ -1275,28 +1274,17 @@
        "text": "wind",
        "type": "number"
       }
+     ],
+     "computed_columns": [
+      {
+       "selector": "wind * 3.6",
+       "text": "Viento",
+       "type": "number"
+      }
      ]
     }
    ],
    "transformations": [
-    {
-     "id": "calculateField",
-     "options": {
-      "mode": "binary",
-      "alias": "Viento",
-      "replaceFields": false,
-      "binary": {
-       "left": {
-        "matrix": null,
-        "fixed": "wind"
-       },
-       "operator": "*",
-       "right": {
-        "fixed": "3.6"
-       }
-      }
-     }
-    },
     {
      "id": "organize",
      "options": {
@@ -1362,7 +1350,8 @@
      "mode": "multi",
      "sort": "none"
     }
-   }
+   },
+   "timeFrom": "24h"
   },
   {
    "id": 16,
@@ -1487,7 +1476,8 @@
      "mode": "multi",
      "sort": "none"
     }
-   }
+   },
+   "timeFrom": "24h"
   }
  ]
 }
