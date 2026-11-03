@@ -12,7 +12,7 @@
  "graphTooltip": 1,
  "time": {
   "from": "now-7h/d+19h",
-  "to": "now-7h/d+31h"
+  "to": "now-7h/d+7h"
  },
  "panels": [
   {

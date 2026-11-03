@@ -92,11 +92,12 @@ def stat(pid: int, title: str, description: str, target: dict, grid: dict, unit:
 
 
 # Time range of the forecast panels: 19:00 to 07:00 (Canary time) of the night that is running
-# or comes next. Grafana date maths: "now-7h/d" is the start of the day of 7 hours ago, so the
-# range only jumps to the next night after 07:00 (the night always ends before then). Nights are
-# longest in winter (about 19:45 to 06:20), so in summer the edges stay empty for a while.
-# The station panels set their own range (the last 24 hours).
-NIGHT_RANGE = {"from": "now-7h/d+19h", "to": "now-7h/d+31h"}
+# or comes next. Grafana date maths: "now-7h/d" is the day of 7 hours ago, so the range only
+# jumps to the next night after 07:00 (the night always ends before then). In "from" it rounds
+# to the start of that day (+19h = 19:00); in "to" it rounds to its end (+7h = 07:00 next day).
+# Nights are longest in winter (about 19:45 to 06:20), so in summer the edges stay empty for a
+# while. The station panels set their own range (the last 24 hours).
+NIGHT_RANGE = {"from": "now-7h/d+19h", "to": "now-7h/d+7h"}
 
 
 def dashboard() -> dict:
