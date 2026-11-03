@@ -91,6 +91,14 @@ def stat(pid: int, title: str, description: str, target: dict, grid: dict, unit:
                         "reduceOptions": {"calcs": ["lastNotNull"], "fields": "/.*/", "values": False}}}
 
 
+# Time range of the forecast panels: 19:00 to 07:00 (Canary time) of the night that is running
+# or comes next. Grafana date maths: "now-7h/d" is the start of the day of 7 hours ago, so the
+# range only jumps to the next night after 07:00 (the night always ends before then). Nights are
+# longest in winter (about 19:45 to 06:20), so in summer the edges stay empty for a while.
+# The station panels set their own range (the last 24 hours).
+NIGHT_RANGE = {"from": "now-7h/d+19h", "to": "now-7h/d+31h"}
+
+
 def dashboard() -> dict:
     hours = query("A", "hours", [("local", "Hora", "string"), ("p_closed", "RoqueModel", "number")])
     raw = query("A", "hours", [("local", "Hora", "string"), ("raw_closed", "Solo la previsión", "boolean")])
@@ -176,7 +184,7 @@ def dashboard() -> dict:
     return {
         "uid": "roquemodel-public", "title": "RoqueModel — previsión de cierre de cúpula esta noche",
         "tags": ["roquemodel", "public"], "timezone": "Atlantic/Canary", "refresh": "1h", "schemaVersion": 39,
-        "editable": False, "graphTooltip": 1, "time": {"from": "now-12h", "to": "now+22h"}, "panels": panels,
+        "editable": False, "graphTooltip": 1, "time": NIGHT_RANGE, "panels": panels,
     }
 
 

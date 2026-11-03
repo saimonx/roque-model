@@ -11,8 +11,8 @@
  "editable": false,
  "graphTooltip": 1,
  "time": {
-  "from": "now-12h",
-  "to": "now+22h"
+  "from": "now-7h/d+19h",
+  "to": "now-7h/d+31h"
  },
  "panels": [
   {

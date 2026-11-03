@@ -315,16 +315,15 @@
   }
 
   function renderLive(d) {
-    const t = T(), n = d.night;
+    const t = T();
     const fmt = (dt, long) => timeLocal(dt.toISOString(), long);
     const kmh = (v) => (v == null ? null : v * 3.6);
     const pts = (rows, key, f = (v) => v) => rows.map((p) => ({ t: p.t, v: p[key] == null ? null : f(p[key]) }));
     const top = (rows, key, f, floor) => Math.max(floor, ...rows.map((p) => (p[key] == null ? 0 : f(p[key]))));
-    const night = [{ from: new Date(n.start_utc), to: new Date(n.end_utc) }];
 
-    // 1. Tonight's forecast, hour by hour (ECMWF; summit wind from GFS at 750 hPa).
+    // 1. Tonight's forecast, hour by hour, night hours only (ECMWF; summit wind from GFS at 750 hPa).
     const fc = d.hourly.map((h) => ({ ...h, t: new Date(h.t) }));
-    const base = { timeFormat: fmt, bands: night };
+    const base = { timeFormat: fmt };
     miniCharts($("fc-grid"), [
       { ...base, series: [{ label: t.c_rh, color: "--series-1", values: pts(fc, "rh") }], yMin: 0, yMax: 100, unit: " %",
         threshold: { v: 90, label: t.c_limit }, valueFormat: (v) => Math.round(v) },

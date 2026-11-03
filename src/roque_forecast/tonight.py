@@ -331,15 +331,14 @@ def iso(t: pd.Timestamp) -> str:
 
 
 def hourly_curve(forecast: pd.DataFrame, upper: pd.DataFrame | None, window: dict) -> list[dict]:
-    """Forecast hours from 3 h before the night to its end, for the page charts."""
-    hours = forecast[(forecast["time_utc"] >= window["start"] - pd.Timedelta(hours=3))
-                     & (forecast["time_utc"] <= window["end"])].copy()
+    """Forecast hours of the night itself, for the page charts: the same hours RoqueModel uses
+    (hours before the night are not shown, because no model input comes from them)."""
+    hours = forecast[(forecast["time_utc"] >= window["start"]) & (forecast["time_utc"] <= window["end"])].copy()
     if upper is not None and "wind_speed_750hPa" in upper:
         hours = hours.merge(upper[["time_utc", "wind_speed_750hPa"]], on="time_utc", how="left")
     else:
         hours["wind_speed_750hPa"] = np.nan
-    hours["dark"] = astro.is_astronomical_night(hours["time_utc"])
-    return [{"t": iso(h.time_utc), "dark": bool(h.dark), "rh": h.relative_humidity_2m, "wind": h.wind_speed_10m,
+    return [{"t": iso(h.time_utc), "rh": h.relative_humidity_2m, "wind": h.wind_speed_10m,
              "wind750": h.wind_speed_750hPa, "temp": h.temperature_2m, "dew": h.dew_point_2m, "cloud": h.cloud_cover,
              "precip": h.precipitation, "pressure": h.surface_pressure}
             for h in hours.itertuples()]
