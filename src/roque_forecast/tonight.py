@@ -48,7 +48,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-from roque_forecast import astro, config, dome, explain, features, hourly
+from roque_forecast import astro, config, dome, explain, features, hourly, observability
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
 from roque_forecast.sources import not_mast, open_meteo, r2d2
@@ -428,6 +428,7 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         handlers=[logging.FileHandler(config.LOG_DIR / "tonight.log"), logging.StreamHandler(sys.stdout)],
     )
+    observability.init("tonight")  # errors to Sentry when SENTRY_DSN is set (GitHub Actions)
     now = pd.Timestamp(datetime.now(UTC)).floor("min")
     page = run(now, PoliteSession())
     save(page)

@@ -16,7 +16,7 @@ import json
 
 import pandas as pd
 
-from roque_forecast import config
+from roque_forecast import config, observability
 from roque_forecast.tonight import SITE_DATA_DIR, clean
 
 RESULTS = config.PROJECT_DIR / "reports" / "results"
@@ -52,6 +52,7 @@ def build() -> dict:
 
 
 def main() -> int:
+    observability.init("site_data")  # errors to Sentry when SENTRY_DSN is set (GitHub Actions)
     SITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
     path = SITE_DATA_DIR / "evaluation.json"
     path.write_text(json.dumps(build(), ensure_ascii=False, indent=1), encoding="utf-8")

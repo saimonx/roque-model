@@ -13,6 +13,7 @@ dependencies = [
     "matplotlib>=3.11.2",
     "scikit-learn>=1.9.1",
     "joblib>=1.6.0",
+    "sentry-sdk>=2.73.0",
 ]
 
 [dependency-groups]

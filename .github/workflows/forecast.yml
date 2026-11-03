@@ -66,9 +66,12 @@ jobs:
           ROQUE_ORION_URL: https://178-105-253-255.sslip.io/orion
           ROQUE_QUANTUMLEAP_URL: https://178-105-253-255.sslip.io/ql
           ROQUE_FIWARE_TOKEN: ${{ secrets.ROQUE_FIWARE_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}       # errors to Sentry (src/roque_forecast/observability.py)
         run: uv run --no-dev python -m roque_forecast.tonight
 
-      - name: Page evaluation and live track record
+      - name: Page evaluation
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: uv run --no-dev python -m roque_forecast.site_data
 
       - name: Publish to GitHub Pages
