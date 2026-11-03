@@ -11,7 +11,7 @@ window.I18N = {
     stale_unknown: "hora desconocida",
     grafana_link: "Panel en Grafana ↗",
     grafana_title: "El mismo pronóstico en un panel público de Grafana",
-    live_grafana: "Estos mismos datos están también en un <a href=\"https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8\">panel público de Grafana</a> (Grafana Cloud), que lee cada hora lo que publica esta web.",
+    live_grafana: "Estos mismos datos están también en un <a href=\"https://saimonx.github.io/roque-model/grafana/\">panel público de Grafana</a> (Grafana Cloud), que lee cada hora lo que publica esta web.",
     mode_label: "Modelo actual:", mode_now: "ahora", mode_why: "¿Qué cambia de uno a otro? ⓘ",
     mode_provisional: "Provisional hasta las {time}", mode_final: "Definitivo desde las {time}",
     mode_acc: "acierta el {p} de las horas",
@@ -145,7 +145,7 @@ window.I18N = {
 <li><a href="https://arxiv.org/abs/1608.06506">Masciadri et al. 2016, SPIE 9909</a>: pronóstico operativo de la turbulencia óptica con el modelo Meso-NH para grandes telescopios.</li>
 <li><a href="https://arxiv.org/abs/2409.05133">Masciadri et al. 2024, SPIE 13097</a>: FATE, el sistema automático de pronóstico de la turbulencia óptica del VLT (ESO, Paranal).</li>
 <li><a href="https://arxiv.org/abs/2003.11109">Mommert 2020, AJ 159</a>: detección de nubes en imágenes de cámaras de todo el cielo con aprendizaje automático.</li>`,
-    footer: "RoqueModel · proyecto independiente · código y metodología en <a href=\"https://github.com/saimonx/roque-model\">GitHub</a> · <a href=\"https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8\">panel en Grafana</a>.",
+    footer: "RoqueModel · proyecto independiente · código y metodología en <a href=\"https://github.com/saimonx/roque-model\">GitHub</a> · <a href=\"https://saimonx.github.io/roque-model/grafana/\">panel en Grafana</a>.",
     credits: "Datos: <a href=\"https://www.not.iac.es/weather/\">estación meteorológica del NOT</a>, <a href=\"https://astro.ing.iac.es/seeing/\">seeing R2D2 del ING</a>, previsiones ECMWF y NOAA GFS vía <a href=\"https://open-meteo.com\">Open-Meteo</a> (<a href=\"https://creativecommons.org/licenses/by/4.0/\">CC BY 4.0</a>).",
     canary_time: "{time} hora canaria ({offset})",
     na: "—",

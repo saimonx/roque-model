@@ -11,7 +11,7 @@ estación de la cumbre.
 
 - **Web, actualizada cada hora:** https://saimonx.github.io/roque-model/ (la explicación completa del modelo
   está en sus apartados)
-- **Panel público de Grafana:** https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8
+- **Panel público de Grafana:** https://saimonx.github.io/roque-model/grafana/
 - **Datos de entrenamiento:** [roquemodel_data.zip](https://github.com/saimonx/roque-model/releases/download/training-data/roquemodel_data.zip)
   (30.044 horas de noche con su etiqueta y sus datos de entrada, y las respuestas de la copia probada)
 - **Detalles técnicos:** [docs/DETALLES_TECNICOS.md](docs/DETALLES_TECNICOS.md)
