@@ -21,7 +21,8 @@ fi
 cd "$TMP"
 git init -q -b gh-pages
 git add -A
-git -c user.name="roque-model bot" -c user.email="noreply@github.com" \
+# The owner's GitHub noreply address: "noreply@github.com" would credit GitHub's web-flow account.
+git -c user.name="roque-model bot" -c user.email="546832+saimonx@users.noreply.github.com" \
     commit -q -m "Forecast update $(date -u +%Y-%m-%dT%H:%MZ)"
 # PUBLISH_REMOTE: set by the GitHub Actions workflow (a URL with its token); otherwise origin.
 git push -q --force "${PUBLISH_REMOTE:-$(git -C "$PROJECT_DIR" remote get-url origin)}" gh-pages
