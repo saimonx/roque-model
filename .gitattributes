@@ -1,0 +1,3 @@
+# Executed notebooks are large (embedded figures): keep them out of GitHub's language stats,
+# so the repository shows the language of its code (Python).
+*.ipynb linguist-documentation
