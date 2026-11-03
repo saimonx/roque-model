@@ -3,7 +3,7 @@
 // every piece of evidence folded below it.
 (function () {
   const LOCAL_TZ = "Atlantic/Canary";
-  const state = { tonight: null, evaluation: null, hour: null };
+  const state = { tonight: null, evaluation: null, hour: null, line: null };
 
   const T = () => window.I18N.es;
   const fill = (text, values) => text.replace(/\{(\w+)\}/g, (_, k) => (values[k] != null ? values[k] : ""));
@@ -36,34 +36,40 @@
   // ---------------------------------------------------------------- the two lines, hour by hour
   // Line 1: our model (probability, coloured green / orange / red).
   // Line 2: the weather forecast read literally (close / open, red / green).
-  // Clicking an hour opens a panel that shows how both lines come out for that hour.
+  // Clicking an hour opens, under that line only, a panel that shows how it comes out for that hour.
   function renderLines(d) {
     const t = T(), c = state.evaluation && state.evaluation.comparison;
     // Under line 2, the forecast read literally gets the same box as the current model, with its accuracy.
     $("raw-list").innerHTML = `<li class="raw current"><span class="mode-dot"></span><b>${t.raw_rule}</b>
       <span class="mode-acc">${fill(t.mode_acc, { p: c ? pct(1 - c.raw.wrong) : t.na })}</span></li>`;
-    const sel = state.hour;
     $("strip").parentElement.style.setProperty("--n", d.hours.length);
-    const cell = (h, i, inner) => `<button type="button" class="cell${sel === i ? " selected" : ""}" data-i="${i}" aria-pressed="${sel === i}"
-      title="${h.local}">${inner}</button>`;
-    $("strip").innerHTML = d.hours.map((h, i) => cell(h, i, `
+    $("strip-raw").parentElement.style.setProperty("--n", d.hours.length);
+    const cell = (line, h, i, inner) => {
+      const on = state.hour === i && state.line === line;
+      return `<button type="button" class="cell${on ? " selected" : ""}" data-i="${i}" aria-pressed="${on}" title="${h.local}">${inner}</button>`;
+    };
+    $("strip").innerHTML = d.hours.map((h, i) => cell("model", h, i, `
         <span class="cell-hour">${h.local.slice(0, 2)}h</span>
         <span class="cell-bar" style="background:var(${COLORS[h.level]})"></span>
         <span class="cell-p">${pct(h.p_closed)}</span>`)).join("");
-    $("strip-raw").innerHTML = d.hours.map((h, i) => cell(h, i, `
+    $("strip-raw").innerHTML = d.hours.map((h, i) => cell("raw", h, i, `
         <span class="cell-bar" style="background:var(${h.raw_closed ? "--critical" : "--good"})"></span>
         <span class="cell-p">${h.raw_closed ? t.raw_close_word : t.raw_open_word}</span>`)).join("");
-    document.querySelectorAll("#strip .cell, #strip-raw .cell").forEach((b) => b.addEventListener("click", () => {
-      const i = +b.dataset.i;
-      state.hour = state.hour === i ? null : i;
-      renderLines(d);
-    }));
+    [["strip", "model"], ["strip-raw", "raw"]].forEach(([id, line]) => $(id).querySelectorAll(".cell").forEach((b) =>
+      b.addEventListener("click", () => {
+        const i = +b.dataset.i, again = state.hour === i && state.line === line;
+        state.hour = again ? null : i;
+        state.line = again ? null : line;
+        renderLines(d);
+      })));
     renderHourDetail(d);
   }
 
   function renderHourDetail(d) {
-    const box = $("hour-detail"), i = state.hour;
-    if (i == null || !d.hours[i]) { box.hidden = true; box.innerHTML = ""; return; }
+    const i = state.hour, which = state.line;
+    ["model", "raw"].forEach((l) => { if (l !== which || i == null) { $("detail-" + l).hidden = true; $("detail-" + l).innerHTML = ""; } });
+    if (i == null || !d.hours[i] || !which) return;
+    const box = $("detail-" + which);
     const t = T(), h = d.hours[i], n = d.night, ex = d.explain;
     const end = new Date(new Date(h.t).getTime() + 3600e3).toISOString();
     const kmh = (ms) => (ms == null ? t.na : num(ms * 3.6, 0));
@@ -128,7 +134,7 @@
     box.hidden = false;
     box.innerHTML = `<div class="detail-head"><h3>${fill(t.detail_title, { start: h.local, end: timeLocal(end) })}</h3>
       <button type="button" class="detail-close" aria-label="${t.detail_close}">×</button></div>
-      <div class="why-cols">${model}${raw}</div>`;
+      ${which === "model" ? model : raw}`;
     box.querySelector(".detail-close").addEventListener("click", () => { state.hour = null; renderLines(d); });
   }
 

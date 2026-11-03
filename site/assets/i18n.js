@@ -18,20 +18,20 @@ window.I18N = {
     mode_provisional_text: "Antes de que empiece la noche aún no existe lo que más ayuda: lo que mide la estación de la cumbre justo antes de la noche. Por eso ahora pronostica el <b>modelo provisional</b>, que usa solo la previsión del tiempo, lo que pasó anoche y la época del año. A las {time} se añade la estación y pasa a pronosticar el <b>modelo definitivo</b>.",
     mode_final_text: "Ahora pronostica el <b>modelo definitivo</b>: ya usa lo que midió la estación de la cumbre justo antes de la noche, que es lo que más ayuda, además de la previsión del tiempo, lo de anoche y la época del año. Hasta las {until} pronosticaba el <b>modelo provisional</b>, sin la estación.",
     headline: "Se podrá observar unas {open} de las {total} horas de noche",
-    strip_legend: "<b>Toca una hora</b> para ver cómo sale cada línea.",
+    strip_legend: "<b>Toca una hora</b> de cualquiera de las dos líneas para ver cómo sale.",
     legend_title: "Leyenda",
-    legend_html: `<div class="legend-col"><b>RoqueModel</b>: probabilidad de que la cúpula esté cerrada esa hora (por humedad, viento o hielo).
+    legend_model: `Probabilidad de que la cúpula esté cerrada esa hora (por humedad, viento o hielo).
   <ul><li><span class="sw" style="background:var(--good)"></span><b>Verde</b>: menos del 20 %. Lo más probable es que se pueda observar.</li>
   <li><span class="sw" style="background:var(--warning)"></span><b>Amarillo</b>: del 20 % al 50 %. Dudosa: puede que haya que cerrar.</li>
-  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo</b>: más del 50 %. Lo más probable es que la cúpula esté cerrada.</li></ul></div>
-<div class="legend-col"><b>Solo la previsión del tiempo</b>: dice sí o no, sin término medio.
+  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo</b>: más del 50 %. Lo más probable es que la cúpula esté cerrada.</li></ul>`,
+    legend_raw: `La previsión del tiempo leída tal cual: dice sí o no, sin término medio.
   <ul><li><span class="sw" style="background:var(--good)"></span><b>Verde, «abrir»</b>: la previsión no llega a ningún límite de cierre.</li>
-  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo, «cerrar»</b>: la previsión da humedad del 90 % o más, viento de 80 km/h o más, o hielo.</li></ul></div>`,
+  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo, «cerrar»</b>: la previsión da humedad del 90 % o más, viento de 80 km/h o más, o hielo.</li></ul>`,
     line_model: "RoqueModel",
     line_raw: "Solo la previsión del tiempo",
     raw_rule: "Reglas de cierre sobre la previsión",
     raw_close_word: "cerrar", raw_open_word: "abrir",
-    detail_title: "De {start} a {end}: cómo sale cada línea", detail_close: "Cerrar",
+    detail_title: "De {start} a {end}", detail_close: "Cerrar",
     colors: { low: "verde", medium: "amarillo", high: "rojo" },
     model_title: "RoqueModel: {p} → {color}",
     model_base: "Empieza en {p}: es lo que el modelo da a una hora de noche cualquiera (más o menos, la parte de horas que se cierran). Después, cada dato lo sube (+) o lo baja (−):",

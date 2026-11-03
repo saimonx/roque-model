@@ -209,7 +209,12 @@ table.text td:first-child { min-width: 180px; }
 #tonight h2 { margin-bottom: 0.2rem; }
 .night-line { margin: 0; }
 /* Which model forecasts now: provisional, then final, each with its accuracy on the right */
-.mode-box { margin: 0.6rem 0 0; }
+.mode-box { margin: 0 0 0.5rem; }
+/* "Modelo actual:" and its two options on one line (they wrap on a phone) */
+.mode-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.mode-row .mode-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; max-width: none; }
+.mode-row .mode-acc { margin-left: 4px; }
+.color-legend + .line-head { margin-top: 1.4rem; }
 .mode-label { margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-2); }
 .mode-list { list-style: none; margin: 0.3rem 0 0; padding: 0; display: grid; gap: 4px; max-width: 560px; }
 .mode-list li { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; padding: 5px 10px;
@@ -222,7 +227,6 @@ table.text td:first-child { min-width: 180px; }
 .mode-list li.final.current .mode-dot { background: var(--good); }
 .mode-list li.raw .mode-dot { background: var(--text-3); }
 /* The boxes sit inside the scrolling hour strips: keep them still and readable on a phone */
-.lines .mode-box { position: sticky; left: 0; margin: 0 0 0.5rem; }
 .mode-now { font-size: 0.75rem; padding: 0 6px; border-radius: 99px; border: 1px solid currentColor; }
 .mode-acc { margin-left: auto; font-size: 0.85rem; }
 details.info { display: inline-block; margin: 0.3rem 0 0; font-size: 0.85rem; }
@@ -284,8 +288,6 @@ table.compare thead th, #table-years thead th { vertical-align: bottom; }
 .detail-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .detail-head h3 { margin: 0; font-size: 1rem; }
 .detail-close { background: none; border: 1px solid var(--border); border-radius: 6px; width: 30px; height: 30px; cursor: pointer; color: inherit; font-size: 1.1rem; }
-.why-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
-@media (max-width: 760px) { .why-cols { grid-template-columns: 1fr; } }
 .why-col h4 { margin: .4rem 0; font-size: .95rem; }
 ul.why { list-style: none; padding: 0; margin: 6px 0; }
 .why-row { display: grid; grid-template-columns: 1fr 90px 52px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: .85rem; }
@@ -297,10 +299,9 @@ ul.why { list-style: none; padding: 0; margin: 6px 0; }
 .why-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
 table.rules-raw th, table.rules-raw td { text-align: left; white-space: normal; }
 table.rules-raw td.rule-yes { color: var(--critical); font-weight: 700; }
-/* On narrow screens both lines scroll sideways together, so the hours stay aligned. */
+/* On narrow screens each line of hours scrolls sideways. */
 .lines { overflow-x: auto; }
 .lines .strip { overflow: visible; min-width: calc(var(--n, 10) * 48px); }
-.lines .line-head { position: sticky; left: 0; }
 
 /* "Forecast for this hour": a heading with its total, then one indented row per variable. */
 .why-head { display: flex; justify-content: space-between; padding: 8px 0 2px; font-size: .85rem; border-bottom: 1px solid var(--border); }
@@ -417,7 +418,6 @@ tr.chosen td, tr.chosen th { font-weight: 700; background: var(--surface-2); }
 /* Colour legend under the two hour lines */
 .color-legend { margin: 0.6rem 0 0; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; color: var(--text-2); }
 .color-legend h3 { margin: 0 0 0.3rem; font-size: 0.9rem; color: var(--text); }
-.legend-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 24px; }
 .color-legend ul { list-style: none; margin: 0.3rem 0 0; padding: 0; }
 .color-legend li { margin: 0.2rem 0; }
 .color-legend .sw { margin-right: 6px; }
