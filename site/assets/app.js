@@ -109,7 +109,6 @@
       x: num(Math.abs(top[1] * 100), 0), v: signed(top[1]) });
     const color = t.colors[h.level];
     const model = `<div class="why-col">
-      <h4>${fill(t.model_title, { p: pct(h.p_closed), color })}</h4>
       <p class="small">${fill(t.model_base, { p: pct(ex.base) })}</p>
       <ul class="why">${rows}</ul>
       <p class="small"><b>${fill(t.model_total, { p: pct(h.p_closed), color, rule: t.rules_color[h.level] })}</b></p>
@@ -126,7 +125,6 @@
       `<tr><th scope="row">${t.raw_rows.ice}</th><td>${num(r.temp, 1)} °C</td><td>${t.raw_cond.ice}</td>${yes(ice)}</tr>`,
     ];
     const raw = `<div class="why-col">
-      <h4>${fill(t.raw_detail_title, { verdict: h.raw_closed ? t.raw_close_word : t.raw_open_word, color: t.colors[h.raw_closed ? "high" : "low"] })}</h4>
       <div class="table-wrap"><table class="small rules-raw"><thead><tr>${t.raw_cols.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>${rawRows.join("")}</tbody></table></div>
       <p class="small"><b>${h.raw_closed ? t.raw_verdict_close : t.raw_verdict_open}</b></p>
       <p class="muted small">${t.raw_note}${r.wind_level === "10m" ? " " + t.raw_wind10 : ""}</p></div>`;

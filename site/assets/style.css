@@ -349,7 +349,7 @@ table.rm-table th[scope="row"] { font-weight: 600; color: var(--text); }
 @media (max-width: 600px) { .tl-row { grid-template-columns: 1fr; gap: 3px; } .tl-y { font-size: .6rem; padding: 5px 0; } }
 
 /* Part 3: the steps and the worked example */
-ol.rm-flow { list-style: none; padding: 0; margin: 10px 0 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; counter-reset: none; }
+ol.rm-flow { list-style: none; padding: 0; margin: 10px 0 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; counter-reset: none; }
 ol.rm-flow li { position: relative; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: .85rem; line-height: 1.4; }
 ol.rm-flow li b { font-size: .9rem; }
 ol.rm-flow li:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-weight: 700; }
