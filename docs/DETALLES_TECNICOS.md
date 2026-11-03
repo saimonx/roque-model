@@ -185,6 +185,14 @@ verdad la noche anterior (`outcomes.jsonl`): es un historial en directo que ning
 visto. El programador de GitHub se salta muchas ejecuciones en repositorios con poca actividad, así que el
 flujo también se lanza desde fuera cada hora (`gh workflow run`); el programador queda como reserva.
 
+**Vigilancia cada hora** (`infra/cloud/monitor.py`, cron del servidor a los :35): comprueba la web (pronóstico
+reciente y coherente: probabilidades entre 0 y 1, horas abiertas + cerradas = noche, el modelo que toca según la
+hora), FIWARE (Orion, QuantumLeap, que coincide con la web, historial reciente, escritura sin token rechazada,
+certificado HTTPS), el panel público de Grafana (abre y sus paneles tienen datos), GitHub (últimas ejecuciones
+correctas y flujos activos) y el propio servidor (contenedores, disco, memoria). Arregla solo lo que puede
+(arranca contenedores parados y, con un token, relanza el pronóstico) y avisa por correo a través de
+Healthchecks.io, que también avisa si la comprobación deja de llegar (servidor caído).
+
 ## 8. FIWARE
 
 [FIWARE](https://www.fiware.org) es la plataforma abierta de datos de sensores (IoT) que usa el GTC. RoqueModel
