@@ -2,7 +2,7 @@
 
 Complemento del [README](../README.md) y de la [web](https://saimonx.github.io/roque-model/): cómo se
 construye la etiqueta, cómo se comprueba, cómo se eligió el modelo, todas las cifras de la prueba y cómo
-funciona el proyecto por dentro (nube, FIWARE, Grafana y recolectores).
+funciona el pronóstico de cada hora.
 
 ## Índice
 
@@ -12,11 +12,10 @@ funciona el proyecto por dentro (nube, FIWARE, Grafana y recolectores).
 4. [Resultados completos de la prueba (2024–2026)](#4-resultados-completos-de-la-prueba-20242026)
 5. [Probado y descartado](#5-probado-y-descartado)
 6. [Hallazgos de los datos](#6-hallazgos-de-los-datos)
-7. [Cómo funciona cada hora: nube y publicación](#7-cómo-funciona-cada-hora-nube-y-publicación)
-8. [FIWARE + Grafana](#8-fiware--grafana)
-9. [Recolectores (macOS)](#9-recolectores-macos)
-10. [Todos los comandos](#10-todos-los-comandos)
-11. [Estructura del código](#11-estructura-del-código)
+7. [Cómo funciona cada hora](#7-cómo-funciona-cada-hora)
+8. [FIWARE](#8-fiware)
+9. [Todos los comandos](#9-todos-los-comandos)
+10. [Estructura del código](#10-estructura-del-código)
 
 ## 1. La etiqueta: cuándo cuenta como cerrada
 
@@ -76,8 +75,8 @@ año) y la contabilidad del WHT (algunos años da por observadas noches con la c
   noche (`hourly.py`, `features.py`).
 - **Dos versiones:** provisional (antes de la noche, sin la estación de la cumbre, que aún no existe) y
   definitiva (desde que empieza la noche astronómica, con todos los datos).
-- **Separación de años:** entrenamiento 2017–2022, elección de ajustes con 2023 y prueba en 2024–2026. La
-  copia probada aprendió de 2017–2023; el modelo en directo se volvió a entrenar con los mismos ajustes con
+- **Separación de años:** los ajustes se eligen solo con 2017–2023 (validación en 2021, 2022 y 2023, ver
+  abajo) y la prueba es 2024–2026. La copia probada aprendió de 2017–2023; el modelo en directo se volvió a entrenar con los mismos ajustes con
   todo 2017–2026 (30.044 horas, 5.163 cerradas). Comprobado antes: añadir 2024 al entrenamiento mejoró las
   cifras de 2025–2026 (se equivoca en el 9,5 % → 8,8 % de las horas; provisional 12,0 % → 11,5 %).
 - **Búsqueda de ajustes** (`compare.py`, `reports/results/model_search.json`): los dos tipos de modelo más
@@ -162,57 +161,51 @@ Documentado en [MODELS_01](../reports/MODELS_01.md):
 - Para el seeing, la climatología mensual (RMSE 0,34″) mejora a «igual que anoche» (0,41″): ese es el listón
   que tiene que superar un modelo.
 
-![Seeing frente al tiempo](../reports/figures/03_seeing_vs_weather.png)
-
 Análisis completo: [EDA_01](../reports/EDA_01.md) ([notebook](../notebooks/01_eda.ipynb)) y
 [MODELS_01](../reports/MODELS_01.md) ([notebook](../notebooks/02_models.ipynb)).
 
-## 7. Cómo funciona cada hora: nube y publicación
+## 7. Cómo funciona cada hora
 
-- `tonight.py` descarga la previsión más reciente (ECMWF y GFS de Open-Meteo), la estación del NOT y el
-  seeing de anoche, decide si toca el modelo provisional o el definitivo y escribe `site/data/tonight.json`.
-  Si una fuente no responde, usa su última copia buena y la web lo avisa.
-- `site_data.py` escribe `site/data/evaluation.json` (las cifras de acierto y el historial en directo).
-- Cada ejecución queda registrada en `data/forecasts/issued.jsonl`, y cada una anota lo que pasó la noche
-  anterior (`outcomes.jsonl`): así se forma un historial en directo que ninguna elección de ajustes ha visto.
-- **En la nube** (`.github/workflows/forecast.yml`): GitHub Actions instala el paquete desde `uv.lock`,
-  descarga los modelos de la release `runtime` (`scripts/build_runtime.sh` los empaqueta; hay que volver a
-  ejecutarlo tras reentrenar), recupera el registro de la web publicada, ejecuta `tonight` y `site_data`, y
-  publica con `scripts/publish_site.sh`, que sube `site/` a la rama `gh-pages` como un único commit forzado.
-- El programador de GitHub se salta muchas ejecuciones en repositorios con poca actividad, así que la tarea
-  horaria del Mac (`scripts/update_tonight.sh`) también lanza el flujo; el programador queda como reserva.
-- **Grafana Cloud:** el panel público lee el mismo `tonight.json` publicado (fuente Infinity). Lo genera
-  `cloud_dashboard.py` (`infra/grafana/cloud/roquemodel.json`).
+1. **GitHub Actions** (`.github/workflows/forecast.yml`) instala el paquete desde `uv.lock` y descarga los
+   modelos entrenados de la release `runtime`. `scripts/build_runtime.sh` los empaqueta y hay que volver a
+   ejecutarlo tras reentrenar.
+2. `tonight.py` descarga la previsión más reciente (ECMWF y GFS de Open-Meteo), la estación del NOT y el
+   seeing de anoche, decide si toca el modelo provisional o el definitivo y escribe `site/data/tonight.json`.
+   Si una fuente no responde, usa su última copia buena y la web lo avisa.
+3. `site_data.py` escribe `site/data/evaluation.json`: las cifras de acierto de la web.
+4. `scripts/publish_site.sh` sube `site/` a la rama `gh-pages` como un único commit, para que las
+   actualizaciones de cada hora no se acumulen en el historial de `main`. GitHub Pages la sirve.
+5. El **panel público de Grafana Cloud** lee ese mismo `tonight.json` publicado, así que la web y Grafana
+   siempre dan las mismas cifras. El panel lo genera `cloud_dashboard.py`.
 
-## 8. FIWARE + Grafana
+Cada ejecución queda registrada (`forecasts/issued.jsonl`, publicado con la web) junto con lo que pasó de
+verdad la noche anterior (`outcomes.jsonl`): es un historial en directo que ninguna elección de ajustes ha
+visto. El programador de GitHub se salta muchas ejecuciones en repositorios con poca actividad, así que el
+flujo también se lanza desde fuera cada hora (`gh workflow run`); el programador queda como reserva.
 
-Pila local con Docker (`infra/docker-compose.yml`): Orion :1027, QuantumLeap :8669, CrateDB :4201 y Grafana
-:3001 (puertos desplazados uno respecto a los de FIWARE por defecto). Si Docker no está en marcha, el
-pronóstico sigue y se salta este paso.
+## 8. FIWARE
 
-| Entidad | Tipo ([Smart Data Models](https://github.com/smart-data-models/dataModel.Weather)) | La actualiza |
+[FIWARE](https://www.fiware.org) es la plataforma abierta de datos de sensores (IoT) que usa el GTC. Para
+mostrar que RoqueModel encaja en ella, cada pronóstico se publica también como entidades NGSI-v2 con el
+formato estándar de [Smart Data Models](https://github.com/smart-data-models/dataModel.Weather)
+(`fiware.py`):
+
+| Entidad | Tipo | Qué contiene |
 |---|---|---|
-| `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | `collect live` (cada 15 min; solo el estado actual, su historial no se guarda) |
-| `urn:ngsi-ld:WeatherObserved:ORM-NOT` | `WeatherObserved` | `tonight` (cada hora) |
-| `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` (+ horas cerradas, probabilidad de cierre por hora, seeing) | `tonight` (cada hora) |
+| `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` | el pronóstico de esta noche: horas cerradas, probabilidad de cierre de cada hora y seeing previsto |
+| `urn:ngsi-ld:WeatherObserved:ORM-NOT` | `WeatherObserved` | lo último que midió la estación del NOT |
+| `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | el panel en directo del GTC (solo el valor actual; su historial no se guarda) |
 
-![Panel de Grafana local (28 oct 2026)](../reports/figures/14_grafana_es.jpg)
-
-## 9. Recolectores (macOS)
+Orion guarda el estado actual de cada entidad, QuantumLeap guarda el historial en CrateDB y Grafana lo dibuja
+(paneles en `infra/grafana/`, generados por `dashboards.py`). Funciona en local con Docker; si no está en
+marcha, el pronóstico sigue y se salta este paso.
 
 ```bash
-scripts/install_collectors.sh               # instala los LaunchAgents live y daily
-scripts/install_collectors.sh tonight       # instala la tarea horaria
-scripts/install_collectors.sh --uninstall   # los quita
+docker compose -f infra/docker-compose.yml up -d     # Orion :1027, QuantumLeap :8669, CrateDB :4201, Grafana :3001
+.venv/bin/python -m roque_forecast.fiware provision  # suscripción Orion -> QuantumLeap (una vez)
 ```
 
-| Agente | Cuándo | Qué |
-|---|---|---|
-| `live` | cada 15 min | valores actuales del TNG → `data/raw/live/`; panel en directo del GTC → solo la entidad FIWARE (la estación del GTC no se guarda) |
-| `daily` | 10:07 y 22:07 | series de las últimas 24 h y tiempo perdido del TNG → `data/raw/tng/` |
-| `tonight` | cada hora a los :05 | `scripts/update_tonight.sh` |
-
-## 10. Todos los comandos
+## 9. Todos los comandos
 
 ```bash
 uv sync                                                  # crea .venv e instala las dependencias
@@ -229,20 +222,18 @@ uv sync                                                  # crea .venv e instala 
 .venv/bin/python -m roque_forecast.export_data           # datos de entrenamiento descargables
 .venv/bin/python -m roque_forecast.tonight               # pronóstico de esta noche -> site/data/tonight.json
 .venv/bin/python -m roque_forecast.site_data             # evaluación e historial -> site/data/evaluation.json
-docker compose -f infra/docker-compose.yml up -d         # pila FIWARE + Grafana
-.venv/bin/python -m roque_forecast.fiware provision      # suscripción Orion -> QuantumLeap (una vez)
-.venv/bin/python -m roque_forecast.dashboards            # paneles locales de Grafana
+.venv/bin/python -m roque_forecast.dashboards            # paneles de Grafana para FIWARE
 .venv/bin/python -m roque_forecast.cloud_dashboard       # panel público de Grafana Cloud
 ```
 
-## 11. Estructura del código
+## 10. Estructura del código
 
 ```
 src/roque_forecast/
   config.py          coordenadas del observatorio, carpetas, ajustes de descarga respetuosa
   polite_http.py     cliente HTTP común (User-Agent, espera, reintentos)
   sources/           un módulo por fuente de datos: descarga + lectura
-  collect.py         recolector por línea de comandos (live / daily / sample)
+  collect.py         recolector: panel en directo del GTC (a FIWARE) y valores del TNG
   backfill.py        descarga masiva y reanudable de los archivos históricos
   build_tables.py    ficheros brutos -> tablas Parquet limpias
   astro.py           altura del Sol y noche astronómica (fórmulas de la NOAA)
@@ -257,15 +248,15 @@ src/roque_forecast/
   site_data.py       evaluación e historial en directo para la web
   export_data.py     datos de entrenamiento descargables
   fiware.py          entidades NGSI-v2, Orion y QuantumLeap
-  dashboards.py      paneles locales de Grafana
+  dashboards.py      paneles de Grafana para FIWARE
   cloud_dashboard.py panel público de Grafana Cloud
   plotting.py        estilo común de las figuras
 site/                web estática (index.html, assets/; data/ se genera)
 infra/               Docker Compose (Orion, QuantumLeap, CrateDB, Grafana) y paneles
-scripts/             LaunchAgents, actualización horaria, publicación y release de modelos
+scripts/             actualización horaria, publicación y release de modelos
 notebooks/           notebooks de análisis (fuente .py + .ipynb ejecutado)
 reports/             informes, figuras y tablas de métricas
 tests/               tests con ficheros reales pequeños (tests/fixtures/)
-launchd/             plantillas de LaunchAgent
+launchd/             plantillas para programar la actualización en macOS
 data/                datos descargados (no van a git)
 ```
