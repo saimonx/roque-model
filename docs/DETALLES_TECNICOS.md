@@ -191,7 +191,8 @@ hora), FIWARE (Orion, QuantumLeap, que coincide con la web, historial reciente, 
 certificado HTTPS), el panel público de Grafana (abre y sus paneles tienen datos), GitHub (últimas ejecuciones
 correctas y flujos activos) y el propio servidor (contenedores, disco, memoria). Arregla solo lo que puede
 (arranca contenedores parados y, con un token, relanza el pronóstico) y avisa por correo a través de
-Healthchecks.io, que también avisa si la comprobación deja de llegar (servidor caído).
+Healthchecks.io, que también avisa si la comprobación deja de llegar (servidor caído). Estado ahora:
+![vigilancia](https://healthchecks.io/b/2/0437fc28-5880-4f5a-b616-9f2a2ea0c8bb.svg)
 
 ## 8. FIWARE
 

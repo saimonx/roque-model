@@ -1,6 +1,7 @@
 # RoqueModel
 
 [![tests](https://github.com/saimonx/roque-model/actions/workflows/tests.yml/badge.svg)](https://github.com/saimonx/roque-model/actions/workflows/tests.yml)
+[![vigilancia cada hora](https://healthchecks.io/b/2/0437fc28-5880-4f5a-b616-9f2a2ea0c8bb.svg)](docs/DETALLES_TECNICOS.md#7-cómo-funciona-cada-hora)
 
 Un modelo de previsión de apertura de la cúpula del telescopio para observar desde el Roque de los Muchachos
 (La Palma).
@@ -31,6 +32,10 @@ estación de la cumbre.
    la cumbre en las 2 horas antes de la noche, lo que pasó anoche y la época del año.
 3. **Calcula un porcentaje:** un random forest (150 árboles de decisión, scikit-learn) da la probabilidad de
    cúpula cerrada en cada hora.
+
+**Vigilancia cada hora:** una comprobación independiente revisa la web, FIWARE, el panel de Grafana, GitHub y el
+servidor; arregla lo que puede y avisa por correo si algo falla (insignia de arriba; detalles en
+[docs/DETALLES_TECNICOS.md](docs/DETALLES_TECNICOS.md#7-cómo-funciona-cada-hora)).
 
 Hay dos versiones: la **provisional**, antes de que empiece la noche, sin la estación de la cumbre, y la
 **definitiva**, desde que empieza la noche, con todos los datos.

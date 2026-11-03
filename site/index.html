@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RoqueModel</title>
   <meta name="description" content="RoqueModel: previsión hora a hora de si la cúpula podrá estar abierta para observar esta noche en el Observatorio del Roque de los Muchachos (La Palma). Proyecto independiente con datos reales y públicos.">
-  <link rel="icon" href="assets/favicon-32.png?v=63" sizes="32x32" type="image/png">
-  <link rel="icon" href="assets/favicon.svg?v=63" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=63">
-  <link rel="stylesheet" href="assets/style.css?v=63">
+  <link rel="icon" href="assets/favicon-32.png?v=64" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/favicon.svg?v=64" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=64">
+  <link rel="stylesheet" href="assets/style.css?v=64">
 </head>
 <body>
   <header class="top">
     <div class="wrap top-row">
       <div>
-        <h1 class="brand"><img src="assets/favicon.svg?v=63" alt="" width="34" height="34">RoqueModel</h1>
+        <h1 class="brand"><img src="assets/favicon.svg?v=64" alt="" width="34" height="34">RoqueModel</h1>
         <p class="sub" data-i18n="subtitle"></p>
       </div>
       <a class="grafana-link" href="https://saimonx.github.io/roque-model/grafana/" data-i18n="grafana_link" data-i18n-title="grafana_title"></a>
@@ -27,7 +27,8 @@
     <!-- 1. Tonight: the answer -->
     <section id="tonight">
       <h2 id="night-title"></h2>
-      <p class="muted small night-line"><span id="night-window"></span></p>
+      <p class="muted small night-line"><span id="night-window"></span>
+        <a class="watch-link" href="#vigilancia"><img class="status-badge" src="https://healthchecks.io/b/2/0437fc28-5880-4f5a-b616-9f2a2ea0c8bb.svg" alt="Estado de la vigilancia" height="18"><span data-i18n="watch_link"></span></a></p>
       <p class="notice stale" id="stale" hidden></p>
       <div class="model-card">
       <p class="line-head"><b data-i18n="line_model"></b></p>
@@ -135,14 +136,15 @@
   </main>
 
   <footer class="wrap foot">
+    <p class="muted small" id="vigilancia" data-i18n-html="monitor"></p>
     <p id="updated" class="muted small"></p>
     <p class="muted small" data-i18n-html="footer"></p>
     <p class="muted small" data-i18n-html="credits"></p>
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=63"></script>
-  <script src="assets/charts.js?v=63"></script>
-  <script src="assets/app.js?v=63"></script>
+  <script src="assets/i18n.js?v=64"></script>
+  <script src="assets/charts.js?v=64"></script>
+  <script src="assets/app.js?v=64"></script>
 </body>
 </html>
