@@ -215,7 +215,7 @@ table.text td:first-child { min-width: 180px; }
 .mode-box { margin: 0 0 0.5rem; }
 /* Tonight's RoqueModel forecast stands out as a white card above the forecast-only line */
 .model-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07); margin: 0.4rem 0 0.6rem; }
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07); margin: 0.8rem 0 2rem; }
 .model-card > .line-head:first-child { margin-top: 0; }
 @media (max-width: 600px) { .model-card { padding: 12px 12px 14px; } }
 /* "Modelo actual:" and its two options on one line (they wrap on a phone) */
@@ -425,4 +425,5 @@ tr.chosen td, tr.chosen th { font-weight: 700; background: var(--surface-2); }
 .color-legend h3 { margin: 0 0 0.3rem; font-size: 0.9rem; color: var(--text); }
 .color-legend ul { list-style: none; margin: 0.3rem 0 0; padding: 0; }
 .color-legend li { margin: 0.2rem 0; }
+.legend-tip { margin: 0.4rem 0 0; }
 .color-legend .sw { margin-right: 6px; }

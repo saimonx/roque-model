@@ -17,15 +17,16 @@ window.I18N = {
     mode_acc: "acierta el {p} de las horas",
     mode_provisional_text: "Antes de que empiece la noche aún no existe lo que más ayuda: lo que mide la estación de la cumbre justo antes de la noche. Por eso ahora pronostica el <b>modelo provisional</b>, que usa solo la previsión del tiempo, lo que pasó anoche y la época del año. A las {time} se añade la estación y pasa a pronosticar el <b>modelo definitivo</b>.",
     mode_final_text: "Ahora pronostica el <b>modelo definitivo</b>: ya usa lo que midió la estación de la cumbre justo antes de la noche, que es lo que más ayuda, además de la previsión del tiempo, lo de anoche y la época del año. Hasta las {until} pronosticaba el <b>modelo provisional</b>, sin la estación.",
-    strip_legend: "<b>Toca una hora</b> de cualquiera de las dos líneas para ver cómo sale.",
     legend_title: "Leyenda",
     legend_model: `Probabilidad de que la cúpula esté cerrada esa hora (por humedad, viento o hielo).
   <ul><li><span class="sw" style="background:var(--good)"></span><b>Verde</b>: menos del 20 %. Lo más probable es que se pueda observar.</li>
   <li><span class="sw" style="background:var(--warning)"></span><b>Amarillo</b>: del 20 % al 50 %. Dudosa: puede que haya que cerrar.</li>
-  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo</b>: más del 50 %. Lo más probable es que la cúpula esté cerrada.</li></ul>`,
+  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo</b>: más del 50 %. Lo más probable es que la cúpula esté cerrada.</li></ul>
+  <p class="legend-tip"><b>Toca una hora</b> de esta línea para ver cómo se calcula.</p>`,
     legend_raw: `La previsión del tiempo leída tal cual: dice sí o no, sin término medio.
   <ul><li><span class="sw" style="background:var(--good)"></span><b>Verde, «abrir»</b>: la previsión no llega a ningún límite de cierre.</li>
-  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo, «cerrar»</b>: la previsión da humedad del 90 % o más, viento de 80 km/h o más, o hielo.</li></ul>`,
+  <li><span class="sw" style="background:var(--critical)"></span><b>Rojo, «cerrar»</b>: la previsión da humedad del 90 % o más, viento de 80 km/h o más, o hielo.</li></ul>
+  <p class="legend-tip"><b>Toca una hora</b> de esta línea para ver cómo se calcula.</p>`,
     line_model: "Previsión del RoqueModel",
     line_raw: "Si solo se tuviera en cuenta la previsión del tiempo",
     raw_rule: "Reglas de cierre sobre la previsión",
