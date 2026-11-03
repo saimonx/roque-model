@@ -275,15 +275,14 @@ If Docker is not running, the forecast and the collectors carry on and skip this
 ### Collectors (macOS)
 
 ```bash
-scripts/install_collectors.sh               # install the 3 LaunchAgents
+scripts/install_collectors.sh               # install the 2 LaunchAgents
 scripts/install_collectors.sh --uninstall   # remove them
 ```
 
 | Agent | When | What |
 |---|---|---|
-| `live` | every 15 min | GTC live panel + TNG current values → `data/raw/live/YYYY-MM/YYYY-MM-DD.jsonl` |
+| `live` | every 15 min | TNG current values → `data/raw/live/YYYY-MM/YYYY-MM-DD.jsonl`; GTC live panel → FIWARE entity only (the GTC station is not saved) |
 | `daily` | 10:07 and 22:07 | TNG last-24 h series + downtime → `data/raw/tng/YYYY-MM-DD/` |
-| `weekly` | Monday 10:23 | GTC last-30-days series → `data/raw/gtc_atmosportal/YYYY-MM-DD/` |
 | `tonight` (installed separately: `install_collectors.sh tonight`) | every hour at :05 | `scripts/update_tonight.sh` |
 
 ## Layout
@@ -292,7 +291,7 @@ scripts/install_collectors.sh --uninstall   # remove them
 src/roque_forecast/
   config.py          site coordinates, folders, polite-download settings
   polite_http.py     shared HTTP client (User-Agent, delay, retries)
-  collect.py         command-line collector (live / daily / weekly / sample)
+  collect.py         command-line collector (live / daily / sample)
   backfill.py        resumable bulk download of the historical archives
   build_tables.py    raw files -> clean Parquet tables (minutes, R2D2 points, ING nights, nights)
   astro.py           Sun altitude and astronomical night (NOAA formulas, checked against ING)

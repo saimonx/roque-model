@@ -4,15 +4,14 @@ Public site: https://atmosportal.gtc.iac.es/
 Two kinds of data:
 
 1. Time series (`graphics/<var>_month.php`): JSON list of {"x": epoch_ms, "y": value},
-   one point every ~11 s, but ONLY the last 30 days. To build a history we must
-   download it regularly (weekly is enough) and merge the files ourselves.
+   one point every ~11 s, but ONLY the last 30 days. It is read on demand (to fill
+   the FIWARE history, fiware.py backfill) and not kept.
 
 2. Live panel (the table on the home page): current value of each sensor,
    including some that have no time series (rain flag, indoor/outdoor PM10 dust,
    external seeing monitors, water vapour). Each row is coloured by the site
    (green / yellow / ...), which tells us when the GTC considers a value a
-   warning. Recording those colours lets us estimate the real alarm thresholds,
-   which are not published anywhere.
+   warning (the real alarm thresholds are not published anywhere).
 """
 
 import json

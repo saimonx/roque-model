@@ -1,8 +1,7 @@
 #!/bin/bash
-# Install (or reinstall) the three data collectors as macOS LaunchAgents.
-#   live   -> every 15 min : GTC live panel + TNG current values
+# Install (or reinstall) the two data collectors as macOS LaunchAgents.
+#   live   -> every 15 min : TNG current values; GTC live panel to FIWARE (not saved)
 #   daily  -> 10:07, 22:07 : TNG last-24 h series + downtime
-#   weekly -> Mon 10:23    : GTC last-30-days series
 #   tonight -> hourly :05  : tonight's forecast + site data (only when named: install_collectors.sh tonight)
 # Uninstall: scripts/install_collectors.sh --uninstall   (or: install_collectors.sh tonight --uninstall)
 set -euo pipefail
@@ -11,7 +10,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 AGENTS_DIR="$HOME/Library/LaunchAgents"
 DOMAIN="gui/$(id -u)"
 
-NAMES="live daily weekly"
+NAMES="live daily"
 if [[ "${1:-}" == "tonight" ]]; then
     NAMES="tonight"
     shift

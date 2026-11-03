@@ -3,12 +3,13 @@
 Usage (from the project folder):
     .venv/bin/python -m roque_forecast.collect live     # every 15 min (LaunchAgent)
     .venv/bin/python -m roque_forecast.collect daily    # once a day   (LaunchAgent)
-    .venv/bin/python -m roque_forecast.collect weekly   # once a week  (LaunchAgent)
     .venv/bin/python -m roque_forecast.collect sample   # one-off: small samples to inspect formats
 
 Everything is saved under data/raw/ exactly as downloaded (gzip-compressed),
 so we can always rebuild the clean tables if a parser changes.
 Times in file names are UTC.
+
+The GTC station is NOT saved: its live panel only updates the FIWARE entity.
 """
 
 import argparse
@@ -34,21 +35,20 @@ def save_gz(path: Path, content: bytes) -> None:
 
 
 def collect_live(session: PoliteSession) -> None:
-    """Snapshot of the GTC live panel + TNG current values, appended to a daily file.
+    """TNG current values appended to a daily file, and the GTC live panel sent to FIWARE.
 
     One JSON object per line ("JSON Lines"): easy to append, easy to read with pandas.
-    Each source is tried separately, so one server being down does not lose the other.
+    The GTC panel is only passed on to the FIWARE entity (its current state), never written
+    to disk. Each source is tried separately, so one server being down does not lose the other.
     """
     now = datetime.now(UTC)
     record: dict = {"collected_utc": now.isoformat(timespec="seconds")}
 
+    gtc_panel = None
     try:
-        html = gtc_atmosportal.fetch_home_page(session)
-        record["gtc_panel"] = gtc_atmosportal.parse_panel(html)
-        record["gtc_panel_html"] = gtc_atmosportal.panel_html_only(html)
-    except Exception as exc:  # keep going: record the error instead
+        gtc_panel = gtc_atmosportal.parse_panel(gtc_atmosportal.fetch_home_page(session))
+    except Exception:  # keep going with the TNG
         log.exception("GTC panel failed")
-        record["gtc_error"] = repr(exc)
 
     try:
         raw = tng.fetch_current(session)
@@ -64,10 +64,10 @@ def collect_live(session: PoliteSession) -> None:
     log.info("live snapshot -> %s", out)
 
     # Optional: update the GTC station entity in the local FIWARE stack (skipped if it is not running).
-    if "gtc_panel" in record:
+    if gtc_panel is not None:
         from roque_forecast import fiware
 
-        fiware.push_gtc_panel(record["gtc_panel"])
+        fiware.push_gtc_panel(gtc_panel)
 
 
 def collect_daily(session: PoliteSession) -> None:
@@ -86,18 +86,6 @@ def collect_daily(session: PoliteSession) -> None:
     log.info("daily TNG -> %s", folder)
 
 
-def collect_weekly(session: PoliteSession) -> None:
-    """GTC atmosportal last-30-days series, one file per variable."""
-    today = datetime.now(UTC)
-    folder = config.RAW_DIR / "gtc_atmosportal" / f"{today:%Y-%m-%d}"
-    for var in gtc_atmosportal.SERIES_VARS:
-        try:
-            save_gz(folder / f"{var}_month.json.gz", gtc_atmosportal.fetch_series(session, var))
-        except Exception:
-            log.exception("GTC series %s failed", var)
-    log.info("weekly GTC -> %s", folder)
-
-
 def collect_sample(session: PoliteSession) -> None:
     """Small samples (September 2026) to check every format before bulk downloads."""
     folder = config.RAW_DIR / "samples"
@@ -114,7 +102,6 @@ def collect_sample(session: PoliteSession) -> None:
 COMMANDS = {
     "live": collect_live,
     "daily": collect_daily,
-    "weekly": collect_weekly,
     "sample": collect_sample,
 }
 

@@ -31,7 +31,6 @@ Usage:
 """
 
 import argparse
-import gzip
 import json
 import logging
 import math
@@ -42,6 +41,7 @@ import pandas as pd
 import requests
 
 from roque_forecast import config
+from roque_forecast.polite_http import PoliteSession
 from roque_forecast.sources import gtc_atmosportal, not_mast
 
 log = logging.getLogger("fiware")
@@ -240,16 +240,19 @@ def notify_quantumleap(entities: list[dict], batch: int = 300) -> None:
 
 
 def gtc_history(days: int) -> list[dict]:
-    """GTC station from the newest 30-day download (collect weekly), as 10-minute means."""
-    folders = sorted((config.RAW_DIR / "gtc_atmosportal").glob("*/"))
-    if not folders:
-        return []
+    """GTC station, last 30 days downloaded now (not kept on disk), as 10-minute means."""
+    session = PoliteSession()
     columns = []
     for var, (name, convert) in SERIES_ATTRIBUTES.items():
-        path = folders[-1] / f"{var}_month.json.gz"
-        if path.exists():
-            series = gtc_atmosportal.parse_series(gzip.decompress(path.read_bytes()), var).set_index("time_utc")[var]
-            columns.append(series.resample("10min").mean().map(convert).rename(name))
+        try:
+            raw = gtc_atmosportal.fetch_series(session, var)
+        except Exception:
+            log.exception("GTC series %s failed", var)
+            continue
+        series = gtc_atmosportal.parse_series(raw, var).set_index("time_utc")[var]
+        columns.append(series.resample("10min").mean().map(convert).rename(name))
+    if not columns:
+        return []
     table = pd.concat(columns, axis=1)
     table = table[table.index > table.index.max() - pd.Timedelta(days=days)]
     return [station_entity(GTC_ID, t, row.to_dict()) for t, row in table.iterrows()]

@@ -31,8 +31,6 @@
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = T()[n.dataset.i18n] || ""; });
     document.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = T()[n.dataset.i18nHtml] || ""; });
     document.querySelectorAll("[data-i18n-title]").forEach((n) => { n.title = T()[n.dataset.i18nTitle]; });
-    // External links (references, sources) open in a new tab, so the page stays open.
-    document.querySelectorAll('a[href^="http"]').forEach((l) => { l.target = "_blank"; l.rel = "noopener"; });
   }
 
   // ---------------------------------------------------------------- the two lines, hour by hour
@@ -191,7 +189,7 @@
     const feat = typeof f.max_features === "number" ? Math.max(1, Math.floor(f.max_features * f.inputs))
       : f.max_features === "sqrt" ? Math.floor(Math.sqrt(f.inputs)) : f.inputs;
     $("rm1-text").innerHTML = fill(t.rm1_text[kind], { inputs: f.inputs, trees: f.trees, feat })
-      + fill(t.rm1_stack, { cls: t.rm1_class[kind] });
+      + fill(t.rm1_stack, { cls: t.rm1_class[kind], cls_url: t.rm1_class_url[kind] });
 
     // 3. How it was trained: a timeline of the years and the data it learnt from.
     $("rm2-text").innerHTML = fill(t.rm2_text, { hours: n0(tr.hours), closed: n0(tr.closed_hours),
@@ -224,6 +222,7 @@
     });
     rows.push(`<li class="wf-total"><span class="wf-label">${t.rm_total}</span><span class="wf-track"><span class="wf-bar total" style="left:0;width:${(h.p_closed / top * 100).toFixed(1)}%;background:var(${COLORS[h.level]})"></span></span><span class="wf-val">${pct(h.p_closed)}</span></li>`);
     $("rm-example").innerHTML = rows.join("");
+    $("rm3-note").innerHTML = fill(t.rm3_note, { base: pct(d.explain.base) });
   }
 
   // 5. How good it is: a copy trained on the early years, checked on the later ones,
@@ -233,7 +232,7 @@
     if (!c) return;
     const [e0, e1] = m.evaluated_on.trained, [x0, x1] = m.evaluated_on.tested;
     const ok = (x) => 1 - x.wrong;
-    const vals = { fin: pct(ok(c.final)), prov: pct(ok(c.provisional)), raw: pct(ok(c.raw)), open: pct(1 - c.always_open_wrong) };
+    const vals = { fin: pct(ok(c.final)), prov: pct(ok(c.provisional)), raw: pct(ok(c.raw)) };
     $("rm4-text").innerHTML = fill(t.rm4_text, { e0, e1, x0, x1, hours: num(c.hours, 0), ...vals });
     const years = [];
     for (let y = e0; y <= x1; y++) years.push(y);
@@ -249,7 +248,6 @@
     $("rm4-bars").innerHTML = bars.map(([label, v, color]) => `<li><span class="bar-label">${label}</span>
       <span class="bar-track"><span class="bar-fill" style="width:${(v * 100).toFixed(1)}%;background:var(${color})"></span></span>
       <span class="bar-val">${pct(v)}</span></li>`).join("");
-    $("rm4-note").innerHTML = fill(t.rm4_note, vals);
   }
 
   // Card 2 (settings search) and card 6 (other models), from compare.py's results.
@@ -289,10 +287,9 @@
       <td>${num(m.test.right * 100, 1)} %</td><td>${pv[m.name] ? num(pv[m.name].test.right * 100, 1) + " %" : t.na}</td>
       <td>${num(m.test.brier, 4)}</td><td>${num(m.test.auc, 3)}</td></tr>`));
     $("rm5-note").innerHTML = t.rm5_note;
-    // Why these four, what was left out, and whether more computing power would help.
-    const treesLine = ours.one_at_a_time.trees.map((r) => fill(t.trees_item, { n: r.value, e: num(r.brier, 4) })).join("; ");
+    // Why these four, and what was left out.
     const inputs = state.tonight && state.tonight.model ? state.tonight.model.final.inputs : "";
-    $("rm5-more").innerHTML = fill(t.rm5_more, { inputs, trees_line: treesLine });
+    $("rm5-more").innerHTML = fill(t.rm5_more, { inputs });
   }
 
   // A setting's value as shown on the page (words for the named ones, % for shares).
@@ -369,6 +366,12 @@
   }
 
   // ---------------------------------------------------------------- wiring
+  // Links to other sites (sources, papers, tools) open in a new tab, so this page stays open.
+  // Set on click because most links are drawn after the data loads.
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest('a[href^="http"]');
+    if (link) { link.target = "_blank"; link.rel = "noopener"; }
+  }, true);
   function render() {
     applyTexts();
     if (state.tonight) renderTonight(state.tonight);
