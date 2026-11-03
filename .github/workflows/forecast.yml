@@ -56,8 +56,12 @@ jobs:
             done
           fi
 
-      - name: Tonight's forecast
-        run: uv run --no-dev python -m roque_forecast.tonight --no-fiware
+      - name: Tonight's forecast (also published to the FIWARE server, which Grafana reads)
+        env:
+          ROQUE_ORION_URL: https://178-105-253-255.sslip.io/orion
+          ROQUE_QUANTUMLEAP_URL: https://178-105-253-255.sslip.io/ql
+          ROQUE_FIWARE_TOKEN: ${{ secrets.ROQUE_FIWARE_TOKEN }}
+        run: uv run --no-dev python -m roque_forecast.tonight
 
       - name: Page evaluation and live track record
         run: uv run --no-dev python -m roque_forecast.site_data

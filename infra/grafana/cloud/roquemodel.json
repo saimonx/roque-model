@@ -27,7 +27,7 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "**RoqueModel**: probabilidad, hora a hora, de que la cúpula esté cerrada esta noche en el Observatorio del Roque de los Muchachos (La Palma), por humedad, viento o hielo. Explicación completa del modelo en la [web del proyecto](https://saimonx.github.io/roque-model/). Se actualiza cada hora (GitHub Actions). **Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del NOT y previsiones ECMWF y NOAA GFS vía Open-Meteo (CC BY 4.0). Horas en hora canaria."
+    "content": "**RoqueModel**: probabilidad, hora a hora, de que la cúpula esté cerrada esta noche en el Observatorio del Roque de los Muchachos (La Palma), por humedad, viento o hielo. Explicación completa del modelo en la [web del proyecto](https://saimonx.github.io/roque-model/). Se actualiza cada hora (GitHub Actions) y estos datos llegan a través de FIWARE (Orion y QuantumLeap). **Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del NOT y previsiones ECMWF y NOAA GFS vía Open-Meteo (CC BY 4.0). Horas en hora canaria."
    }
   },
   {
@@ -37,7 +37,7 @@
    "description": "Horas de noche menos las horas de cúpula cerrada previstas por RoqueModel.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 0,
@@ -50,20 +50,20 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "forecast",
+     "root_selector": "",
      "columns": [
       {
-       "selector": "open_h",
+       "selector": "openHoursForecast",
        "text": "Horas",
        "type": "number"
       }
@@ -115,7 +115,7 @@
    "description": "Suma de las probabilidades de todas las horas de la noche.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 6,
@@ -128,20 +128,20 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "forecast",
+     "root_selector": "",
      "columns": [
       {
-       "selector": "closed_h",
+       "selector": "domeClosedHours",
        "text": "Horas",
        "type": "number"
       }
@@ -193,7 +193,7 @@
    "description": "Provisional antes de que empiece la noche (sin la estación de la cumbre); definitivo desde su inicio.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 12,
@@ -206,20 +206,20 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
      "root_selector": "",
      "columns": [
       {
-       "selector": "mode",
+       "selector": "forecastMode",
        "text": "Modelo",
        "type": "string"
       }
@@ -279,7 +279,7 @@
    "description": "Duración de la noche astronómica de esta noche.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 18,
@@ -292,20 +292,20 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "night",
+     "root_selector": "",
      "columns": [
       {
-       "selector": "length_h",
+       "selector": "nightLengthHours",
        "text": "Horas",
        "type": "number"
       }
@@ -349,7 +349,7 @@
    "description": "Verde: menos del 20 %. Amarillo: del 20 al 50 %. Rojo: más del 50 %.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 0,
@@ -362,25 +362,25 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hours",
+     "root_selector": "hourlyClosureProbability",
      "columns": [
       {
-       "selector": "local",
+       "selector": "hourLocal",
        "text": "Hora",
        "type": "string"
       },
       {
-       "selector": "p_closed",
+       "selector": "probability",
        "text": "RoqueModel",
        "type": "number"
       }
@@ -442,7 +442,7 @@
    "description": "Las reglas de cierre (humedad ≥ 90 %, viento ≥ 80 km/h o hielo) aplicadas a la previsión tal cual.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 16,
@@ -455,25 +455,25 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hours",
+     "root_selector": "hourlyClosureProbability",
      "columns": [
       {
-       "selector": "local",
+       "selector": "hourLocal",
        "text": "Hora",
        "type": "string"
       },
       {
-       "selector": "raw_closed",
+       "selector": "forecastAloneClosed",
        "text": "Solo la previsión",
        "type": "boolean"
       }
@@ -537,7 +537,7 @@
    "description": "Humedad prevista en la cumbre. La cúpula se cierra al 90 %.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 0,
@@ -550,17 +550,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hourly",
+     "root_selector": "hourlyWeatherForecast",
      "columns": [
       {
        "selector": "t",
@@ -642,7 +642,7 @@
    "description": "Viento previsto a la altura de la cumbre (GFS). Límite: 80 km/h.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 8,
@@ -655,17 +655,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hourly",
+     "root_selector": "hourlyWeatherForecast",
      "columns": [
       {
        "selector": "t",
@@ -762,7 +762,7 @@
    "description": "Si se juntan, hay riesgo de condensación; bajo 0 °C, de hielo.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 16,
@@ -775,17 +775,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hourly",
+     "root_selector": "hourlyWeatherForecast",
      "columns": [
       {
        "selector": "t",
@@ -869,7 +869,7 @@
    "description": "Nubosidad total prevista.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 0,
@@ -882,17 +882,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hourly",
+     "root_selector": "hourlyWeatherForecast",
      "columns": [
       {
        "selector": "t",
@@ -958,7 +958,7 @@
    "description": "Precipitación prevista por hora.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 8,
@@ -971,17 +971,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hourly",
+     "root_selector": "hourlyWeatherForecast",
      "columns": [
       {
        "selector": "t",
@@ -1046,7 +1046,7 @@
    "description": "Presión prevista en la cumbre.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 16,
@@ -1059,17 +1059,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "hourly",
+     "root_selector": "hourlyWeatherForecast",
      "columns": [
       {
        "selector": "t",
@@ -1133,7 +1133,7 @@
    "description": "Medida real en la cumbre. La cúpula se cierra al 90 %.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 0,
@@ -1146,17 +1146,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/ql/v2/entities/urn:ngsi-ld:WeatherObserved:ORM-NOT?lastN=200",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "station_24h",
+     "root_selector": "($i := index; $v := attributes[attrName=\"relativeHumidity\"].values; $map($i, function($t, $k) { {\"t\": $t, \"v\": $v[$k] * 100} }))",
      "columns": [
       {
        "selector": "t",
@@ -1164,7 +1164,7 @@
        "type": "timestamp"
       },
       {
-       "selector": "rh",
+       "selector": "v",
        "text": "Humedad",
        "type": "number"
       }
@@ -1239,7 +1239,7 @@
    "description": "Medida real en la cumbre. Límite: 80 km/h.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 8,
@@ -1252,17 +1252,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/ql/v2/entities/urn:ngsi-ld:WeatherObserved:ORM-NOT?lastN=200",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "station_24h",
+     "root_selector": "($i := index; $v := attributes[attrName=\"windSpeed\"].values; $map($i, function($t, $k) { {\"t\": $t, \"v\": $v[$k] * 3.6} }))",
      "columns": [
       {
        "selector": "t",
@@ -1270,30 +1270,14 @@
        "type": "timestamp"
       },
       {
-       "selector": "wind",
-       "text": "wind",
-       "type": "number"
-      }
-     ],
-     "computed_columns": [
-      {
-       "selector": "wind * 3.6",
+       "selector": "v",
        "text": "Viento",
        "type": "number"
       }
      ]
     }
    ],
-   "transformations": [
-    {
-     "id": "organize",
-     "options": {
-      "excludeByName": {
-       "wind": true
-      }
-     }
-    }
-   ],
+   "transformations": [],
    "fieldConfig": {
     "defaults": {
      "unit": "velocitykmh",
@@ -1360,7 +1344,7 @@
    "description": "La previsión mira un punto más bajo y húmedo que la cumbre: por eso cierra de más.",
    "datasource": {
     "type": "yesoreyeram-infinity-datasource",
-    "uid": "roquemodel-pages"
+    "uid": "roquemodel-fiware"
    },
    "gridPos": {
     "x": 16,
@@ -1373,17 +1357,17 @@
      "refId": "A",
      "datasource": {
       "type": "yesoreyeram-infinity-datasource",
-      "uid": "roquemodel-pages"
+      "uid": "roquemodel-fiware"
      },
      "type": "json",
      "source": "url",
      "format": "table",
      "parser": "backend",
-     "url": "https://saimonx.github.io/roque-model/data/tonight.json",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
      "url_options": {
       "method": "GET"
      },
-     "root_selector": "forecast_vs_measured",
+     "root_selector": "forecastVsMeasured",
      "columns": [
       {
        "selector": "t",

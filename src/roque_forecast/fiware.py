@@ -7,7 +7,10 @@ API called **NGSI-v2**. Every change is forwarded to **QuantumLeap**, which
 stores it as a time series in **CrateDB**; **Grafana** draws the history.
 The GTC station is the exception: Orion keeps its current state, but its history is
 not stored (the QuantumLeap subscription leaves it out).
-The whole stack runs locally with Docker (infra/docker-compose.yml).
+The stack runs locally with Docker (infra/docker-compose.yml) and in production on a
+small cloud server (infra/cloud/: the same pieces behind HTTPS, where anyone can read and
+only the hourly forecast, with a token, can write). Point this module at either one with
+ROQUE_ORION_URL, ROQUE_QUANTUMLEAP_URL and ROQUE_FIWARE_TOKEN.
 
 Entities follow the public FIWARE **Smart Data Models** (dataModel.Weather), so
 any tool that understands them can read ours:
@@ -51,7 +54,13 @@ log = logging.getLogger("fiware")
 # next to another local FIWARE stack. Override with environment variables if needed.
 ORION_URL = os.environ.get("ROQUE_ORION_URL", "http://localhost:1027")
 QUANTUMLEAP_URL = os.environ.get("ROQUE_QUANTUMLEAP_URL", "http://localhost:8669")
-TIMEOUT_S = 5
+TIMEOUT_S = 20  # the production server runs Orion under x86 emulation: give it time
+
+
+def headers() -> dict:
+    """The write token, in production (the local stack needs none)."""
+    token = os.environ.get("ROQUE_FIWARE_TOKEN")
+    return {"Authorization": f"Bearer {token}"} if token else {}
 
 GTC_ID = "urn:ngsi-ld:WeatherObserved:ORM-GTC"
 NOT_ID = "urn:ngsi-ld:WeatherObserved:ORM-NOT"
@@ -93,6 +102,8 @@ def attribute(value) -> dict | None:
         return {"type": "Number", "value": round(float(value), 4)}
     if isinstance(value, pd.Timestamp):
         return {"type": "DateTime", "value": value.isoformat().replace("+00:00", "Z")}
+    if isinstance(value, (list, dict)):  # hour-by-hour tables, kept as JSON (Grafana reads them)
+        return {"type": "StructuredValue", "value": value}
     # Orion rejects these characters in text values (a protection against script injection).
     return {"type": "Text", "value": str(value).translate(str.maketrans("", "", "<>\"'=;()"))}
 
@@ -152,7 +163,12 @@ def forecast_entity(page: dict) -> dict:
         # probabilities; one seeing value for the night.
         "domeClosedHours": f["closed_h"], "openHoursForecast": f["open_h"], "closureRisk": f["risk"],
         "seeingForecast": f["seeing_arcsec"], "nightLengthHours": night["length_h"],
-        "hourlyClosureProbability": [{"hourStart": h["t"], "probability": h["p_closed"]} for h in page["hours"]],
+        # Hour by hour: RoqueModel's probability and the forecast read literally (close or not).
+        "hourlyClosureProbability": [{"hourStart": h["t"], "hourLocal": h["local"], "probability": h["p_closed"],
+                                      "forecastAloneClosed": h["raw_closed"]} for h in page["hours"]],
+        # The weather forecast for the night hours, and the last 24 h of forecast against measured humidity.
+        "hourlyWeatherForecast": page.get("hourly", []),
+        "forecastVsMeasured": page.get("forecast_vs_measured", []),
         "dataOrigin": "model forecast",
     })
 
@@ -163,7 +179,7 @@ def forecast_entity(page: dict) -> dict:
 def upsert(entities: list[dict]) -> None:
     """Create or update entities in one request (NGSI-v2 batch "append")."""
     r = requests.post(f"{ORION_URL}/v2/op/update", json={"actionType": "append", "entities": entities},
-                      timeout=TIMEOUT_S)
+                      headers=headers(), timeout=TIMEOUT_S)
     r.raise_for_status()
 
 
@@ -195,7 +211,40 @@ def push_forecast(page: dict) -> bool:
     ok = safely(lambda: upsert([forecast_entity(page), not_minute_entity(row)]))
     if ok:
         log.info("FIWARE: forecast and NOT station updated in Orion")
+        safely(push_station_history, page.get("station_24h", []))
     return ok
+
+
+def last_stored_time(entity_id: str, attribute_name: str) -> pd.Timestamp | None:
+    """Time of the newest value QuantumLeap holds for an attribute (None if it has none)."""
+    r = requests.get(f"{QUANTUMLEAP_URL}/v2/entities/{entity_id}/attrs/{attribute_name}",
+                     params={"lastN": 1}, timeout=TIMEOUT_S)
+    if r.status_code == 404:
+        return None
+    r.raise_for_status()
+    index = r.json().get("index") or []
+    return pd.Timestamp(index[-1], tz="UTC") if index else None
+
+
+def push_station_history(points: list[dict]) -> None:
+    """The NOT station's 10-minute means (tonight.py, last 24 h) that QuantumLeap does not have yet.
+
+    Orion only keeps the newest minute, so the history the dashboards draw is sent straight
+    to QuantumLeap, without repeating what it already holds.
+    """
+    newest = last_stored_time(NOT_ID, "relativeHumidity")
+    rows = [pd.Series({"time_utc": pd.Timestamp(p["t"]), "temp_c": None, "humidity_pct": p["rh"],
+                       "pressure_hpa": p["pressure"], "wind_speed_ms": p["wind"], "wind_dir_deg": None})
+            for p in points if p.get("rh") is not None]
+    rows = [row for row in rows if newest is None or row["time_utc"] > newest]
+    if rows:
+        notify_quantumleap([not_minute_entity(row) for row in rows])
+    log.info("FIWARE: %d new NOT 10-minute values sent to QuantumLeap", len(rows))
+
+
+# The hour-by-hour tables stay in Orion (current state) and are not sent to the history:
+# the dashboards only need the newest ones, and QuantumLeap stores numbers, not tables.
+HOURLY_TABLES = ["hourlyClosureProbability", "hourlyWeatherForecast", "forecastVsMeasured"]
 
 
 def provision() -> None:
@@ -210,9 +259,9 @@ def provision() -> None:
                                  {"idPattern": ".*", "type": "WeatherForecast"}]},
         # Inside Docker, Orion reaches QuantumLeap by its service name.
         "notification": {"http": {"url": "http://quantumleap:8668/v2/notify"},
-                         "metadata": ["dateCreated", "dateModified"]},
+                         "metadata": ["dateCreated", "dateModified"], "exceptAttrs": HOURLY_TABLES},
     }
-    r = requests.post(f"{ORION_URL}/v2/subscriptions", json=subscription, timeout=TIMEOUT_S)
+    r = requests.post(f"{ORION_URL}/v2/subscriptions", json=subscription, headers=headers(), timeout=TIMEOUT_S)
     r.raise_for_status()
     print("subscription created:", r.headers.get("Location"))
 
@@ -226,7 +275,7 @@ def notify_quantumleap(entities: list[dict], batch: int = 300) -> None:
     """
     for i in range(0, len(entities), batch):
         payload = {"subscriptionId": "backfill", "data": entities[i:i + batch]}
-        r = requests.post(f"{QUANTUMLEAP_URL}/v2/notify", json=payload, timeout=60)
+        r = requests.post(f"{QUANTUMLEAP_URL}/v2/notify", json=payload, headers=headers(), timeout=60)
         r.raise_for_status()
 
 

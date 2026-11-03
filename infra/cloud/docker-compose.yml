@@ -1,0 +1,58 @@
+# FIWARE in production for RoqueModel (Hetzner CAX11, ARM, Ubuntu): same pieces as the local stack
+# (infra/docker-compose.yml), behind Caddy for HTTPS and access control.
+#
+#   GitHub Actions (hourly forecast) --HTTPS + token--> Caddy --> Orion --subscription--> QuantumLeap --> CrateDB
+#   Grafana Cloud / anyone           --HTTPS, read only--> Caddy --> Orion (current state) and QuantumLeap (history)
+#
+# Only Caddy is published (ports 80 and 443). Orion and QuantumLeap are published by FIWARE for x86 only,
+# so on this ARM server they run under x86 emulation (qemu); MongoDB, CrateDB and Caddy run natively.
+# Secrets live in .env next to this file (DOMAIN and WRITE_TOKEN), never in Git.
+#
+# Start:  docker compose up -d      (in /opt/roquemodel on the server)
+name: roquemodel
+
+services:
+  mongo:
+    image: mongo:6.0
+    command: --nojournal --wiredTigerCacheSizeGB 0.25
+    volumes: [mongo-data:/data/db]
+    restart: unless-stopped
+
+  orion:
+    image: fiware/orion:4.1.0
+    platform: linux/amd64
+    depends_on: [mongo]
+    command: -dbURI mongodb://mongo:27017 -logLevel WARN -corsOrigin __ALL
+    restart: unless-stopped
+
+  crate:
+    image: crate:5.8.5
+    command: -Cdiscovery.type=single-node -Ccluster.name=roquemodel
+    environment:
+      CRATE_HEAP_SIZE: 512m
+    volumes: [crate-data:/data]
+    restart: unless-stopped
+
+  quantumleap:
+    image: orchestracities/quantumleap:1.0.0
+    platform: linux/amd64
+    depends_on: [crate, orion]
+    environment:
+      CRATE_HOST: crate
+      LOGLEVEL: WARNING
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10
+    depends_on: [orion, quantumleap]
+    ports: ["80:80", "443:443"]
+    env_file: .env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+  crate-data:
+  caddy-data:

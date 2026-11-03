@@ -11,7 +11,8 @@ estación de la cumbre.
 
 - **Web, actualizada cada hora:** https://saimonx.github.io/roque-model/ (la explicación completa del modelo
   está en sus apartados)
-- **Panel público de Grafana:** https://saimonx.github.io/roque-model/grafana/
+- **Panel público de Grafana:** https://saimonx.github.io/roque-model/grafana/ (lee de FIWARE, donde el pronóstico se
+  publica cada hora: Orion y QuantumLeap en un servidor propio)
 - **Datos de entrenamiento:** [roquemodel_data.zip](https://github.com/saimonx/roque-model/releases/download/training-data/roquemodel_data.zip)
   (30.044 horas de noche con su etiqueta y sus datos de entrada, y las respuestas de la copia probada)
 - **Detalles técnicos:** [docs/DETALLES_TECNICOS.md](docs/DETALLES_TECNICOS.md)
@@ -85,7 +86,7 @@ Para volver a descargar el histórico y entrenar, ver [todos los comandos](docs/
 | `src/roque_forecast/` | código en Python: descarga de datos, etiqueta, modelos, pronóstico en directo, FIWARE y Grafana |
 | `site/` | la web (HTML, CSS y JavaScript sin librerías) |
 | `notebooks/`, `reports/` | análisis de los datos y de los modelos |
-| `infra/` | FIWARE (Orion, QuantumLeap, CrateDB) y Grafana con Docker |
+| `infra/` | FIWARE (Orion, QuantumLeap, CrateDB) con Docker: en local con Grafana, y en producción detrás de HTTPS (`infra/cloud/`) |
 | `.github/workflows/` | el pronóstico de cada hora en GitHub Actions |
 | `tests/` | tests con ficheros reales pequeños |
 

@@ -176,8 +176,9 @@ Análisis completo, en inglés: [EDA_01](../reports/EDA_01.md) ([notebook](../no
 3. `site_data.py` escribe `site/data/evaluation.json`: las cifras de acierto de la web.
 4. `scripts/publish_site.sh` sube `site/` a la rama `gh-pages` como un único commit, para que las
    actualizaciones de cada hora no se acumulen en el historial de `main`. GitHub Pages la sirve.
-5. El **panel público de Grafana Cloud** lee ese mismo `tonight.json` publicado, así que la web y Grafana
-   siempre dan las mismas cifras. El panel lo genera `cloud_dashboard.py`.
+5. `tonight.py` publica también el pronóstico en **FIWARE** (apartado 8), y el **panel público de Grafana
+   Cloud** lo lee de ahí: la web y Grafana dan las mismas cifras porque salen del mismo cálculo. El panel lo
+   genera `cloud_dashboard.py`.
 
 Cada ejecución queda registrada (`forecasts/issued.jsonl`, publicado con la web) junto con lo que pasó de
 verdad la noche anterior (`outcomes.jsonl`): es un historial en directo que ninguna elección de ajustes ha
@@ -186,20 +187,27 @@ flujo también se lanza desde fuera cada hora (`gh workflow run`); el programado
 
 ## 8. FIWARE
 
-[FIWARE](https://www.fiware.org) es la plataforma abierta de datos de sensores (IoT) que usa el GTC. Para
-mostrar que RoqueModel encaja en ella, cada pronóstico se publica también como entidades NGSI-v2 con el
-formato estándar de [Smart Data Models](https://github.com/smart-data-models/dataModel.Weather)
-(`fiware.py`):
+[FIWARE](https://www.fiware.org) es la plataforma abierta de datos de sensores (IoT) que usa el GTC. RoqueModel
+publica cada hora su pronóstico como entidades NGSI-v2 con el formato estándar de
+[Smart Data Models](https://github.com/smart-data-models/dataModel.Weather) (`fiware.py`), y el panel público de
+Grafana lee de ahí, como en la plataforma del GTC.
 
 | Entidad | Tipo | Qué contiene |
 |---|---|---|
-| `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` | el pronóstico de esta noche: horas cerradas, probabilidad de cierre de cada hora y seeing previsto |
-| `urn:ngsi-ld:WeatherObserved:ORM-NOT` | `WeatherObserved` | lo último que midió la estación del NOT |
-| `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | el panel en directo del GTC (solo el valor actual; su historial no se guarda) |
+| `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` | el pronóstico de esta noche: horas cerradas, probabilidad de cada hora, la previsión sola, la previsión del tiempo hora a hora y el seeing previsto |
+| `urn:ngsi-ld:WeatherObserved:ORM-NOT` | `WeatherObserved` | la estación del NOT; su historial (medias de 10 minutos) va a QuantumLeap |
+| `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | solo en local: el panel en directo del GTC (valor actual; su historial no se guarda) |
 
-Orion guarda el estado actual de cada entidad, QuantumLeap guarda el historial en CrateDB y Grafana lo dibuja
-(paneles en `infra/grafana/`, generados por `dashboards.py`). Funciona en local con Docker; si no está en
-marcha, el pronóstico sigue y se salta este paso.
+**En producción** (`infra/cloud/`): un servidor pequeño en la nube (Hetzner CAX11, ARM) con Orion (estado
+actual, sobre MongoDB) y QuantumLeap (historial, sobre CrateDB), detrás de Caddy, que da HTTPS automático y
+controla el acceso: cualquiera puede leer, y solo el pronóstico de cada hora (GitHub Actions, con un token) puede
+escribir. Orion y QuantumLeap solo se publican para x86, así que en ese servidor ARM funcionan con emulación.
+
+- Estado actual: https://178-105-253-255.sslip.io/orion/v2/entities?options=keyValues
+- Historial: https://178-105-253-255.sslip.io/ql/v2/entities/urn:ngsi-ld:WeatherObserved:ORM-NOT?lastN=10
+
+**En local**, la misma pila con Docker y un panel de Grafana propio (`infra/docker-compose.yml`, `dashboards.py`).
+Si no está en marcha, el pronóstico sigue y se salta este paso.
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d     # Orion :1027, QuantumLeap :8669, CrateDB :4201, Grafana :3001

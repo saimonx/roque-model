@@ -1,14 +1,16 @@
 """The public Grafana dashboard (Grafana Cloud), in Spanish, like the web page.
 
-The local dashboards (dashboards.py) read CrateDB through FIWARE, which only runs
-on the Mac. This one reads the same JSON the web page reads, published every hour
-on GitHub Pages (site/data/tonight.json), with the Infinity data source. So it works
-with the Mac switched off, and anyone can open it through its public link.
+It reads FIWARE, the platform the hourly forecast publishes to (infra/cloud/, a small
+cloud server), through the Infinity data source:
+- the current state from Orion: tonight's WeatherForecast entity, with its hour-by-hour
+  tables (RoqueModel, the forecast alone, the weather forecast, forecast against measured);
+- the history from QuantumLeap: the NOT station's last 24 h (WeatherObserved).
+So FIWARE sits between RoqueModel and Grafana, as on the GTC's own platform, and anyone
+can open the dashboard through its public link.
 
-In Grafana Cloud it needs an Infinity data source with uid `roquemodel-pages`
-allowed to read https://saimonx.github.io. The JSON written here is uploaded with
-Grafana's API (POST /api/dashboards/db) and shared publicly from the dashboard's
-"Share externally" option.
+In Grafana Cloud it needs an Infinity data source with uid `roquemodel-fiware` allowed
+to read the FIWARE server. The JSON written here is uploaded with Grafana's API
+(POST /api/dashboards/db) and shared publicly from the dashboard's "Share externally" option.
 
 Usage:
     .venv/bin/python -m roque_forecast.cloud_dashboard   # writes infra/grafana/cloud/roquemodel.json
@@ -18,22 +20,33 @@ import json
 
 from roque_forecast import config
 from roque_forecast.dashboards import AQUA, BLUE, CRITICAL, GOOD, ORANGE, WARNING
+from roque_forecast.fiware import FORECAST_ID, NOT_ID
 
 OUT_FILE = config.PROJECT_DIR / "infra" / "grafana" / "cloud" / "roquemodel.json"
-DATASOURCE = {"type": "yesoreyeram-infinity-datasource", "uid": "roquemodel-pages"}
-DATA_URL = "https://saimonx.github.io/roque-model/data/tonight.json"
+DATASOURCE = {"type": "yesoreyeram-infinity-datasource", "uid": "roquemodel-fiware"}
+FIWARE_URL = "https://178-105-253-255.sslip.io"
+FORECAST_URL = f"{FIWARE_URL}/orion/v2/entities/{FORECAST_ID}?options=keyValues"
+STATION_HISTORY_URL = f"{FIWARE_URL}/ql/v2/entities/{NOT_ID}?lastN=200"
 WEB_URL = "https://saimonx.github.io/roque-model/"
 GREY = "#8e8d87"
 
 
-def query(ref: str, root: str, columns: list[tuple[str, str, str]]) -> dict:
-    """One Infinity query: the rows under `root` in tonight.json, with (selector, name, type) columns.
+def query(ref: str, root: str, columns: list[tuple[str, str, str]], url: str = FORECAST_URL) -> dict:
+    """One Infinity query: the rows under `root` (a JSONata expression) of a FIWARE answer, with
+    (selector, name, type) columns. By default, tonight's forecast entity in Orion.
 
     The "backend" parser runs on Grafana's server, which public dashboards need.
     """
     return {"refId": ref, "datasource": DATASOURCE, "type": "json", "source": "url", "format": "table",
-            "parser": "backend", "url": DATA_URL, "url_options": {"method": "GET"}, "root_selector": root,
+            "parser": "backend", "url": url, "url_options": {"method": "GET"}, "root_selector": root,
             "columns": [{"selector": s, "text": name, "type": kind} for s, name, kind in columns]}
+
+
+def station(attr: str, scale: float) -> str:
+    """JSONata: QuantumLeap's history answer (one list of times, one list per attribute) as rows
+    {t, v}, with the value multiplied by `scale` (humidity is stored as a fraction, wind in m/s)."""
+    return (f'($i := index; $v := attributes[attrName="{attr}"].values; '
+            f'$map($i, function($t, $k) {{ {{"t": $t, "v": $v[$k] * {scale}}} }}))')
 
 
 def kmh(target: dict, field: str, name: str) -> dict:
@@ -101,16 +114,19 @@ NIGHT_RANGE = {"from": "now-7h/d+19h", "to": "now-7h/d+7h"}
 
 
 def dashboard() -> dict:
-    hours = query("A", "hours", [("local", "Hora", "string"), ("p_closed", "RoqueModel", "number")])
-    raw = query("A", "hours", [("local", "Hora", "string"), ("raw_closed", "Solo la previsión", "boolean")])
-    fc = lambda cols: query("A", "hourly", [("t", "Hora", "timestamp"), *cols])
-    st = lambda cols: query("A", "station_24h", [("t", "Hora", "timestamp"), *cols])
-    one = lambda root, sel, name, kind="number": query("A", root, [(sel, name, kind)])
+    hours = query("A", "hourlyClosureProbability", [("hourLocal", "Hora", "string"), ("probability", "RoqueModel", "number")])
+    raw = query("A", "hourlyClosureProbability", [("hourLocal", "Hora", "string"),
+                                                  ("forecastAloneClosed", "Solo la previsión", "boolean")])
+    fc = lambda cols: query("A", "hourlyWeatherForecast", [("t", "Hora", "timestamp"), *cols])
+    st = lambda attr, scale, name: query("A", station(attr, scale), [("t", "Hora", "timestamp"), ("v", name, "number")],
+                                         url=STATION_HISTORY_URL)
+    one = lambda sel, name, kind="number": query("A", "", [(sel, name, kind)])
 
     about = (f"**RoqueModel**: probabilidad, hora a hora, de que la cúpula esté cerrada esta noche en el "
              f"Observatorio del Roque de los Muchachos (La Palma), por humedad, viento o hielo. "
              f"Explicación completa del modelo en la [web del proyecto]({WEB_URL}). "
-             f"Se actualiza cada hora (GitHub Actions). **Proyecto independiente, no afiliado a GRANTECAN ni a "
+             f"Se actualiza cada hora (GitHub Actions) y estos datos llegan a través de FIWARE (Orion y QuantumLeap). "
+             f"**Proyecto independiente, no afiliado a GRANTECAN ni a "
              f"ningún observatorio.** Datos reales y públicos: estación del NOT y previsiones ECMWF y NOAA GFS vía "
              f"Open-Meteo (CC BY 4.0). Horas en hora canaria.")
     level_colors = [(None, GOOD), (0.2, WARNING), (0.5, CRITICAL)]
@@ -122,13 +138,13 @@ def dashboard() -> dict:
         {"id": 1, "type": "text", "title": "", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 3},
          "options": {"mode": "markdown", "content": about}},
         stat(2, "Horas que se podrá observar", "Horas de noche menos las horas de cúpula cerrada previstas por RoqueModel.",
-             one("forecast", "open_h", "Horas"), {"x": 0, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, CRITICAL), (3, WARNING), (6, GOOD)]),
+             one("openHoursForecast", "Horas"), {"x": 0, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, CRITICAL), (3, WARNING), (6, GOOD)]),
         stat(3, "Horas de cúpula cerrada previstas", "Suma de las probabilidades de todas las horas de la noche.",
-             one("forecast", "closed_h", "Horas"), {"x": 6, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, GOOD), (2, WARNING), (5, CRITICAL)], 1),
+             one("domeClosedHours", "Horas"), {"x": 6, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, GOOD), (2, WARNING), (5, CRITICAL)], 1),
         stat(4, "Modelo actual", "Provisional antes de que empiece la noche (sin la estación de la cumbre); definitivo desde su inicio.",
-             one("", "mode", "Modelo", "string"), {"x": 12, "y": 3, "w": 6, "h": 4}, "none", [(None, BLUE)], mappings=mode_map),
+             one("forecastMode", "Modelo", "string"), {"x": 12, "y": 3, "w": 6, "h": 4}, "none", [(None, BLUE)], mappings=mode_map),
         stat(5, "Horas de noche astronómica", "Duración de la noche astronómica de esta noche.",
-             one("night", "length_h", "Horas"), {"x": 18, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, BLUE)], 1),
+             one("nightLengthHours", "Horas"), {"x": 18, "y": 3, "w": 6, "h": 4}, "suffix: h", [(None, BLUE)], 1),
 
         # One bar per night hour (local time), coloured by level like the web page.
         {"id": 6, "type": "barchart", "title": "RoqueModel: probabilidad de cúpula cerrada por hora",
@@ -170,14 +186,14 @@ def dashboard() -> dict:
                [fc([("pressure", "Presión", "number")])], {"x": 16, "y": 24, "w": 8, "h": 7}, "pressurehpa", {"Presión": GREY}),
 
         series(14, "Estación del NOT, últimas 24 h: humedad (%)", "Medida real en la cumbre. La cúpula se cierra al 90 %.",
-               [st([("rh", "Humedad", "number")])], {"x": 0, "y": 31, "w": 8, "h": 8}, "percent", {"Humedad": BLUE},
+               [st("relativeHumidity", 100, "Humedad")], {"x": 0, "y": 31, "w": 8, "h": 8}, "percent", {"Humedad": BLUE},
                limits=[(None, "transparent"), (90, CRITICAL)], minimum=0, maximum=100, last_24h=True),
         series(15, "Estación del NOT, últimas 24 h: viento (km/h)", "Medida real en la cumbre. Límite: 80 km/h.",
-               [kmh(st([("wind", "wind", "number")]), "wind", "Viento")], {"x": 8, "y": 31, "w": 8, "h": 8}, "velocitykmh", {"Viento": AQUA},
-               limits=[(None, "transparent"), (80, CRITICAL)], minimum=0, transformations=hide("wind"), last_24h=True),
+               [st("windSpeed", 3.6, "Viento")], {"x": 8, "y": 31, "w": 8, "h": 8}, "velocitykmh", {"Viento": AQUA},
+               limits=[(None, "transparent"), (80, CRITICAL)], minimum=0, last_24h=True),
         series(16, "Previsto frente a medido: humedad, últimas 24 h (%)",
                "La previsión mira un punto más bajo y húmedo que la cumbre: por eso cierra de más.",
-               [query("A", "forecast_vs_measured", [("t", "Hora", "timestamp"), ("forecast", "Previsto", "number"),
+               [query("A", "forecastVsMeasured", [("t", "Hora", "timestamp"), ("forecast", "Previsto", "number"),
                                                     ("measured", "Medido (NOT)", "number")])],
                {"x": 16, "y": 31, "w": 8, "h": 8}, "percent", {"Previsto": GREY, "Medido (NOT)": ORANGE},
                limits=[(None, "transparent"), (90, CRITICAL)], minimum=0, maximum=100, last_24h=True),

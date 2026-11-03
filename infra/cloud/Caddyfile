@@ -1,0 +1,26 @@
+# HTTPS (Let's Encrypt, automatic) and access control in front of Orion and QuantumLeap.
+#   /orion/...  -> Orion Context Broker (NGSI-v2), e.g. /orion/v2/entities?options=keyValues
+#   /ql/...     -> QuantumLeap (history), e.g. /ql/v2/entities/<id>/attrs/relativeHumidity?lastN=10
+# Anyone can read (GET). Anything that changes data needs "Authorization: Bearer <WRITE_TOKEN>".
+{$DOMAIN} {
+	encode gzip
+	header Access-Control-Allow-Origin "*"
+
+	route {
+		@write {
+			not method GET HEAD OPTIONS
+			not header Authorization "Bearer {$WRITE_TOKEN}"
+		}
+		respond @write "write access needs a token" 401
+
+		handle_path /orion/* {
+			reverse_proxy orion:1026
+		}
+		handle_path /ql/* {
+			reverse_proxy quantumleap:8668
+		}
+		handle {
+			respond "RoqueModel FIWARE (NGSI-v2). Current state: /orion/v2/entities?options=keyValues - History: /ql/v2/entities - https://saimonx.github.io/roque-model/" 200
+		}
+	}
+}

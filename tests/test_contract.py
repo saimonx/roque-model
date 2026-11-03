@@ -1,7 +1,8 @@
 """The pieces that read the forecast must agree with what it writes.
 
-tonight.py writes site/data/tonight.json; the web page (site/assets/app.js) and the public
-Grafana Cloud dashboard (infra/grafana/cloud/roquemodel.json) read it. These tests catch a
+tonight.py writes site/data/tonight.json, which the web page (site/assets/app.js) reads, and
+publishes the same forecast to FIWARE, which the public Grafana Cloud dashboard
+(infra/grafana/cloud/roquemodel.json) reads. These tests catch a
 field renamed or removed on one side only, and dashboards edited by hand instead of being
 regenerated from their Python definition.
 """
@@ -12,25 +13,29 @@ from pathlib import Path
 
 import pandas as pd
 
-from roque_forecast import cloud_dashboard, config, dashboards, tonight
+from roque_forecast import cloud_dashboard, config, dashboards, fiware, tonight
 
 FIXTURES = Path(__file__).parent / "fixtures"
 SAMPLE = json.loads((FIXTURES / "tonight_sample.json").read_text(encoding="utf-8"))
 
 
-def rows_under(root: str) -> list[dict]:
-    """The rows an Infinity query reads: the object or list at `root` ("" = the whole file)."""
-    node = SAMPLE
-    for key in filter(None, root.split(".")):
-        node = node[key]
-    return node if isinstance(node, list) else [node]
+def forecast_key_values() -> dict:
+    """Tonight's forecast entity as Orion returns it with options=keyValues (what Grafana reads)."""
+    entity = fiware.forecast_entity(SAMPLE)
+    return {k: (v["value"] if isinstance(v, dict) and "value" in v else v) for k, v in entity.items()}
 
 
-def test_grafana_cloud_reads_only_fields_the_forecast_writes():
+def test_grafana_cloud_reads_only_fields_the_forecast_entity_has():
+    # Grafana reads tonight's forecast entity from Orion; the station history (QuantumLeap) is
+    # selected with a JSONata expression and checked by hand.
+    entity = forecast_key_values()
     for panel in cloud_dashboard.dashboard()["panels"]:
         for target in panel.get("targets", []):
-            rows = rows_under(target["root_selector"])
-            assert rows, f"panel {panel['id']}: nothing under {target['root_selector']!r}"
+            if target["url"] != cloud_dashboard.FORECAST_URL:
+                continue
+            root = target["root_selector"]
+            rows = entity[root] if root else [entity]
+            assert rows, f"panel {panel['id']}: nothing under {root!r}"
             for column in target["columns"]:
                 assert column["selector"] in rows[0], f"panel {panel['id']}: no field {column['selector']!r}"
 
