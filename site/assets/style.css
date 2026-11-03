@@ -328,11 +328,6 @@ ul.rm li { margin: .45rem 0; line-height: 1.5; }
 .rm-part code { font-size: .85em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
 
 /* Part 1: key figures */
-.rm-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0; }
-.rm-stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
-.rm-stat-v { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--series-1); }
-.rm-stat-l { font-size: .8rem; color: var(--text-2); line-height: 1.3; }
-@media (max-width: 600px) { .rm-stats { grid-template-columns: repeat(2, 1fr); } }
 table.rm-table th, table.rm-table td { text-align: left; white-space: normal; vertical-align: top; }
 table.rm-table th[scope="row"] { font-weight: 600; color: var(--text); }
 

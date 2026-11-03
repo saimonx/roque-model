@@ -173,11 +173,8 @@
     const t = T(), m = d.model, tr = m.trained_on, f = m.final, pr = m.provisional;
     const n0 = (v) => num(v, 0);
 
-    // 1. What it is: four key figures, how the model works and what it is built with.
+    // 1. What it is: how the model works and what it is built with.
     // 2. How it was tuned: the technical settings (and, in renderModelSearch, the search).
-    $("rm-stats").innerHTML = [
-      [t.rm_stat_model, "1"], [t.rm_stat_inputs, `${f.inputs}`], [t.rm_stat_trees, `${f.trees}`], [t.rm_stat_out, "%"],
-    ].map(([label, value]) => `<div class="rm-stat"><span class="rm-stat-v">${value}</span><span class="rm-stat-l">${label}</span></div>`).join("");
     // The technical settings, whatever kind of model RoqueModel is (the search decides).
     const kind = f.model, names = t.set_names[kind], desc = t.set_desc[kind];
     table($("rm-tech"), t.rm_tech_cols, [
