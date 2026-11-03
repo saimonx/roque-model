@@ -14,7 +14,7 @@ Runs on the FIWARE server (cron, every hour) with the system Python only (no pac
 5. This server: the five containers are running, and there is disk and memory to spare.
 
 Self-repair (checked first): containers that are not running are started again; if the forecast
-is late and a GitHub token is configured, the hourly workflow is launched. A repair is reported
+is late, the hourly workflow is launched (an empty commit to the `kick` branch). A repair is reported
 like a failure, so it also arrives by e-mail.
 
 Result: Healthchecks.io gets "OK" (with a summary) or "fail" (with what failed), and e-mails
@@ -23,7 +23,9 @@ notices the missing ping and e-mails too.
 
 Configuration in /opt/roquemodel/monitor.env (never in Git):
     HC_PING_URL=https://hc-ping.com/<uuid>
-    GH_TOKEN=<optional fine-grained token with Actions read/write on saimonx/roque-model>
+    GH_TOKEN=<optional: a GitHub token, only to raise the API rate limit>
+To relaunch a late forecast it uses a deploy key of the repository (/root/.ssh/roquemodel_kick):
+it can only write to this repository, and only pushes to the `kick` branch.
 
 Usage:
     python3 monitor.py            # check, repair, report
@@ -285,12 +287,25 @@ def check_server(repair: bool) -> None:
     summary.append(f"servidor: contenedores en marcha, disco al {used:.0%}, {available_mb} MB libres")
 
 
-def launch_forecast(token: str) -> None:
-    status, _ = http(f"https://api.github.com/repos/{REPO}/actions/workflows/forecast.yml/dispatches", method="POST",
-                     data=json.dumps({"ref": "main"}).encode(),
-                     headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"})
-    notes.append("reparación: lanzado el pronóstico en GitHub" if status == 204
-                 else f"reparación: no se pudo lanzar el pronóstico ({status})")
+def launch_forecast() -> None:
+    """Start the hourly forecast now: push one empty commit on top of main to the repository's `kick`
+    branch, which the workflow listens to (GitHub reads the workflow from the pushed commit, so it
+    must contain main's files). The server's deploy key can only write to this repository."""
+    key = "/root/.ssh/roquemodel_kick"
+    folder = os.path.join(COMPOSE_DIR, "kick")
+    ssh = f"ssh -i {key} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+    git = ["git", "-c", f"core.sshCommand={ssh}", "-c", "user.name=roque-model bot",
+           "-c", "user.email=546832+saimonx@users.noreply.github.com"]
+    shutil.rmtree(folder, ignore_errors=True)
+    steps = [[*git, "clone", "-q", "--depth", "1", "--branch", "main", f"git@github.com:{REPO}.git", folder],
+             [*git, "-C", folder, "commit", "-q", "--allow-empty", "-m", f"Relaunch the forecast ({NOW:%Y-%m-%d %H:%M} UTC)"],
+             [*git, "-C", folder, "push", "-q", "--force", "origin", "HEAD:kick"]]
+    for step in steps:
+        result = subprocess.run(step, capture_output=True, text=True, timeout=180, check=False)
+        if result.returncode:
+            notes.append(f"reparación: no se pudo lanzar el pronóstico ({result.stderr.strip()[:200]})")
+            return
+    notes.append("reparación: lanzado el pronóstico en GitHub")
 
 
 def report(url: str, failed: bool, text: str) -> None:
@@ -311,8 +326,8 @@ def main() -> int:
     check_fiware(page)
     check_grafana()
     late = check_github(token)
-    if late and token and not dry_run:
-        launch_forecast(token)
+    if late and not dry_run and os.path.exists("/root/.ssh/roquemodel_kick"):
+        launch_forecast()
     repaired = any(n.startswith(("servidor:", "reparación:")) for n in notes)
     # A repair is reported as a failure too, so José gets an e-mail about it (and another when the
     # next hourly check is fine again).

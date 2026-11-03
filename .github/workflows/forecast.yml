@@ -9,6 +9,9 @@ on:
     # chances per hour keep the page fresh.
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:            # and by hand, from the Actions tab
+  push:
+    branches: [kick]            # and by the FIWARE server's hourly health check when the forecast is late
+                                # (infra/cloud/monitor.py pushes one empty commit there with a deploy key)
 
 permissions:
   contents: write               # to push the gh-pages branch and read the runtime release
@@ -23,6 +26,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main             # always the current code, also when started from the kick branch
 
       - uses: astral-sh/setup-uv@v6
         with:
