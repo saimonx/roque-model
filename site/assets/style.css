@@ -220,6 +220,9 @@ table.text td:first-child { min-width: 180px; }
 .mode-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); flex: none; }
 .mode-list li.provisional.current .mode-dot { background: var(--warning); }
 .mode-list li.final.current .mode-dot { background: var(--good); }
+.mode-list li.raw .mode-dot { background: var(--text-3); }
+/* The boxes sit inside the scrolling hour strips: keep them still and readable on a phone */
+.lines .mode-box { position: sticky; left: 0; margin: 0 0 0.5rem; }
 .mode-now { font-size: 0.75rem; padding: 0 6px; border-radius: 99px; border: 1px solid currentColor; }
 .mode-acc { margin-left: auto; font-size: 0.85rem; }
 details.info { display: inline-block; margin: 0.3rem 0 0; font-size: 0.85rem; }

@@ -39,11 +39,9 @@
   // Clicking an hour opens a panel that shows how both lines come out for that hour.
   function renderLines(d) {
     const t = T(), c = state.evaluation && state.evaluation.comparison;
-    if (c) {
-      const model = d.mode === "final" ? c.final : c.provisional;
-      $("acc-model").textContent = "(" + fill(t.line_acc, { p: pct(1 - model.wrong) }) + ")";
-      $("acc-raw").textContent = "(" + fill(t.line_acc, { p: pct(1 - c.raw.wrong) }) + ")";
-    }
+    // Under line 2, the forecast read literally gets the same box as the current model, with its accuracy.
+    $("raw-list").innerHTML = `<li class="raw current"><span class="mode-dot"></span><b>${t.raw_rule}</b>
+      <span class="mode-acc">${fill(t.mode_acc, { p: c ? pct(1 - c.raw.wrong) : t.na })}</span></li>`;
     const sel = state.hour;
     $("strip").parentElement.style.setProperty("--n", d.hours.length);
     const cell = (h, i, inner) => `<button type="button" class="cell${sel === i ? " selected" : ""}" data-i="${i}" aria-pressed="${sel === i}"
@@ -137,7 +135,7 @@
   // ---------------------------------------------------------------- tonight
   function renderTonight(d) {
     const t = T(), f = d.forecast, n = d.night;
-    const date = new Date(n.date + "T12:00:00Z").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+    const date = new Date(n.date + "T12:00:00Z").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).replace(",", "");
     $("night-title").textContent = fill(t.night_of, { date });
     $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: stampLocal(d.issued_utc) });
 
