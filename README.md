@@ -34,8 +34,9 @@ estación de la cumbre.
    cúpula cerrada en cada hora.
 
 **Vigilancia cada hora:** una comprobación independiente revisa la web, FIWARE, el panel de Grafana, GitHub y el
-servidor; arregla lo que puede y avisa por correo si algo falla (insignia de arriba; detalles en
-[docs/DETALLES_TECNICOS.md](docs/DETALLES_TECNICOS.md#7-cómo-funciona-cada-hora)).
+servidor; arregla lo que puede y avisa por correo si algo falla (insignia de arriba). Los errores del pronóstico
+llegan a Sentry con su traza completa. Detalles en
+[docs/DETALLES_TECNICOS.md](docs/DETALLES_TECNICOS.md#7-cómo-funciona-cada-hora).
 
 Hay dos versiones: la **provisional**, antes de que empiece la noche, sin la estación de la cumbre, y la
 **definitiva**, desde que empieza la noche, con todos los datos.

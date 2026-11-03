@@ -194,6 +194,12 @@ correctas y flujos activos) y el propio servidor (contenedores, disco, memoria).
 Healthchecks.io, que también avisa si la comprobación deja de llegar (servidor caído). Estado ahora:
 ![vigilancia](https://healthchecks.io/b/2/0437fc28-5880-4f5a-b616-9f2a2ea0c8bb.svg)
 
+**Errores con Sentry** (`observability.py`): en GitHub Actions, `tonight` y `site_data` envían a
+[Sentry](https://sentry.io) cualquier excepción y cualquier error registrado (por ejemplo, una escritura en FIWARE
+que falla), con la traza, el commit que corría y lo que se registró antes. Los avisos (una fuente que no responde
+y se sustituye por su última copia) no se envían solos. Sin `SENTRY_DSN` (en el Mac, en los tests) no se envía
+nada. Healthchecks.io dice *que* algo va mal; Sentry dice *por qué*.
+
 ## 8. FIWARE
 
 [FIWARE](https://www.fiware.org) es la plataforma abierta de datos de sensores (IoT) que usa el GTC. RoqueModel
