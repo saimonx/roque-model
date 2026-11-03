@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RoqueModel</title>
   <meta name="description" content="RoqueModel: previsión hora a hora de si la cúpula podrá estar abierta para observar esta noche en el Observatorio del Roque de los Muchachos (La Palma). Proyecto independiente con datos reales y públicos.">
-  <link rel="icon" href="assets/favicon-32.png?v=55" sizes="32x32" type="image/png">
-  <link rel="icon" href="assets/favicon.svg?v=55" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=55">
-  <link rel="stylesheet" href="assets/style.css?v=55">
+  <link rel="icon" href="assets/favicon-32.png?v=56" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/favicon.svg?v=56" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=56">
+  <link rel="stylesheet" href="assets/style.css?v=56">
 </head>
 <body>
   <header class="top">
     <div class="wrap top-row">
       <div>
-        <h1>RoqueModel</h1>
+        <h1 class="brand"><img src="assets/favicon.svg?v=56" alt="" width="34" height="34">RoqueModel</h1>
         <p class="sub" data-i18n="subtitle"></p>
       </div>
       <a class="grafana-link" href="https://ardentcloset2195.grafana.net/public-dashboards/da7d86c2a1c543a38467827c9f34b1c8" data-i18n="grafana_link" data-i18n-title="grafana_title"></a>
@@ -29,7 +29,6 @@
       <h2 id="night-title"></h2>
       <p class="muted small night-line"><span id="night-window"></span></p>
       <p class="notice stale" id="stale" hidden></p>
-      <p class="headline" id="headline"></p>
       <p class="muted small" data-i18n-html="strip_legend"></p>
       <p class="line-head"><b data-i18n="line_model"></b></p>
       <div class="mode-box">
@@ -57,7 +56,6 @@
     <!-- 2. How RoqueModel works -->
     <section id="roquemodel">
       <h2 data-i18n="rm_title"></h2>
-      <p class="muted" data-i18n-html="rm_intro"></p>
       <div class="rm-parts">
         <details class="rm-part">
           <summary class="rm-head"><span class="rm-num">1</span><h3 data-i18n="rm1_title"></h3><span class="rm-arrow" aria-hidden="true"></span></summary>
@@ -143,8 +141,8 @@
   </footer>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
-  <script src="assets/i18n.js?v=55"></script>
-  <script src="assets/charts.js?v=55"></script>
-  <script src="assets/app.js?v=55"></script>
+  <script src="assets/i18n.js?v=56"></script>
+  <script src="assets/charts.js?v=56"></script>
+  <script src="assets/app.js?v=56"></script>
 </body>
 </html>

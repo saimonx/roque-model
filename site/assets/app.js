@@ -140,7 +140,7 @@
 
   // ---------------------------------------------------------------- tonight
   function renderTonight(d) {
-    const t = T(), f = d.forecast, n = d.night;
+    const t = T(), n = d.night;
     const date = new Date(n.date + "T12:00:00Z").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).replace(",", "");
     $("night-title").textContent = fill(t.night_of, { date });
     $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: stampLocal(d.issued_utc) });
@@ -161,9 +161,6 @@
         <span class="mode-acc">${fill(t.mode_acc, { p: acc(m) })}</span></li>`).join("");
     $("mode-text").innerHTML = fill(d.mode === "final" ? t.mode_final_text : t.mode_provisional_text,
       { time: from, until, prov: acc("provisional"), fin: acc("final") });
-
-    const open = Math.round(f.open_h), total = Math.round(n.length_h);
-    $("headline").innerHTML = `<span class="dot-big" style="background:var(${COLORS[f.risk]})"></span>${fill(t.headline, { open, total })}`;
 
     renderLines(d);
 

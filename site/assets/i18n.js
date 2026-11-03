@@ -17,7 +17,6 @@ window.I18N = {
     mode_acc: "acierta el {p} de las horas",
     mode_provisional_text: "Antes de que empiece la noche aún no existe lo que más ayuda: lo que mide la estación de la cumbre justo antes de la noche. Por eso ahora pronostica el <b>modelo provisional</b>, que usa solo la previsión del tiempo, lo que pasó anoche y la época del año. A las {time} se añade la estación y pasa a pronosticar el <b>modelo definitivo</b>.",
     mode_final_text: "Ahora pronostica el <b>modelo definitivo</b>: ya usa lo que midió la estación de la cumbre justo antes de la noche, que es lo que más ayuda, además de la previsión del tiempo, lo de anoche y la época del año. Hasta las {until} pronosticaba el <b>modelo provisional</b>, sin la estación.",
-    headline: "Se podrá observar unas {open} de las {total} horas de noche",
     strip_legend: "<b>Toca una hora</b> de cualquiera de las dos líneas para ver cómo sale.",
     legend_title: "Leyenda",
     legend_model: `Probabilidad de que la cúpula esté cerrada esa hora (por humedad, viento o hielo).
@@ -27,8 +26,8 @@ window.I18N = {
     legend_raw: `La previsión del tiempo leída tal cual: dice sí o no, sin término medio.
   <ul><li><span class="sw" style="background:var(--good)"></span><b>Verde, «abrir»</b>: la previsión no llega a ningún límite de cierre.</li>
   <li><span class="sw" style="background:var(--critical)"></span><b>Rojo, «cerrar»</b>: la previsión da humedad del 90 % o más, viento de 80 km/h o más, o hielo.</li></ul>`,
-    line_model: "RoqueModel",
-    line_raw: "Solo la previsión del tiempo",
+    line_model: "Previsión del RoqueModel",
+    line_raw: "Si solo se tuviera en cuenta la previsión del tiempo",
     raw_rule: "Reglas de cierre sobre la previsión",
     raw_close_word: "cerrar", raw_open_word: "abrir",
     detail_title: "De {start} a {end}", detail_close: "Cerrar",
@@ -62,8 +61,7 @@ window.I18N = {
     raw_note: "Son las mismas reglas que deciden «cerrada» en la cumbre, aplicadas a la previsión tal cual. Esta línea no tiene amarillo: solo dice sí o no. La previsión mira un punto más bajo y húmedo que la cumbre, por eso cierra de más.",
     raw_wind10: "* Viento a 10 m: no hay dato a la altura de la cumbre para esta hora.",
     updated: "Pronóstico emitido: {time}.",
-    rm_title: "Cómo funciona RoqueModel",
-    rm_intro: "RoqueModel es nuestro modelo para saber si la cúpula estará cerrada cada hora de la noche. Toca cada apartado para abrirlo o cerrarlo.",
+    rm_title: "Más información acerca de RoqueModel",
     rm1_title: "Qué es",
     rm1_text: { random_forest: "<h4>Qué hace</h4><p>RoqueModel es un modelo de <b><a href=\"https://es.wikipedia.org/wiki/Aprendizaje_autom%C3%A1tico\">aprendizaje automático</a></b> (<i>machine learning</i>) de tipo <b>clasificación</b>: para cada hora de la noche responde a una pregunta de sí o no, «¿estará la cúpula cerrada?», y lo hace con una <b>probabilidad</b>, de 0 a 100 %. Recibe {inputs} datos por hora (la previsión del tiempo para esa hora y para toda la noche, lo que midió la estación de la cumbre antes de la noche, lo que pasó anoche y la época del año) y devuelve un solo número. Las horas cerradas de toda la noche son la suma de las probabilidades de sus horas.</p><h4>La pieza básica: el árbol de decisión</h4><p>Un <a href=\"https://es.wikipedia.org/wiki/%C3%81rbol_de_decisi%C3%B3n\">árbol de decisión</a> es una cadena de preguntas de sí o no sobre los datos, por ejemplo: «¿la humedad prevista pasa del 85 %?» → sí → «¿el viento en la estación pasa de 40 km/h?» → no → … hasta llegar a una <b>hoja</b>. Cada hoja guarda qué parte de las horas de entrenamiento que acabaron en ella tuvieron la cúpula cerrada: esa es su probabilidad. Nadie escribe las preguntas a mano: al entrenar, el árbol prueba en cada paso datos y umbrales y se queda con la pregunta que mejor separa las horas abiertas de las cerradas.</p><h4>Muchos árboles a la vez: el random forest</h4><p>Un árbol solo tiende a aprenderse de memoria los casos raros y falla con noches nuevas. Un <a href=\"https://es.wikipedia.org/wiki/Random_forest\"><i>random forest</i></a> («bosque aleatorio», <a href=\"https://doi.org/10.1023/A:1010933404324\">Breiman, 2001</a>) entrena <b>{trees} árboles</b> y mete azar en dos sitios para que cada uno salga distinto:</p><ul><li>cada árbol aprende con una <b>muestra al azar de las horas</b> (con repetición: unas salen dos veces y otras ninguna);</li><li>en cada pregunta, el árbol solo puede elegir entre <b>{feat} de los {inputs} datos</b>, sorteados.</li></ul><p>Así cada árbol se equivoca de una forma diferente y, al hacer la <b>media de las {trees} probabilidades</b>, los errores se compensan. Esa media es el porcentaje de cada hora. Por qué un random forest y no otro tipo de modelo se explica en el apartado 6.</p>", gradient_boosting: "<h4>Qué hace</h4><p>RoqueModel es un modelo de <b>aprendizaje automático</b> de tipo <b>clasificación</b>: para cada hora de la noche responde a «¿estará la cúpula cerrada?» con una <b>probabilidad</b>, a partir de {inputs} datos por hora.</p><h4>Cómo funciona</h4><p>Es un <a href=\"https://es.wikipedia.org/wiki/Gradient_boosting\"><i>gradient boosting</i></a>: {trees} árboles de decisión pequeños, del tipo «si la humedad pasa de X y el viento de Y…». Cada árbol corrige un poco lo que fallaron los anteriores, y la suma de todos da el porcentaje.</p>" },
     rm1_class: { random_forest: "RandomForestClassifier", gradient_boosting: "HistGradientBoostingClassifier" },
