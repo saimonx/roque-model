@@ -16,7 +16,7 @@ Usage:
 import json
 
 from roque_forecast import config
-from roque_forecast.fiware import FORECAST_ID, GTC_ID, NOT_ID
+from roque_forecast.fiware import FORECAST_ID, NOT_ID
 
 OUT_DIR = config.PROJECT_DIR / "infra" / "grafana" / "dashboards"
 DATASOURCE = {"type": "grafana-postgresql-datasource", "uid": "cratedb"}
@@ -32,11 +32,11 @@ TEXT = {
               "en": "RoqueModel — weather and night forecast"},
     "about": {
         "es": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: "
-              "estación del GTC (atmosportal) y del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). "
+              "estación meteorológica del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). "
               "Pronóstico de la noche: dos modelos propios, cúpula cerrada hora a hora y seeing (ver el README). "
               "Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana.",
         "en": "**Independent project, not affiliated with GRANTECAN or any observatory.** Real, public data: "
-              "GTC (atmosportal) and NOT weather stations, ECMWF IFS forecast (Open-Meteo, CC BY 4.0). "
+              "NOT weather station, ECMWF IFS forecast (Open-Meteo, CC BY 4.0). "
               "Night forecast: two models of our own, dome closed hour by hour and seeing (see the README). "
               "Flow: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana.",
     },
@@ -44,20 +44,17 @@ TEXT = {
     "seeing": {"es": "Seeing previsto", "en": "Forecast seeing"},
     "lost": {"es": "Horas observables previstas", "en": "Expected observable hours"},
     "mode": {"es": "Tipo de pronóstico", "en": "Forecast type"},
-    "rh_now": {"es": "Humedad GTC ahora", "en": "GTC humidity now"},
-    "spread_now": {"es": "Margen al punto de rocío (GTC)", "en": "Dew-point margin (GTC)"},
+    "rh_now": {"es": "Humedad NOT ahora", "en": "NOT humidity now"},
+    "wind_now": {"es": "Viento NOT ahora", "en": "NOT wind now"},
     "humidity": {"es": "Humedad relativa (%) — la cúpula se cierra al 90 %",
                  "en": "Relative humidity (%) — the dome closes at 90 %"},
     "wind": {"es": "Viento (m/s)", "en": "Wind (m/s)"},
-    "temp": {"es": "Temperatura y punto de rocío (°C, GTC)", "en": "Temperature and dew point (°C, GTC)"},
+    "temp": {"es": "Temperatura (°C, NOT)", "en": "Temperature (°C, NOT)"},
     "fc_history": {"es": "Pronósticos emitidos: horas de cúpula cerrada",
                    "en": "Issued forecasts: hours with the dome closed"},
     "seeing_history": {"es": "Pronósticos emitidos: seeing (″)", "en": "Issued forecasts: seeing (″)"},
-    "gtc_mean": {"es": "GTC media", "en": "GTC mean"},
-    "gtc_gust": {"es": "GTC racha", "en": "GTC gust"},
     "not_wind": {"es": "NOT", "en": "NOT"},
     "temperature": {"es": "temperatura", "en": "temperature"},
-    "dew_point": {"es": "punto de rocío", "en": "dew point"},
     "provisional": {"es": "provisional (solo pronóstico)", "en": "provisional (forecast only)"},
     "final": {"es": "definitivo (con la estación)", "en": "final (with the station)"},
 }
@@ -135,23 +132,19 @@ def dashboard(lang: str) -> dict:
              steps((CRITICAL, None), (WARNING, 4), (GOOD, 7)), 1),
         stat(5, t["mode"], latest("forecastmode", FORECAST, FORECAST_ID), 12, "none",
              steps((BLUE, None)), 0, mode_map),
-        stat(6, t["rh_now"], latest("relativehumidity * 100", OBSERVED, GTC_ID), 16, "percent",
+        stat(6, t["rh_now"], latest("relativehumidity * 100", OBSERVED, NOT_ID), 16, "percent",
              steps((GOOD, None), (WARNING, 80), (CRITICAL, 90)), 0),
-        # Temperature minus dew point: below ~2 °C, water can condense on cold surfaces.
-        stat(7, t["spread_now"], latest("temperature - dewpoint", OBSERVED, GTC_ID), 20, "celsius",
-             steps((CRITICAL, None), (WARNING, 2), (GOOD, 4)), 1),
+        # Gusts of 22.2 m/s (80 km/h) close the dome.
+        stat(7, t["wind_now"], latest("windspeed", OBSERVED, NOT_ID), 20, "velocityms",
+             steps((GOOD, None), (WARNING, 15), (CRITICAL, 22.2)), 1),
         timeseries(8, t["humidity"], [
-            (series("relativehumidity * 100", "GTC", OBSERVED, GTC_ID), BLUE),
             (series("relativehumidity * 100", "NOT", OBSERVED, NOT_ID), ORANGE),
         ], {"x": 0, "y": 8, "w": 24, "h": 8}, "percent", threshold=90),
         timeseries(9, t["wind"], [
-            (series("windspeed", t["gtc_mean"], OBSERVED, GTC_ID), BLUE),
-            (series("gustspeed", t["gtc_gust"], OBSERVED, GTC_ID), AQUA),
             (series("windspeed", t["not_wind"], OBSERVED, NOT_ID), ORANGE),
         ], {"x": 0, "y": 16, "w": 12, "h": 8}, "velocityms"),
         timeseries(10, t["temp"], [
-            (series("temperature", t["temperature"], OBSERVED, GTC_ID), BLUE),
-            (series("dewpoint", t["dew_point"], OBSERVED, GTC_ID), ORANGE),
+            (series("temperature", t["temperature"], OBSERVED, NOT_ID), ORANGE),
         ], {"x": 12, "y": 16, "w": 12, "h": 8}, "celsius"),
         timeseries(11, t["fc_history"], [
             (series("domeclosedhours", "h", FORECAST, FORECAST_ID), BLUE),

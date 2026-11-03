@@ -27,7 +27,7 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación del GTC (atmosportal) y del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). Pronóstico de la noche: dos modelos propios, cúpula cerrada hora a hora y seeing (ver el README). Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."
+    "content": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación meteorológica del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). Pronóstico de la noche: dos modelos propios, cúpula cerrada hora a hora y seeing (ver el README). Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."
    }
   },
   {
@@ -311,7 +311,7 @@
   {
    "id": 6,
    "type": "stat",
-   "title": "Humedad GTC ahora",
+   "title": "Humedad NOT ahora",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -332,7 +332,7 @@
      "format": "table",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT relativehumidity * 100 AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND relativehumidity * 100 IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+     "rawSql": "SELECT relativehumidity * 100 AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND relativehumidity * 100 IS NOT NULL ORDER BY time_index DESC LIMIT 1"
     }
    ],
    "fieldConfig": {
@@ -379,7 +379,7 @@
   {
    "id": 7,
    "type": "stat",
-   "title": "Margen al punto de rocío (GTC)",
+   "title": "Viento NOT ahora",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -400,27 +400,27 @@
      "format": "table",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT temperature - dewpoint AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND temperature - dewpoint IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+     "rawSql": "SELECT windspeed AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND windspeed IS NOT NULL ORDER BY time_index DESC LIMIT 1"
     }
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "celsius",
+     "unit": "velocityms",
      "decimals": 1,
      "thresholds": {
       "mode": "absolute",
       "steps": [
        {
-        "color": "#d03b3b",
+        "color": "#0ca30c",
         "value": null
        },
        {
         "color": "#fab219",
-        "value": 2
+        "value": 15
        },
        {
-        "color": "#0ca30c",
-        "value": 4
+        "color": "#d03b3b",
+        "value": 22.2
        }
       ]
      },
@@ -461,17 +461,6 @@
    "targets": [
     {
      "refId": "A",
-     "datasource": {
-      "type": "grafana-postgresql-datasource",
-      "uid": "cratedb"
-     },
-     "format": "time_series",
-     "rawQuery": true,
-     "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", relativehumidity * 100 AS \"GTC\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND relativehumidity * 100 IS NOT NULL ORDER BY 1"
-    },
-    {
-     "refId": "B",
      "datasource": {
       "type": "grafana-postgresql-datasource",
       "uid": "cratedb"
@@ -521,21 +510,6 @@
         "id": "color",
         "value": {
          "mode": "fixed",
-         "fixedColor": "#2a78d6"
-        }
-       }
-      ]
-     },
-     {
-      "matcher": {
-       "id": "byFrameRefID",
-       "options": "B"
-      },
-      "properties": [
-       {
-        "id": "color",
-        "value": {
-         "mode": "fixed",
          "fixedColor": "#eb6834"
         }
        }
@@ -577,28 +551,6 @@
      "format": "time_series",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", windspeed AS \"GTC media\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND windspeed IS NOT NULL ORDER BY 1"
-    },
-    {
-     "refId": "B",
-     "datasource": {
-      "type": "grafana-postgresql-datasource",
-      "uid": "cratedb"
-     },
-     "format": "time_series",
-     "rawQuery": true,
-     "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", gustspeed AS \"GTC racha\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND gustspeed IS NOT NULL ORDER BY 1"
-    },
-    {
-     "refId": "C",
-     "datasource": {
-      "type": "grafana-postgresql-datasource",
-      "uid": "cratedb"
-     },
-     "format": "time_series",
-     "rawQuery": true,
-     "editorMode": "code",
      "rawSql": "SELECT time_index AS \"time\", windspeed AS \"NOT\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND windspeed IS NOT NULL ORDER BY 1"
     }
    ],
@@ -625,36 +577,6 @@
         "id": "color",
         "value": {
          "mode": "fixed",
-         "fixedColor": "#2a78d6"
-        }
-       }
-      ]
-     },
-     {
-      "matcher": {
-       "id": "byFrameRefID",
-       "options": "B"
-      },
-      "properties": [
-       {
-        "id": "color",
-        "value": {
-         "mode": "fixed",
-         "fixedColor": "#1baf7a"
-        }
-       }
-      ]
-     },
-     {
-      "matcher": {
-       "id": "byFrameRefID",
-       "options": "C"
-      },
-      "properties": [
-       {
-        "id": "color",
-        "value": {
-         "mode": "fixed",
          "fixedColor": "#eb6834"
         }
        }
@@ -675,7 +597,7 @@
   {
    "id": 10,
    "type": "timeseries",
-   "title": "Temperatura y punto de rocío (°C, GTC)",
+   "title": "Temperatura (°C, NOT)",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -696,18 +618,7 @@
      "format": "time_series",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", temperature AS \"temperatura\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND temperature IS NOT NULL ORDER BY 1"
-    },
-    {
-     "refId": "B",
-     "datasource": {
-      "type": "grafana-postgresql-datasource",
-      "uid": "cratedb"
-     },
-     "format": "time_series",
-     "rawQuery": true,
-     "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", dewpoint AS \"punto de rocío\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-GTC' AND $__timeFilter(time_index) AND dewpoint IS NOT NULL ORDER BY 1"
+     "rawSql": "SELECT time_index AS \"time\", temperature AS \"temperatura\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND temperature IS NOT NULL ORDER BY 1"
     }
    ],
    "fieldConfig": {
@@ -727,21 +638,6 @@
       "matcher": {
        "id": "byFrameRefID",
        "options": "A"
-      },
-      "properties": [
-       {
-        "id": "color",
-        "value": {
-         "mode": "fixed",
-         "fixedColor": "#2a78d6"
-        }
-       }
-      ]
-     },
-     {
-      "matcher": {
-       "id": "byFrameRefID",
-       "options": "B"
       },
       "properties": [
        {

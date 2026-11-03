@@ -4,8 +4,7 @@ Public site: https://atmosportal.gtc.iac.es/
 Two kinds of data:
 
 1. Time series (`graphics/<var>_month.php`): JSON list of {"x": epoch_ms, "y": value},
-   one point every ~11 s, but ONLY the last 30 days. It is read on demand (to fill
-   the FIWARE history, fiware.py backfill) and not kept.
+   one point every ~11 s, but ONLY the last 30 days. Not used: the GTC station is not stored.
 
 2. Live panel (the table on the home page): current value of each sensor,
    including some that have no time series (rain flag, indoor/outdoor PM10 dust,

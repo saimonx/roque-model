@@ -162,7 +162,7 @@ All data are **real and public**; nothing in this project is simulated.
 | Inputs (what was known) | Open-Meteo archived NOAA GFS: wind at 750 hPa (summit height) and 200 hPa (jet stream) | Mar 2021 → today |
 | Checking the label | [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/): hours lost to weather per night | 2007 → today |
 | Nightly study only | [ING nightly accounting](https://a.ing.iac.es/weather/archive/) (WHT hours lost) | 2007 → today |
-| Live, shown only | [GTC atmosportal](https://atmosportal.gtc.iac.es/) panel; [TNG weather](https://tngweb.tng.iac.es/weather) (stored for later) | live |
+| Live, shown only | [GTC atmosportal](https://atmosportal.gtc.iac.es/) panel (current state in FIWARE, not stored); [TNG weather](https://tngweb.tng.iac.es/weather) (stored for later) | live |
 
 **Download the training data** (1 MB zip, [`training-data` release](https://github.com/saimonx/roque-model/releases/tag/training-data),
 written by `src/roque_forecast/export_data.py`):
@@ -257,13 +257,13 @@ schedule stays as a fallback when the Mac is off.
 ```bash
 docker compose -f infra/docker-compose.yml up -d     # Orion :1027, QuantumLeap :8669, Grafana :3001
 .venv/bin/python -m roque_forecast.fiware provision  # subscription Orion -> QuantumLeap (once)
-.venv/bin/python -m roque_forecast.fiware backfill   # optional: last 30 days of both stations
+.venv/bin/python -m roque_forecast.fiware backfill   # optional: last 30 days of the NOT station
 .venv/bin/python -m roque_forecast.dashboards        # regenerate the ES and EN dashboards
 ```
 
 | Entity | Type ([Smart Data Models](https://github.com/smart-data-models/dataModel.Weather)) | Updated by |
 |---|---|---|
-| `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | `collect live` (every 15 min) |
+| `urn:ngsi-ld:WeatherObserved:ORM-GTC` | `WeatherObserved` | `collect live` (every 15 min; current state only, its history is not stored) |
 | `urn:ngsi-ld:WeatherObserved:ORM-NOT` | `WeatherObserved` | `tonight` (hourly) |
 | `urn:ngsi-ld:WeatherForecast:ORM-tonight` | `WeatherForecast` (+ closed hours, hourly closure probability, seeing) | `tonight` (hourly) |
 

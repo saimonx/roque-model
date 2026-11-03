@@ -5,6 +5,8 @@ data platforms. Its core piece, the **Orion Context Broker**, keeps the CURRENT
 state of "entities" (a weather station, a forecast...) behind a standard REST
 API called **NGSI-v2**. Every change is forwarded to **QuantumLeap**, which
 stores it as a time series in **CrateDB**; **Grafana** draws the history.
+The GTC station is the exception: Orion keeps its current state, but its history is
+not stored (the QuantumLeap subscription leaves it out).
 The whole stack runs locally with Docker (infra/docker-compose.yml).
 
 Entities follow the public FIWARE **Smart Data Models** (dataModel.Weather), so
@@ -12,7 +14,7 @@ any tool that understands them can read ours:
 
 | Entity id                                   | Type             | Fed by                           |
 |---------------------------------------------|------------------|----------------------------------|
-| urn:ngsi-ld:WeatherObserved:ORM-GTC          | WeatherObserved  | GTC live panel (collect live, 15 min) |
+| urn:ngsi-ld:WeatherObserved:ORM-GTC          | WeatherObserved  | GTC live panel (collect live, 15 min; current state only) |
 | urn:ngsi-ld:WeatherObserved:ORM-NOT          | WeatherObserved  | NOT station (tonight.py)          |
 | urn:ngsi-ld:WeatherForecast:ORM-tonight      | WeatherForecast  | our night forecast (tonight.py)   |
 
@@ -26,7 +28,7 @@ lands at the right moment in the history.
 
 Usage:
     .venv/bin/python -m roque_forecast.fiware provision      # history subscription (once)
-    .venv/bin/python -m roque_forecast.fiware backfill       # last ~30 days of history
+    .venv/bin/python -m roque_forecast.fiware backfill       # last ~30 days of NOT history
     .venv/bin/python -m roque_forecast.fiware status
 """
 
@@ -41,8 +43,7 @@ import pandas as pd
 import requests
 
 from roque_forecast import config
-from roque_forecast.polite_http import PoliteSession
-from roque_forecast.sources import gtc_atmosportal, not_mast
+from roque_forecast.sources import not_mast
 
 log = logging.getLogger("fiware")
 
@@ -76,16 +77,6 @@ PANEL_ATTRIBUTES = {
     "Acc Rain (24h)": ("precipitation", float),
     "External PM10": ("pm10", float),
     "Rain": ("rainDetected", lambda v: str(v).strip().lower() == "true"),
-}
-# GTC month series (graphics/<var>_month.php) -> (attribute, conversion), for the backfill.
-SERIES_ATTRIBUTES = {
-    "temperature": ("temperature", float),
-    "humidity": ("relativeHumidity", lambda v: v / 100),
-    "dewpoint": ("dewPoint", float),
-    "pressure": ("atmosphericPressure", float),
-    "winspeed": ("windSpeed", float),
-    "windpeak": ("gustSpeed", float),
-    "solarrad": ("solarRadiation", float),
 }
 
 
@@ -208,14 +199,14 @@ def push_forecast(page: dict) -> bool:
 
 
 def provision() -> None:
-    """Subscribe QuantumLeap to every change of our entity types (only once)."""
+    """Subscribe QuantumLeap to the NOT station and the forecast (only once); the GTC is not stored."""
     existing = requests.get(f"{ORION_URL}/v2/subscriptions", timeout=TIMEOUT_S).json()
     if any(s.get("description") == SUBSCRIPTION_DESCRIPTION for s in existing):
         print("subscription already exists")
         return
     subscription = {
         "description": SUBSCRIPTION_DESCRIPTION,
-        "subject": {"entities": [{"idPattern": ".*", "type": "WeatherObserved"},
+        "subject": {"entities": [{"id": NOT_ID, "type": "WeatherObserved"},
                                  {"idPattern": ".*", "type": "WeatherForecast"}]},
         # Inside Docker, Orion reaches QuantumLeap by its service name.
         "notification": {"http": {"url": "http://quantumleap:8668/v2/notify"},
@@ -239,25 +230,6 @@ def notify_quantumleap(entities: list[dict], batch: int = 300) -> None:
         r.raise_for_status()
 
 
-def gtc_history(days: int) -> list[dict]:
-    """GTC station, last 30 days downloaded now (not kept on disk), as 10-minute means."""
-    session = PoliteSession()
-    columns = []
-    for var, (name, convert) in SERIES_ATTRIBUTES.items():
-        try:
-            raw = gtc_atmosportal.fetch_series(session, var)
-        except Exception:
-            log.exception("GTC series %s failed", var)
-            continue
-        series = gtc_atmosportal.parse_series(raw, var).set_index("time_utc")[var]
-        columns.append(series.resample("10min").mean().map(convert).rename(name))
-    if not columns:
-        return []
-    table = pd.concat(columns, axis=1)
-    table = table[table.index > table.index.max() - pd.Timedelta(days=days)]
-    return [station_entity(GTC_ID, t, row.to_dict()) for t, row in table.iterrows()]
-
-
 def not_history(days: int) -> list[dict]:
     """NOT station from the clean minute table (build_tables.py), as 10-minute means."""
     start = pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=days)
@@ -274,9 +246,9 @@ def not_history(days: int) -> list[dict]:
 
 
 def backfill(days: int) -> None:
-    for name, entities in [("GTC", gtc_history(days)), ("NOT", not_history(days))]:
-        notify_quantumleap(entities)
-        print(f"{name}: {len(entities)} past states sent to QuantumLeap")
+    entities = not_history(days)
+    notify_quantumleap(entities)
+    print(f"NOT: {len(entities)} past states sent to QuantumLeap")
 
 
 def status() -> None:
