@@ -1,5 +1,7 @@
 # RoqueModel
 
+[![tests](https://github.com/saimonx/roque-model/actions/workflows/tests.yml/badge.svg)](https://github.com/saimonx/roque-model/actions/workflows/tests.yml)
+
 Un modelo de previsión de apertura de la cúpula del telescopio para observar desde el Roque de los Muchachos
 (La Palma).
 
@@ -17,6 +19,8 @@ estación de la cumbre.
 > **Proyecto independiente.** No está afiliado, respaldado ni hecho por encargo de GRANTECAN, el IAC, el ING,
 > el NOT, el TNG, el Telescopio Liverpool ni ninguna otra institución. Todos los datos son reales y públicos,
 > y se citan abajo.
+
+![La web de RoqueModel: previsión de esta noche, hora a hora (3 nov 2026)](reports/figures/web.jpg)
 
 ## Cómo funciona
 
@@ -72,7 +76,7 @@ uv sync                                       # crea .venv e instala las depende
 .venv/bin/python -m http.server 8765 -d site  # abre http://localhost:8765
 ```
 
-Para volver a descargar el histórico y entrenar, ver [todos los comandos](docs/DETALLES_TECNICOS.md#10-todos-los-comandos).
+Para volver a descargar el histórico y entrenar, ver [todos los comandos](docs/DETALLES_TECNICOS.md#9-todos-los-comandos).
 
 ## Qué hay en el repositorio
 

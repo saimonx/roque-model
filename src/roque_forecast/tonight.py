@@ -5,12 +5,7 @@ It downloads, every run:
    models and variables as the archives the models were trained on);
 2. the NOT weather station for the last ~36 hours (for the "2 hours before the
    night" inputs and last night's closure);
-3. the R2D2 seeing monitor for the last two nights (last night's seeing).
-
-If a source does not answer (the NOT website was down on 2 Nov 2026, for example), the
-last copy that did download is used instead, and the page says which source is old
-and from when. The last good copies live in data/raw/tonight/last/ (in GitHub Actions
-they travel with the published site, in its cache/ folder).
+3. the R2D2 seeing monitor for the last two nights (last night's seeing),
 
 and applies the two forecasts of the project:
 - **dome closed, hour by hour** (hourly.py): for each night hour, the probability
@@ -23,11 +18,16 @@ Two modes, so the forecast never uses information it could not have:
   the night" does not exist yet, so the forecast-only twin models are used;
 - **final** (from the start of astronomical night): the full models.
 
+If a source does not answer (the NOT website was down on 2 Nov 2026, for example), the
+last copy that did download is used instead, and the page says which source is old
+and from when. The last good copies live in data/raw/tonight/last/ (in GitHub Actions
+they travel with the published site, in its cache/ folder).
+
 Outputs:
 - site/data/tonight.json: everything the web page shows;
 - data/forecasts/issued.jsonl: one line per run, the record of what was forecast;
 - data/forecasts/outcomes.jsonl: what really happened last night, so the forecasts
-  can be checked against reality as the nights go by (site_data.py).
+  can be checked against reality as the nights go by.
 
 Usage:
     .venv/bin/python -m roque_forecast.tonight              # also updates FIWARE if it is running
@@ -48,7 +48,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-from roque_forecast import astro, config, dome, explain, features, hourly, train
+from roque_forecast import astro, config, dome, explain, features, hourly
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
 from roque_forecast.polite_http import PoliteSession
 from roque_forecast.sources import not_mast, open_meteo, r2d2
@@ -57,21 +57,19 @@ log = logging.getLogger("tonight")
 
 LOCAL_TZ = ZoneInfo("Atlantic/Canary")  # La Palma local time (WET/WEST)
 SITE_DATA_DIR = config.PROJECT_DIR / "site" / "data"
+# Levels. For one hour (page colours): the probability that the dome is closed.
+# For the night (FIWARE closureRisk): the share of the night expected closed.
+HOUR_LEVELS = [(0.2, "low"), (0.5, "medium"), (1.01, "high")]
+NIGHT_LEVELS = [(0.1, "low"), (0.4, "medium"), (1.01, "high")]
+# Written with every issued forecast, so the forecast log tells which models made each one.
+MODEL_VERSION = "hourly-closure-v2"
+
 FORECASTS_DIR = config.DATA_DIR / "forecasts"
 MODELS_DIR = config.DATA_DIR / "models"
 # The last copy of each live source that downloaded well, and when it was fetched.
 LAST_DIR = config.RAW_DIR / "tonight" / "last"
 LAST_TIMES = LAST_DIR / "fetched.json"
 
-# Levels shown on the page. For one hour: the probability that the dome is closed.
-# For the night: the share of the night expected closed.
-HOUR_LEVELS = [(0.2, "low"), (0.5, "medium"), (1.01, "high")]
-NIGHT_LEVELS = [(0.1, "low"), (0.4, "medium"), (1.01, "high")]
-# Written with every issued forecast, so the track record only scores forecasts made by
-# the current models (hourly closure + nightly seeing), not by earlier versions.
-MODEL_VERSION = "hourly-closure-v2"
-# Seeing classes (arcsec). The Roque median is ~0.75-0.8".
-SEEING_CLASSES = [(0.6, "excellent"), (0.9, "good"), (1.2, "average"), (99, "poor")]
 
 
 # --------------------------------------------------------------------------
@@ -257,28 +255,14 @@ def forecast_seeing(row: pd.DataFrame, final: bool) -> float:
     return float(model.predict(row[inputs])[0])
 
 
-def usual_for_month(month: int) -> dict:
-    """What is normal for this month (2017-2023): closed hours (full label) and seeing."""
-    table = pd.read_parquet(config.PROCESSED_DIR / "hour_table.parquet")
-    fitted = table[table["year"] <= train.VALIDATION_YEAR].dropna(subset=["closed"])
-    nights = hourly.closed_hours_by_night(fitted, ["closed"])
-    seeing = pd.read_parquet(config.PROCESSED_DIR / "model_table.parquet")
-    seeing = seeing[seeing["year"] <= train.VALIDATION_YEAR]
-    return {"closed_h": round(float(nights.loc[nights["month"] == month, "closed"].mean()), 2),
-            "seeing": round(float(seeing.loc[seeing["month"] == month, "seeing_median"].median()), 3)}
-
-
-def summarise(hours: pd.DataFrame, window: dict, seeing: float, month: int) -> dict:
+def summarise(hours: pd.DataFrame, window: dict, seeing: float) -> dict:
     weight = hours["dark_minutes"] / 60
     closed_h = float((hours["p_closed"] * weight).sum())
     return {
         "closed_h": round(closed_h, 2),
         "open_h": round(window["length_h"] - closed_h, 2),
         "risk": level(closed_h / window["length_h"], NIGHT_LEVELS),
-        "raw_closed_hours": int(hours["raw_closed"].sum()),
         "seeing_arcsec": round(seeing, 2),
-        "seeing_class": level(seeing, SEEING_CLASSES),
-        "usual": usual_for_month(month),
     }
 
 
@@ -380,7 +364,7 @@ def run(now: pd.Timestamp, session: PoliteSession) -> dict:
     previous = last_night(live["minutes"], live["seeing"], window["night"] - pd.Timedelta(days=1))
     row = build_inputs(live, window, previous, final)
     hours = forecast_hours(live, window, row, final)
-    forecast = summarise(hours, window, forecast_seeing(row, final), int(row["month"].iloc[0]))
+    forecast = summarise(hours, window, forecast_seeing(row, final))
     last_minute = live["minutes"].dropna(subset=["humidity_pct"]).iloc[-1]
     used = hourly.CLOSURE_FEATURES if final else hourly.CLOSURE_FORECAST_ONLY
 

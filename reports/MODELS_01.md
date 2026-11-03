@@ -1,5 +1,11 @@
 # Models 01 — Forecasting tonight at the Roque de los Muchachos
 
+> **Previous study (28–31 Oct 2026), kept as it was.** Sections 1–3 are the nightly models that came first
+> (gradient boosting, WHT hours lost); section 4 is the first version of the hourly model. The current model
+> (RoqueModel, a random forest that forecasts each night hour) and its scores are in
+> [docs/DETALLES_TECNICOS.md](../docs/DETALLES_TECNICOS.md) (in Spanish) and on the
+> [web page](https://saimonx.github.io/roque-model/).
+
 > **Independent project**, not affiliated with GRANTECAN or any observatory. All data are real and public.
 > Notebook: [`notebooks/02_models.ipynb`](../notebooks/02_models.ipynb). Code: `src/roque_forecast/features.py`,
 > `src/roque_forecast/train.py`, `hourly.py`, `validate.py`. Metrics: [`reports/results/`](results/).
@@ -92,7 +98,7 @@ The real skill lies between the two results.
 ### 3. Hours lost to weather (WHT)
 
 **Why a calibration line.** Only three years combine a forecast archive with a reliable WHT log: 2017, 2018
-and 2023. Section 6 of the EDA explains which years are reliable. Those three years are too few for their own
+and 2023. Section 4 of the EDA explains which years are reliable. Those three years are too few for their own
 model. Instead, the closure-hours forecast is converted with one factor fitted on those years:
 `lost = 0.85 × predicted closed hours`.
 
@@ -177,7 +183,7 @@ Sources looked at and not used, because they do not cover every year in the same
   2025: 1,499 h exposing, label "closed" in 0.8 % of those minutes), but data become public one year later
   and the archive cannot show closures.
 - **TNG weather downtime**: only the last 365 days are published (Oct 2025 – Oct 2026: correlation 0.90).
-- **WHT nightly accounting**: some years book nights with the dome closed as observed (EDA, section 6).
+- **WHT nightly accounting**: some years book nights with the dome closed as observed (EDA, section 4).
 
 ### Live models refitted on 2017–2026 (31 Oct 2026)
 

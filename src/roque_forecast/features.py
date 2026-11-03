@@ -42,7 +42,7 @@ PRE_NIGHT_WINDOW = pd.Timedelta(hours=2)
 FIRST_NIGHT = pd.Timestamp("2017-01-01")
 
 # The inputs the models use, in a fixed order. Missing values are allowed (the
-# gradient-boosting models handle them natively).
+# tree models handle them natively).
 FORECAST_FEATURES = [
     "fc_rh_mean", "fc_rh_max", "fc_dew_spread_min", "fc_temp_mean", "fc_temp_drop",
     "fc_wind_mean", "fc_wind_max", "fc_wind_u", "fc_wind_v", "fc_cloud_mean",

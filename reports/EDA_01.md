@@ -1,5 +1,9 @@
 # EDA 01 — Observing conditions at the Roque de los Muchachos
 
+> **Previous study (27–28 Oct 2026), kept as it was.** The current model (RoqueModel, a random forest that
+> forecasts each night hour) and its scores are in [docs/DETALLES_TECNICOS.md](../docs/DETALLES_TECNICOS.md)
+> (in Spanish) and on the [web page](https://saimonx.github.io/roque-model/).
+
 Independent project, not affiliated with GRANTECAN or any observatory. Real public data only (see README).
 Full analysis and code: [`notebooks/01_eda.ipynb`](../notebooks/01_eda.ipynb).
 

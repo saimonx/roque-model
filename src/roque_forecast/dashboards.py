@@ -1,13 +1,11 @@
-"""Generate the two Grafana dashboards (Spanish and English) from one definition.
+"""Generate the local Grafana dashboard (Spanish, like the web page) for the FIWARE stack.
 
-Grafana cannot translate a dashboard, so we keep ONE list of panels with the
-texts in both languages and write two JSON files that Grafana loads at start
-(infra/grafana/provisioning/dashboards/dashboards.yml). Editing a panel here
-and re-running this script keeps both languages identical.
+Grafana loads the JSON file at start (infra/grafana/provisioning/dashboards/dashboards.yml);
+edit the panels here and re-run this script instead of editing the JSON.
 
-The panels read CrateDB, where QuantumLeap stores every change of the FIWARE
-entities (see fiware.py): table `etweatherobserved` for the two weather
-stations and `etweatherforecast` for our night forecast.
+The panels read CrateDB, where QuantumLeap stores every change of the FIWARE entities
+(see fiware.py): table `etweatherobserved` for the NOT weather station (the GTC station
+is not stored) and `etweatherforecast` for RoqueModel's night forecast.
 
 Usage:
     .venv/bin/python -m roque_forecast.dashboards
@@ -19,6 +17,7 @@ from roque_forecast import config
 from roque_forecast.fiware import FORECAST_ID, NOT_ID
 
 OUT_DIR = config.PROJECT_DIR / "infra" / "grafana" / "dashboards"
+DASHBOARD_FILE = OUT_DIR / "roquemodel.json"
 DATASOURCE = {"type": "grafana-postgresql-datasource", "uid": "cratedb"}
 OBSERVED = "doc.etweatherobserved"
 FORECAST = "doc.etweatherforecast"
@@ -28,35 +27,24 @@ BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
 GOOD, WARNING, CRITICAL = "#0ca30c", "#fab219", "#d03b3b"
 
 TEXT = {
-    "title": {"es": "RoqueModel — meteo y pronóstico de la noche",
-              "en": "RoqueModel — weather and night forecast"},
-    "about": {
-        "es": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: "
-              "estación meteorológica del NOT, pronóstico ECMWF IFS (Open-Meteo, CC BY 4.0). "
-              "Pronóstico de la noche: dos modelos propios, cúpula cerrada hora a hora y seeing (ver el README). "
-              "Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana.",
-        "en": "**Independent project, not affiliated with GRANTECAN or any observatory.** Real, public data: "
-              "NOT weather station, ECMWF IFS forecast (Open-Meteo, CC BY 4.0). "
-              "Night forecast: two models of our own, dome closed hour by hour and seeing (see the README). "
-              "Flow: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana.",
-    },
-    "closure": {"es": "Horas de cúpula cerrada previstas", "en": "Expected hours with the dome closed"},
-    "seeing": {"es": "Seeing previsto", "en": "Forecast seeing"},
-    "lost": {"es": "Horas observables previstas", "en": "Expected observable hours"},
-    "mode": {"es": "Tipo de pronóstico", "en": "Forecast type"},
-    "rh_now": {"es": "Humedad NOT ahora", "en": "NOT humidity now"},
-    "wind_now": {"es": "Viento NOT ahora", "en": "NOT wind now"},
-    "humidity": {"es": "Humedad relativa (%) — la cúpula se cierra al 90 %",
-                 "en": "Relative humidity (%) — the dome closes at 90 %"},
-    "wind": {"es": "Viento (m/s)", "en": "Wind (m/s)"},
-    "temp": {"es": "Temperatura (°C, NOT)", "en": "Temperature (°C, NOT)"},
-    "fc_history": {"es": "Pronósticos emitidos: horas de cúpula cerrada",
-                   "en": "Issued forecasts: hours with the dome closed"},
-    "seeing_history": {"es": "Pronósticos emitidos: seeing (″)", "en": "Issued forecasts: seeing (″)"},
-    "not_wind": {"es": "NOT", "en": "NOT"},
-    "temperature": {"es": "temperatura", "en": "temperature"},
-    "provisional": {"es": "provisional (solo pronóstico)", "en": "provisional (forecast only)"},
-    "final": {"es": "definitivo (con la estación)", "en": "final (with the station)"},
+    "title": "RoqueModel — meteo y pronóstico de la noche",
+    "about": ("**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: "
+              "estación meteorológica del NOT y previsiones ECMWF y NOAA GFS (Open-Meteo, CC BY 4.0). "
+              "Pronóstico de la noche: RoqueModel (cúpula cerrada hora a hora) y el seeing previsto "
+              "(ver docs/DETALLES_TECNICOS.md). Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."),
+    "closure": "Horas de cúpula cerrada previstas",
+    "seeing": "Seeing previsto",
+    "lost": "Horas observables previstas",
+    "mode": "Tipo de pronóstico",
+    "rh_now": "Humedad NOT ahora",
+    "wind_now": "Viento NOT ahora",
+    "humidity": "Humedad relativa (%) — la cúpula se cierra al 90 %",
+    "wind": "Viento (km/h) — la cúpula se cierra a 80 km/h",
+    "temp": "Temperatura (°C, NOT)",
+    "fc_history": "Pronósticos emitidos: horas de cúpula cerrada",
+    "seeing_history": "Pronósticos emitidos: seeing (″)",
+    "provisional": "provisional (solo pronóstico)",
+    "final": "definitivo (con la estación)",
 }
 
 
@@ -116,8 +104,8 @@ def timeseries(pid: int, title: str, sqls: list[tuple[str, str]], grid: dict, un
     }
 
 
-def dashboard(lang: str) -> dict:
-    t = {k: v[lang] for k, v in TEXT.items()}
+def dashboard() -> dict:
+    t = TEXT
     mode_map = [{"type": "value", "options": {
         "provisional": {"text": t["provisional"], "color": WARNING},
         "final": {"text": t["final"], "color": GOOD}}}]
@@ -134,17 +122,18 @@ def dashboard(lang: str) -> dict:
              steps((BLUE, None)), 0, mode_map),
         stat(6, t["rh_now"], latest("relativehumidity * 100", OBSERVED, NOT_ID), 16, "percent",
              steps((GOOD, None), (WARNING, 80), (CRITICAL, 90)), 0),
-        # Gusts of 22.2 m/s (80 km/h) close the dome.
-        stat(7, t["wind_now"], latest("windspeed", OBSERVED, NOT_ID), 20, "velocityms",
-             steps((GOOD, None), (WARNING, 15), (CRITICAL, 22.2)), 1),
+        # Wind is stored in m/s (the FIWARE data model); shown in km/h like the web page.
+        # 80 km/h (22.2 m/s) closes the dome.
+        stat(7, t["wind_now"], latest("windspeed * 3.6", OBSERVED, NOT_ID), 20, "velocitykmh",
+             steps((GOOD, None), (WARNING, 54), (CRITICAL, 80)), 0),
         timeseries(8, t["humidity"], [
             (series("relativehumidity * 100", "NOT", OBSERVED, NOT_ID), ORANGE),
         ], {"x": 0, "y": 8, "w": 24, "h": 8}, "percent", threshold=90),
         timeseries(9, t["wind"], [
-            (series("windspeed", t["not_wind"], OBSERVED, NOT_ID), ORANGE),
-        ], {"x": 0, "y": 16, "w": 12, "h": 8}, "velocityms"),
+            (series("windspeed * 3.6", "NOT", OBSERVED, NOT_ID), ORANGE),
+        ], {"x": 0, "y": 16, "w": 12, "h": 8}, "velocitykmh", threshold=80),
         timeseries(10, t["temp"], [
-            (series("temperature", t["temperature"], OBSERVED, NOT_ID), ORANGE),
+            (series("temperature", "temperatura", OBSERVED, NOT_ID), ORANGE),
         ], {"x": 12, "y": 16, "w": 12, "h": 8}, "celsius"),
         timeseries(11, t["fc_history"], [
             (series("domeclosedhours", "h", FORECAST, FORECAST_ID), BLUE),
@@ -154,7 +143,7 @@ def dashboard(lang: str) -> dict:
         ], {"x": 12, "y": 24, "w": 12, "h": 7}, "none", points=True),
     ]
     return {
-        "uid": f"roque-night-{lang}", "title": t["title"], "tags": ["roque", "fiware", lang],
+        "uid": "roquemodel", "title": t["title"], "tags": ["roquemodel", "fiware"],
         "timezone": "utc", "refresh": "5m", "schemaVersion": 39, "editable": False,
         "time": {"from": "now-7d", "to": "now"}, "panels": panels,
     }
@@ -162,10 +151,8 @@ def dashboard(lang: str) -> dict:
 
 def main() -> int:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for lang in ("es", "en"):
-        path = OUT_DIR / f"roque-night-{lang}.json"
-        path.write_text(json.dumps(dashboard(lang), indent=1, ensure_ascii=False), encoding="utf-8")
-        print("written", path.relative_to(config.PROJECT_DIR))
+    DASHBOARD_FILE.write_text(json.dumps(dashboard(), indent=1, ensure_ascii=False), encoding="utf-8")
+    print("written", DASHBOARD_FILE.relative_to(config.PROJECT_DIR))
     return 0
 
 

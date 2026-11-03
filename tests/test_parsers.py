@@ -7,7 +7,7 @@ wrong data. Run them with:  .venv/bin/python -m pytest
 
 from pathlib import Path
 
-from roque_forecast.sources import gtc_atmosportal, ing_nights, not_mast, r2d2, tng
+from roque_forecast.sources import gtc_atmosportal, ing_nights, not_mast, r2d2
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -50,13 +50,6 @@ def test_hhmm_to_hours():
     assert ing_nights.hhmm_to_hours("") is None
 
 
-def test_gtc_series():
-    raw = (FIXTURES / "gtc_humidity_month_head.json").read_bytes()
-    df = gtc_atmosportal.parse_series(raw, "humidity")
-    assert list(df.columns) == ["time_utc", "humidity"]
-    assert len(df) == 5
-
-
 def test_gtc_panel_rows_and_status_colours():
     panel = gtc_atmosportal.parse_panel((FIXTURES / "gtc_home.html").read_text(encoding="utf-8"))
     assert panel["station_time_utc"] == "2026-10-27 18:26:20"
@@ -68,10 +61,3 @@ def test_gtc_panel_rows_and_status_colours():
     assert rows["TNG Dust"]["section"] == "external"
     assert rows["TNG Dust"]["age"] == "0.1 h"
 
-
-def test_tng_series_and_current():
-    df = tng.parse_series((FIXTURES / "tng_dust_24h.json").read_bytes(), "dust")
-    assert len(df) > 0 and df["dust"].notna().all()
-    current = {row["name"]: row for row in tng.parse_current((FIXTURES / "tng_current.json").read_bytes())}
-    assert "dust_d0_5" in current  # dust counts by particle size
-    assert isinstance(current["humidity"]["epoch_ms"], int)

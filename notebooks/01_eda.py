@@ -11,6 +11,9 @@
 # %% [markdown]
 # # 01 — Exploratory analysis of observing conditions at the Roque de los Muchachos
 #
+# > **Previous study, kept as it was.** The current model (RoqueModel, a random forest that forecasts each
+# > night hour) and its scores are in `docs/DETALLES_TECNICOS.md` (in Spanish) and on the web page.
+#
 # **Independent project, not affiliated with GRANTECAN or any observatory.** All data are real and public:
 # NOT weather archive (1997→), ING R2D2 seeing monitor (2018→) and ING nightly accounting of the
 # William Herschel Telescope (2007→). See the README for sources.

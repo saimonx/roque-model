@@ -11,7 +11,6 @@
   const locale = () => "es-ES";
   const num = (v, digits = 1) => (v == null ? T().na : v.toLocaleString(locale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }));
   const pct = (p) => (p == null ? T().na : Math.round(p * 100) + " %");
-  const ten = (p) => (p == null ? T().na : Math.round(p * 10));
   const timeLocal = (iso, withDate) => new Date(iso).toLocaleString(locale(), {
     timeZone: LOCAL_TZ, hour: "2-digit", minute: "2-digit", ...(withDate ? { day: "numeric", month: "short" } : {}) });
   // The update time with a.m./p.m. and the Canary offset from UTC (UTC+0 in winter, UTC+1 in summer).
@@ -24,8 +23,7 @@
     return fill(T().canary_time, { time, offset: gmt.replace("GMT", "UTC") === "UTC" ? "UTC+0" : gmt.replace("GMT", "UTC") });
   };
   const monthName = (dateStr) => T().months[+dateStr.slice(5, 7) - 1];
-  const COLORS = { low: "--good", medium: "--warning", high: "--critical",
-    excellent: "--good", good: "--good", average: "--warning", poor: "--critical" };
+  const COLORS = { low: "--good", medium: "--warning", high: "--critical" };
 
   function applyTexts() {
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = T()[n.dataset.i18n] || ""; });
@@ -34,7 +32,7 @@
   }
 
   // ---------------------------------------------------------------- the two lines, hour by hour
-  // Line 1: our model (probability, coloured green / orange / red).
+  // Line 1: our model (probability, coloured green / yellow / red).
   // Line 2: the weather forecast read literally (close / open, red / green).
   // Clicking an hour opens, under that line only, a panel that shows how it comes out for that hour.
   function renderLines(d) {
@@ -141,7 +139,9 @@
     const t = T(), n = d.night;
     const date = new Date(n.date + "T12:00:00Z").toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).replace(",", "");
     $("night-title").textContent = fill(t.night_of, { date });
-    $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h), updated: stampLocal(d.issued_utc) });
+    const updated = stampLocal(d.issued_utc);
+    $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h),
+      updated, at: updated.startsWith("1:") ? "a la" : "a las" });  // "a la 1:05", "a las 3:05"
 
     // Sources that did not answer this run: the forecast used their last good copy.
     const stale = Object.entries(d.stale || {});
@@ -354,8 +354,7 @@
 
   }
 
-
-  // ---------------------------------------------------------------- evidence
+  // ---------------------------------------------------------------- helpers
   function table(node, headers, rows) {
     node.innerHTML = `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
   }

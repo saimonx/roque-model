@@ -9,7 +9,6 @@ from pathlib import Path
 # --- Site -----------------------------------------------------------------
 # Roque de los Muchachos Observatory (La Palma). Coordinates of the 10.4 m
 # telescope building, used later to ask a weather API for "tonight".
-SITE_NAME = "Roque de los Muchachos Observatory (ORM)"
 SITE_LAT = 28.7566
 SITE_LON = -17.8919
 SITE_ALT_M = 2270
@@ -28,7 +27,7 @@ LOG_DIR = DATA_DIR / "logs"
 # We identify ourselves honestly and wait between requests.
 USER_AGENT = (
     "roque-model/0.1 "
-    "(independent research/portfolio project; https://github.com/saimonx)"
+    "(independent research project; https://github.com/saimonx/roque-model)"
 )
 MIN_SECONDS_BETWEEN_REQUESTS = 2.0
 REQUEST_TIMEOUT_S = 120

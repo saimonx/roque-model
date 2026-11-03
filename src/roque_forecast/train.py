@@ -72,10 +72,9 @@ TRAIN_YEARS = range(2017, 2023)  # 2017-2022
 VALIDATION_YEAR = 2023
 TEST_START = pd.Timestamp("2024-01-01")
 
-# WHT accounting: years whose night logs agree with the measured weather (see EDA
-# section 6). In 2019-2022 and 2024-2025 many nights with the dome closed are
+# WHT accounting: years whose night logs agree with the measured weather (see EDA_01
+# section 4). In 2019-2022 and 2024-2025 many nights with the dome closed are
 # booked as fully observed, so those years are kept only for comparison.
-RELIABLE_WHT_YEARS = [2017, 2018, 2023, 2026]
 WHT_FIT_YEARS = [2017, 2018, 2023]  # the calibration is fitted on these...
 WHT_TEST_YEARS = [2026]  # ...and tested on this one
 # The monthly WHT climatology can use the long reliable history (it needs no forecast).

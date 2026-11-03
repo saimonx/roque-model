@@ -34,7 +34,7 @@ R2D2_FIRST_MONTH = date(2018, 9, 1)  # the monitor started on 2018-09-19
 ING_FIRST_NIGHT = date(2007, 1, 1)  # earlier pages are empty (checked 2005); 2007 has night lengths
 # First year of each forecast archive for ECMWF IFS HRES (checked 28 Oct 2026; the
 # day-1 archive is empty before late 2025, empty hours are dropped when parsing).
-# "upper" is the GFS 200 hPa wind (jet stream), archived since March 2021.
+# "upper" is the GFS wind at 750 hPa (summit height) and 200 hPa (jet stream), archived since March 2021.
 FORECAST_FIRST_YEAR = {"historical": 2017, "previous_day1": 2025, "upper": 2021}
 
 

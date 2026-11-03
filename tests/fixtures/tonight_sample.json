@@ -1,0 +1,1616 @@
+{
+ "issued_utc": "2026-11-03T14:30:00Z",
+ "mode": "provisional",
+ "night": {
+  "date": "2026-11-03",
+  "start_utc": "2026-11-03T19:45:00Z",
+  "end_utc": "2026-11-04T06:06:00Z",
+  "start_local": "19:45",
+  "end_local": "06:06",
+  "length_h": 10.35,
+  "final_from_utc": "2026-11-03T19:45:00Z"
+ },
+ "forecast": {
+  "closed_h": 3.4,
+  "open_h": 6.95,
+  "risk": "medium",
+  "seeing_arcsec": 0.77
+ },
+ "hours": [
+  {
+   "t": "2026-11-03T20:00:00Z",
+   "local": "20:00",
+   "dark_minutes": 60,
+   "p_closed": 0.378,
+   "level": "medium",
+   "why": {
+    "humidity": 0.004,
+    "wind": -0.019,
+    "temperature": -0.002,
+    "cloud": -0.002,
+    "rain": -0.007,
+    "pressure": -0.002,
+    "night_forecast": -0.009,
+    "last_night": 0.177,
+    "calendar": 0.045
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 4.0,
+    "wind_level": "750hPa",
+    "temp": 5.3,
+    "cloud": 98.0,
+    "precip": 0.0,
+    "pressure": 775.0,
+    "dew_spread": 0.0
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-03T21:00:00Z",
+   "local": "21:00",
+   "dark_minutes": 60,
+   "p_closed": 0.384,
+   "level": "medium",
+   "why": {
+    "humidity": 0.003,
+    "wind": -0.014,
+    "temperature": -0.003,
+    "cloud": -0.001,
+    "rain": -0.007,
+    "pressure": -0.003,
+    "night_forecast": -0.009,
+    "last_night": 0.18,
+    "calendar": 0.044
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 4.0,
+    "wind_level": "750hPa",
+    "temp": 4.8,
+    "cloud": 98.0,
+    "precip": 0.0,
+    "pressure": 775.0,
+    "dew_spread": 0.1
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-03T22:00:00Z",
+   "local": "22:00",
+   "dark_minutes": 60,
+   "p_closed": 0.363,
+   "level": "medium",
+   "why": {
+    "humidity": 0.002,
+    "wind": -0.015,
+    "temperature": -0.004,
+    "cloud": -0.002,
+    "rain": -0.007,
+    "pressure": -0.003,
+    "night_forecast": -0.014,
+    "last_night": 0.176,
+    "calendar": 0.036
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 3.9,
+    "wind_level": "750hPa",
+    "temp": 4.6,
+    "cloud": 98.0,
+    "precip": 0.0,
+    "pressure": 775.0,
+    "dew_spread": 0.0
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-03T23:00:00Z",
+   "local": "23:00",
+   "dark_minutes": 60,
+   "p_closed": 0.349,
+   "level": "medium",
+   "why": {
+    "humidity": 0.002,
+    "wind": -0.02,
+    "temperature": -0.003,
+    "cloud": -0.002,
+    "rain": -0.007,
+    "pressure": -0.007,
+    "night_forecast": -0.017,
+    "last_night": 0.181,
+    "calendar": 0.029
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 3.8,
+    "wind_level": "750hPa",
+    "temp": 4.9,
+    "cloud": 98.0,
+    "precip": 0.0,
+    "pressure": 776.0,
+    "dew_spread": 0.0
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-04T00:00:00Z",
+   "local": "00:00",
+   "dark_minutes": 60,
+   "p_closed": 0.332,
+   "level": "medium",
+   "why": {
+    "humidity": -0.0,
+    "wind": -0.022,
+    "temperature": -0.004,
+    "cloud": -0.002,
+    "rain": -0.007,
+    "pressure": -0.008,
+    "night_forecast": -0.018,
+    "last_night": 0.174,
+    "calendar": 0.026
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 3.9,
+    "wind_level": "750hPa",
+    "temp": 5.0,
+    "cloud": 99.0,
+    "precip": 0.0,
+    "pressure": 776.0,
+    "dew_spread": 0.0
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-04T01:00:00Z",
+   "local": "01:00",
+   "dark_minutes": 60,
+   "p_closed": 0.341,
+   "level": "medium",
+   "why": {
+    "humidity": 0.0,
+    "wind": -0.019,
+    "temperature": 0.0,
+    "cloud": -0.002,
+    "rain": -0.007,
+    "pressure": -0.008,
+    "night_forecast": -0.017,
+    "last_night": 0.178,
+    "calendar": 0.022
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 99.0,
+    "wind_ms": 4.1,
+    "wind_level": "750hPa",
+    "temp": 5.0,
+    "cloud": 74.0,
+    "precip": 0.0,
+    "pressure": 775.0,
+    "dew_spread": 0.2
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-04T02:00:00Z",
+   "local": "02:00",
+   "dark_minutes": 60,
+   "p_closed": 0.303,
+   "level": "medium",
+   "why": {
+    "humidity": -0.002,
+    "wind": -0.019,
+    "temperature": -0.006,
+    "cloud": -0.001,
+    "rain": -0.008,
+    "pressure": -0.011,
+    "night_forecast": -0.028,
+    "last_night": 0.169,
+    "calendar": 0.015
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 99.0,
+    "wind_ms": 4.0,
+    "wind_level": "750hPa",
+    "temp": 4.3,
+    "cloud": 74.0,
+    "precip": 0.0,
+    "pressure": 775.0,
+    "dew_spread": 0.2
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-04T03:00:00Z",
+   "local": "03:00",
+   "dark_minutes": 60,
+   "p_closed": 0.306,
+   "level": "medium",
+   "why": {
+    "humidity": 0.004,
+    "wind": -0.024,
+    "temperature": -0.004,
+    "cloud": -0.001,
+    "rain": -0.009,
+    "pressure": 0.007,
+    "night_forecast": -0.037,
+    "last_night": 0.163,
+    "calendar": 0.012
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 3.8,
+    "wind_level": "750hPa",
+    "temp": 3.4,
+    "cloud": 100.0,
+    "precip": 0.0,
+    "pressure": 774.0,
+    "dew_spread": 0.0
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-04T04:00:00Z",
+   "local": "04:00",
+   "dark_minutes": 60,
+   "p_closed": 0.322,
+   "level": "medium",
+   "why": {
+    "humidity": 0.004,
+    "wind": -0.018,
+    "temperature": -0.004,
+    "cloud": -0.002,
+    "rain": -0.008,
+    "pressure": 0.014,
+    "night_forecast": -0.039,
+    "last_night": 0.164,
+    "calendar": 0.017
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 3.9,
+    "wind_level": "750hPa",
+    "temp": 2.9,
+    "cloud": 100.0,
+    "precip": 0.0,
+    "pressure": 773.0,
+    "dew_spread": 0.0
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  },
+  {
+   "t": "2026-11-04T05:00:00Z",
+   "local": "05:00",
+   "dark_minutes": 60,
+   "p_closed": 0.318,
+   "level": "medium",
+   "why": {
+    "humidity": -0.006,
+    "wind": -0.012,
+    "temperature": -0.004,
+    "cloud": -0.002,
+    "rain": -0.009,
+    "pressure": 0.009,
+    "night_forecast": -0.039,
+    "last_night": 0.168,
+    "calendar": 0.019
+   },
+   "raw_closed": true,
+   "raw": {
+    "rh": 100.0,
+    "wind_ms": 4.3,
+    "wind_level": "750hPa",
+    "temp": 3.0,
+    "cloud": 99.0,
+    "precip": 0.0,
+    "pressure": 773.0,
+    "dew_spread": 0.1
+   },
+   "night": {
+    "rh_mean": 100.0,
+    "rh_max": 100.0,
+    "wind_mean": 0.5,
+    "cloud_mean": 94.0,
+    "station_rh": null,
+    "station_rh_max": null,
+    "station_wind": null,
+    "last_night_closed": 1.0,
+    "last_night_seeing": null
+   }
+  }
+ ],
+ "model": {
+  "trained_on": {
+   "first_year": 2017,
+   "last_year": 2026,
+   "first_night": "2017-01-01",
+   "last_night": "2026-10-26",
+   "hours": 30044,
+   "closed_hours": 5163
+  },
+  "evaluated_on": {
+   "trained": [
+    2017,
+    2023
+   ],
+   "tested": [
+    2024,
+    2026
+   ]
+  },
+  "final": {
+   "inputs": 33,
+   "model": "random_forest",
+   "min_samples_leaf": 3,
+   "max_features": 0.25,
+   "criterion": "log_loss",
+   "missing": "native",
+   "trees": 150
+  },
+  "provisional": {
+   "inputs": 29,
+   "model": "random_forest",
+   "min_samples_leaf": 10,
+   "max_features": "sqrt",
+   "criterion": "log_loss",
+   "missing": "native",
+   "trees": 150
+  }
+ },
+ "explain": {
+  "base": 0.194,
+  "limits": {
+   "rh": 90.0,
+   "wind_ms": 22.2,
+   "ice_temp": 0.0
+  }
+ },
+ "inputs": {
+  "fc_rh_mean": 99.7273,
+  "fc_rh_max": 100.0,
+  "fc_dew_spread_min": 0.0,
+  "fc_temp_mean": 4.3182,
+  "fc_temp_drop": 2.3,
+  "fc_wind_mean": 0.5309,
+  "fc_wind_max": 0.8,
+  "fc_wind_u": 0.0189,
+  "fc_wind_v": -0.5157,
+  "fc_cloud_mean": 94.2727,
+  "fc_cloud_max": 100.0,
+  "fc_precip_sum": 0.0,
+  "fc_pressure_mean": 774.6455,
+  "prev_dome_closed_frac": 1.0,
+  "prev_seeing_median": null,
+  "doy_sin": -0.8426,
+  "doy_cos": 0.5386
+ },
+ "last_night": {
+  "night": "2026-11-02",
+  "dome_closed_frac": 1.0,
+  "dome_closed_h": 10.32,
+  "seeing_median": null
+ },
+ "station_now": {
+  "time_utc": "2026-11-03T14:29:00Z",
+  "rh": 100.0,
+  "wind": 6.4,
+  "temp": 5.7,
+  "pressure": 768.69
+ },
+ "hourly": [
+  {
+   "t": "2026-11-03T20:00:00Z",
+   "rh": 100,
+   "wind": 0.25,
+   "wind750": 4.01,
+   "temp": 5.5,
+   "dew": 5.5,
+   "cloud": 100,
+   "precip": 0.0,
+   "pressure": 775.3
+  },
+  {
+   "t": "2026-11-03T21:00:00Z",
+   "rh": 100,
+   "wind": 0.56,
+   "wind750": 3.92,
+   "temp": 5.1,
+   "dew": 5.1,
+   "cloud": 96,
+   "precip": 0.0,
+   "pressure": 775.3
+  },
+  {
+   "t": "2026-11-03T22:00:00Z",
+   "rh": 100,
+   "wind": 0.67,
+   "wind750": 3.99,
+   "temp": 4.4,
+   "dew": 4.3,
+   "cloud": 99,
+   "precip": 0.0,
+   "pressure": 775.0
+  },
+  {
+   "t": "2026-11-03T23:00:00Z",
+   "rh": 100,
+   "wind": 0.6,
+   "wind750": 3.85,
+   "temp": 4.8,
+   "dew": 4.8,
+   "cloud": 98,
+   "precip": 0.0,
+   "pressure": 775.5
+  },
+  {
+   "t": "2026-11-04T00:00:00Z",
+   "rh": 100,
+   "wind": 0.4,
+   "wind750": 3.75,
+   "temp": 5.1,
+   "dew": 5.1,
+   "cloud": 99,
+   "precip": 0.0,
+   "pressure": 775.7
+  },
+  {
+   "t": "2026-11-04T01:00:00Z",
+   "rh": 100,
+   "wind": 0.6,
+   "wind750": 4.04,
+   "temp": 5.0,
+   "dew": 4.9,
+   "cloud": 99,
+   "precip": 0.0,
+   "pressure": 775.5
+  },
+  {
+   "t": "2026-11-04T02:00:00Z",
+   "rh": 98,
+   "wind": 0.55,
+   "wind750": 4.14,
+   "temp": 4.9,
+   "dew": 4.6,
+   "cloud": 48,
+   "precip": 0.0,
+   "pressure": 775.3
+  },
+  {
+   "t": "2026-11-04T03:00:00Z",
+   "rh": 100,
+   "wind": 0.36,
+   "wind750": 3.81,
+   "temp": 3.7,
+   "dew": 3.7,
+   "cloud": 100,
+   "precip": 0.0,
+   "pressure": 774.1
+  },
+  {
+   "t": "2026-11-04T04:00:00Z",
+   "rh": 100,
+   "wind": 0.45,
+   "wind750": 3.81,
+   "temp": 3.1,
+   "dew": 3.1,
+   "cloud": 100,
+   "precip": 0.0,
+   "pressure": 773.2
+  },
+  {
+   "t": "2026-11-04T05:00:00Z",
+   "rh": 100,
+   "wind": 0.8,
+   "wind750": 4.07,
+   "temp": 2.7,
+   "dew": 2.7,
+   "cloud": 100,
+   "precip": 0.0,
+   "pressure": 772.9
+  },
+  {
+   "t": "2026-11-04T06:00:00Z",
+   "rh": 99,
+   "wind": 0.6,
+   "wind750": 4.44,
+   "temp": 3.2,
+   "dew": 3.0,
+   "cloud": 98,
+   "precip": 0.0,
+   "pressure": 773.3
+  }
+ ],
+ "forecast_vs_measured": [
+  {
+   "t": "2026-11-02T14:00:00Z",
+   "forecast": 59.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T15:00:00Z",
+   "forecast": 60.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T16:00:00Z",
+   "forecast": 62.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T17:00:00Z",
+   "forecast": 65.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T18:00:00Z",
+   "forecast": 74.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T19:00:00Z",
+   "forecast": 83.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T20:00:00Z",
+   "forecast": 79.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T21:00:00Z",
+   "forecast": 78.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T22:00:00Z",
+   "forecast": 78.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-02T23:00:00Z",
+   "forecast": 79.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T00:00:00Z",
+   "forecast": 90.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T01:00:00Z",
+   "forecast": 93.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T02:00:00Z",
+   "forecast": 80.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T03:00:00Z",
+   "forecast": 79.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T04:00:00Z",
+   "forecast": 78.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T05:00:00Z",
+   "forecast": 82.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T06:00:00Z",
+   "forecast": 77.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T07:00:00Z",
+   "forecast": 79.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T08:00:00Z",
+   "forecast": 81.0,
+   "measured": 95.0
+  },
+  {
+   "t": "2026-11-03T09:00:00Z",
+   "forecast": 90.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T10:00:00Z",
+   "forecast": 76.0,
+   "measured": 97.0
+  },
+  {
+   "t": "2026-11-03T11:00:00Z",
+   "forecast": 63.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T12:00:00Z",
+   "forecast": 51.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T13:00:00Z",
+   "forecast": 57.0,
+   "measured": 100.0
+  },
+  {
+   "t": "2026-11-03T14:00:00Z",
+   "forecast": 62.0,
+   "measured": 100.0
+  }
+ ],
+ "station_24h": [
+  {
+   "t": "2026-11-02T14:30:00Z",
+   "rh": 100.0,
+   "wind": 7.5,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T14:40:00Z",
+   "rh": 100.0,
+   "wind": 7.1,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T14:50:00Z",
+   "rh": 100.0,
+   "wind": 7.3,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T15:00:00Z",
+   "rh": 100.0,
+   "wind": 6.3,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-02T15:10:00Z",
+   "rh": 100.0,
+   "wind": 5.9,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T15:20:00Z",
+   "rh": 100.0,
+   "wind": 6.1,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-02T15:30:00Z",
+   "rh": 100.0,
+   "wind": 6.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T15:40:00Z",
+   "rh": 100.0,
+   "wind": 7.8,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T15:50:00Z",
+   "rh": 100.0,
+   "wind": 7.2,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T16:00:00Z",
+   "rh": 100.0,
+   "wind": 7.2,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T16:10:00Z",
+   "rh": 100.0,
+   "wind": 6.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T16:20:00Z",
+   "rh": 100.0,
+   "wind": 6.7,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T16:30:00Z",
+   "rh": 100.0,
+   "wind": 5.4,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T16:40:00Z",
+   "rh": 100.0,
+   "wind": 8.9,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T16:50:00Z",
+   "rh": 100.0,
+   "wind": 9.6,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T17:00:00Z",
+   "rh": 100.0,
+   "wind": 10.2,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T17:10:00Z",
+   "rh": 100.0,
+   "wind": 9.4,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T17:20:00Z",
+   "rh": 100.0,
+   "wind": 9.4,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T17:30:00Z",
+   "rh": 100.0,
+   "wind": 7.2,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T17:40:00Z",
+   "rh": 100.0,
+   "wind": 7.9,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T17:50:00Z",
+   "rh": 100.0,
+   "wind": 7.8,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T18:00:00Z",
+   "rh": 100.0,
+   "wind": 9.1,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T18:10:00Z",
+   "rh": 100.0,
+   "wind": 10.0,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T18:20:00Z",
+   "rh": 100.0,
+   "wind": 9.6,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T18:30:00Z",
+   "rh": 100.0,
+   "wind": 10.1,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T18:40:00Z",
+   "rh": 100.0,
+   "wind": 8.1,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-02T18:50:00Z",
+   "rh": 100.0,
+   "wind": 9.7,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T19:00:00Z",
+   "rh": 100.0,
+   "wind": 10.7,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T19:10:00Z",
+   "rh": 100.0,
+   "wind": 10.1,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T19:20:00Z",
+   "rh": 100.0,
+   "wind": 9.9,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T19:30:00Z",
+   "rh": 100.0,
+   "wind": 11.1,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-02T19:40:00Z",
+   "rh": 100.0,
+   "wind": 8.2,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-02T19:50:00Z",
+   "rh": 100.0,
+   "wind": 9.4,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-02T20:00:00Z",
+   "rh": 100.0,
+   "wind": 8.9,
+   "pressure": 769.9
+  },
+  {
+   "t": "2026-11-02T20:10:00Z",
+   "rh": 100.0,
+   "wind": 9.8,
+   "pressure": 769.9
+  },
+  {
+   "t": "2026-11-02T20:20:00Z",
+   "rh": 100.0,
+   "wind": 6.9,
+   "pressure": 770.1
+  },
+  {
+   "t": "2026-11-02T20:30:00Z",
+   "rh": 100.0,
+   "wind": 8.3,
+   "pressure": 770.1
+  },
+  {
+   "t": "2026-11-02T20:40:00Z",
+   "rh": 100.0,
+   "wind": 7.8,
+   "pressure": 770.0
+  },
+  {
+   "t": "2026-11-02T20:50:00Z",
+   "rh": 100.0,
+   "wind": 8.0,
+   "pressure": 770.0
+  },
+  {
+   "t": "2026-11-02T21:00:00Z",
+   "rh": 100.0,
+   "wind": 8.0,
+   "pressure": 770.1
+  },
+  {
+   "t": "2026-11-02T21:10:00Z",
+   "rh": 100.0,
+   "wind": 6.2,
+   "pressure": 770.2
+  },
+  {
+   "t": "2026-11-02T21:20:00Z",
+   "rh": 100.0,
+   "wind": 5.3,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T21:30:00Z",
+   "rh": 100.0,
+   "wind": 5.0,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T21:40:00Z",
+   "rh": 100.0,
+   "wind": 5.4,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T21:50:00Z",
+   "rh": 100.0,
+   "wind": 5.4,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T22:00:00Z",
+   "rh": 100.0,
+   "wind": 4.2,
+   "pressure": 770.4
+  },
+  {
+   "t": "2026-11-02T22:10:00Z",
+   "rh": 100.0,
+   "wind": 3.0,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T22:20:00Z",
+   "rh": 100.0,
+   "wind": 3.5,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T22:30:00Z",
+   "rh": 100.0,
+   "wind": 3.5,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T22:40:00Z",
+   "rh": 100.0,
+   "wind": 2.3,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T22:50:00Z",
+   "rh": 100.0,
+   "wind": 3.1,
+   "pressure": 770.2
+  },
+  {
+   "t": "2026-11-02T23:00:00Z",
+   "rh": 100.0,
+   "wind": 3.6,
+   "pressure": 770.3
+  },
+  {
+   "t": "2026-11-02T23:10:00Z",
+   "rh": 100.0,
+   "wind": 4.0,
+   "pressure": 770.2
+  },
+  {
+   "t": "2026-11-02T23:20:00Z",
+   "rh": 100.0,
+   "wind": 4.0,
+   "pressure": 770.1
+  },
+  {
+   "t": "2026-11-02T23:30:00Z",
+   "rh": 100.0,
+   "wind": 4.4,
+   "pressure": 770.0
+  },
+  {
+   "t": "2026-11-02T23:40:00Z",
+   "rh": 100.0,
+   "wind": 5.5,
+   "pressure": 769.9
+  },
+  {
+   "t": "2026-11-02T23:50:00Z",
+   "rh": 100.0,
+   "wind": 5.6,
+   "pressure": 769.8
+  },
+  {
+   "t": "2026-11-03T00:00:00Z",
+   "rh": 100.0,
+   "wind": 5.8,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T00:10:00Z",
+   "rh": 100.0,
+   "wind": 5.7,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T00:20:00Z",
+   "rh": 100.0,
+   "wind": 6.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T00:30:00Z",
+   "rh": 100.0,
+   "wind": 7.8,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T00:40:00Z",
+   "rh": 100.0,
+   "wind": 7.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T00:50:00Z",
+   "rh": 100.0,
+   "wind": 8.0,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T01:00:00Z",
+   "rh": 100.0,
+   "wind": 7.1,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T01:10:00Z",
+   "rh": 100.0,
+   "wind": 8.7,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T01:20:00Z",
+   "rh": 100.0,
+   "wind": 8.0,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T01:30:00Z",
+   "rh": 100.0,
+   "wind": 9.1,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T01:40:00Z",
+   "rh": 100.0,
+   "wind": 8.5,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T01:50:00Z",
+   "rh": 100.0,
+   "wind": 9.0,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T02:00:00Z",
+   "rh": 100.0,
+   "wind": 7.7,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T02:10:00Z",
+   "rh": 100.0,
+   "wind": 6.8,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T02:20:00Z",
+   "rh": 100.0,
+   "wind": 4.2,
+   "pressure": 769.8
+  },
+  {
+   "t": "2026-11-03T02:30:00Z",
+   "rh": 100.0,
+   "wind": 4.5,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T02:40:00Z",
+   "rh": 100.0,
+   "wind": 5.1,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T02:50:00Z",
+   "rh": 100.0,
+   "wind": 3.8,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T03:00:00Z",
+   "rh": 100.0,
+   "wind": 3.9,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T03:10:00Z",
+   "rh": 100.0,
+   "wind": 3.7,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T03:20:00Z",
+   "rh": 100.0,
+   "wind": 2.3,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T03:30:00Z",
+   "rh": 100.0,
+   "wind": 2.5,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T03:40:00Z",
+   "rh": 100.0,
+   "wind": 1.0,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T03:50:00Z",
+   "rh": 100.0,
+   "wind": 2.2,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T04:00:00Z",
+   "rh": 100.0,
+   "wind": 3.0,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T04:10:00Z",
+   "rh": 100.0,
+   "wind": 5.8,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T04:20:00Z",
+   "rh": 100.0,
+   "wind": 7.2,
+   "pressure": 769.4
+  },
+  {
+   "t": "2026-11-03T04:30:00Z",
+   "rh": 100.0,
+   "wind": 8.0,
+   "pressure": 769.3
+  },
+  {
+   "t": "2026-11-03T04:40:00Z",
+   "rh": 100.0,
+   "wind": 7.8,
+   "pressure": 769.1
+  },
+  {
+   "t": "2026-11-03T04:50:00Z",
+   "rh": 100.0,
+   "wind": 9.6,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T05:00:00Z",
+   "rh": 100.0,
+   "wind": 11.4,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T05:10:00Z",
+   "rh": 100.0,
+   "wind": 11.3,
+   "pressure": 768.8
+  },
+  {
+   "t": "2026-11-03T05:20:00Z",
+   "rh": 100.0,
+   "wind": 11.3,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T05:30:00Z",
+   "rh": 100.0,
+   "wind": 11.0,
+   "pressure": 768.8
+  },
+  {
+   "t": "2026-11-03T05:40:00Z",
+   "rh": 100.0,
+   "wind": 10.6,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T05:50:00Z",
+   "rh": 100.0,
+   "wind": 11.1,
+   "pressure": 768.8
+  },
+  {
+   "t": "2026-11-03T06:00:00Z",
+   "rh": 100.0,
+   "wind": 10.9,
+   "pressure": 768.8
+  },
+  {
+   "t": "2026-11-03T06:10:00Z",
+   "rh": 100.0,
+   "wind": 9.7,
+   "pressure": 768.8
+  },
+  {
+   "t": "2026-11-03T06:20:00Z",
+   "rh": 100.0,
+   "wind": 7.6,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T06:30:00Z",
+   "rh": 100.0,
+   "wind": 7.5,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T06:40:00Z",
+   "rh": 100.0,
+   "wind": 7.7,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T06:50:00Z",
+   "rh": 100.0,
+   "wind": 7.6,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T07:00:00Z",
+   "rh": 100.0,
+   "wind": 8.7,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T07:10:00Z",
+   "rh": 100.0,
+   "wind": 9.6,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T07:20:00Z",
+   "rh": 100.0,
+   "wind": 8.9,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T07:30:00Z",
+   "rh": 100.0,
+   "wind": 9.0,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T07:40:00Z",
+   "rh": 99.7,
+   "wind": 9.7,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T07:50:00Z",
+   "rh": 97.8,
+   "wind": 10.2,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T08:00:00Z",
+   "rh": 94.2,
+   "wind": 11.3,
+   "pressure": 769.1
+  },
+  {
+   "t": "2026-11-03T08:10:00Z",
+   "rh": 91.3,
+   "wind": 13.0,
+   "pressure": 769.1
+  },
+  {
+   "t": "2026-11-03T08:20:00Z",
+   "rh": 90.9,
+   "wind": 14.3,
+   "pressure": 769.1
+  },
+  {
+   "t": "2026-11-03T08:30:00Z",
+   "rh": 94.7,
+   "wind": 13.3,
+   "pressure": 769.2
+  },
+  {
+   "t": "2026-11-03T08:40:00Z",
+   "rh": 100.0,
+   "wind": 13.0,
+   "pressure": 769.2
+  },
+  {
+   "t": "2026-11-03T08:50:00Z",
+   "rh": 99.8,
+   "wind": 12.8,
+   "pressure": 769.2
+  },
+  {
+   "t": "2026-11-03T09:00:00Z",
+   "rh": 100.0,
+   "wind": 12.9,
+   "pressure": 769.2
+  },
+  {
+   "t": "2026-11-03T09:10:00Z",
+   "rh": 100.0,
+   "wind": 11.0,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T09:20:00Z",
+   "rh": 100.0,
+   "wind": 9.9,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T09:30:00Z",
+   "rh": 100.0,
+   "wind": 10.0,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T09:40:00Z",
+   "rh": 99.9,
+   "wind": 9.2,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T09:50:00Z",
+   "rh": 99.3,
+   "wind": 8.5,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T10:00:00Z",
+   "rh": 97.2,
+   "wind": 9.4,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T10:10:00Z",
+   "rh": 96.1,
+   "wind": 9.4,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T10:20:00Z",
+   "rh": 95.6,
+   "wind": 8.4,
+   "pressure": 769.7
+  },
+  {
+   "t": "2026-11-03T10:30:00Z",
+   "rh": 97.0,
+   "wind": 8.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T10:40:00Z",
+   "rh": 98.9,
+   "wind": 8.1,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T10:50:00Z",
+   "rh": 100.0,
+   "wind": 7.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T11:00:00Z",
+   "rh": 100.0,
+   "wind": 7.7,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T11:10:00Z",
+   "rh": 100.0,
+   "wind": 7.4,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T11:20:00Z",
+   "rh": 100.0,
+   "wind": 6.7,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T11:30:00Z",
+   "rh": 100.0,
+   "wind": 6.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T11:40:00Z",
+   "rh": 99.7,
+   "wind": 6.8,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T11:50:00Z",
+   "rh": 99.6,
+   "wind": 6.6,
+   "pressure": 769.6
+  },
+  {
+   "t": "2026-11-03T12:00:00Z",
+   "rh": 98.8,
+   "wind": 6.4,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T12:10:00Z",
+   "rh": 99.6,
+   "wind": 5.5,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T12:20:00Z",
+   "rh": 100.0,
+   "wind": 5.0,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T12:30:00Z",
+   "rh": 100.0,
+   "wind": 4.3,
+   "pressure": 769.5
+  },
+  {
+   "t": "2026-11-03T12:40:00Z",
+   "rh": 100.0,
+   "wind": 5.5,
+   "pressure": 769.4
+  },
+  {
+   "t": "2026-11-03T12:50:00Z",
+   "rh": 100.0,
+   "wind": 5.3,
+   "pressure": 769.2
+  },
+  {
+   "t": "2026-11-03T13:00:00Z",
+   "rh": 100.0,
+   "wind": 5.2,
+   "pressure": 769.2
+  },
+  {
+   "t": "2026-11-03T13:10:00Z",
+   "rh": 100.0,
+   "wind": 4.6,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T13:20:00Z",
+   "rh": 100.0,
+   "wind": 4.3,
+   "pressure": 769.0
+  },
+  {
+   "t": "2026-11-03T13:30:00Z",
+   "rh": 100.0,
+   "wind": 4.5,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T13:40:00Z",
+   "rh": 100.0,
+   "wind": 4.4,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T13:50:00Z",
+   "rh": 100.0,
+   "wind": 4.8,
+   "pressure": 768.9
+  },
+  {
+   "t": "2026-11-03T14:00:00Z",
+   "rh": 100.0,
+   "wind": 4.8,
+   "pressure": 768.8
+  },
+  {
+   "t": "2026-11-03T14:10:00Z",
+   "rh": 100.0,
+   "wind": 4.3,
+   "pressure": 768.8
+  },
+  {
+   "t": "2026-11-03T14:20:00Z",
+   "rh": 100.0,
+   "wind": 5.4,
+   "pressure": 768.7
+  }
+ ],
+ "stale": {}
+}

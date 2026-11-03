@@ -1,10 +1,9 @@
 {
- "uid": "roque-night-en",
- "title": "RoqueModel — weather and night forecast",
+ "uid": "roquemodel",
+ "title": "RoqueModel — meteo y pronóstico de la noche",
  "tags": [
-  "roque",
-  "fiware",
-  "en"
+  "roquemodel",
+  "fiware"
  ],
  "timezone": "utc",
  "refresh": "5m",
@@ -27,13 +26,13 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "**Independent project, not affiliated with GRANTECAN or any observatory.** Real, public data: NOT weather station, ECMWF IFS forecast (Open-Meteo, CC BY 4.0). Night forecast: two models of our own, dome closed hour by hour and seeing (see the README). Flow: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."
+    "content": "**Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio.** Datos reales y públicos: estación meteorológica del NOT y previsiones ECMWF y NOAA GFS (Open-Meteo, CC BY 4.0). Pronóstico de la noche: RoqueModel (cúpula cerrada hora a hora) y el seeing previsto (ver docs/DETALLES_TECNICOS.md). Flujo: NGSI-v2 → Orion → QuantumLeap → CrateDB → Grafana."
    }
   },
   {
    "id": 2,
    "type": "stat",
-   "title": "Expected hours with the dome closed",
+   "title": "Horas de cúpula cerrada previstas",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -101,7 +100,7 @@
   {
    "id": 3,
    "type": "stat",
-   "title": "Forecast seeing",
+   "title": "Seeing previsto",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -169,7 +168,7 @@
   {
    "id": 4,
    "type": "stat",
-   "title": "Expected observable hours",
+   "title": "Horas observables previstas",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -237,7 +236,7 @@
   {
    "id": 5,
    "type": "stat",
-   "title": "Forecast type",
+   "title": "Tipo de pronóstico",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -282,11 +281,11 @@
        "type": "value",
        "options": {
         "provisional": {
-         "text": "provisional (forecast only)",
+         "text": "provisional (solo pronóstico)",
          "color": "#fab219"
         },
         "final": {
-         "text": "final (with the station)",
+         "text": "definitivo (con la estación)",
          "color": "#0ca30c"
         }
        }
@@ -311,7 +310,7 @@
   {
    "id": 6,
    "type": "stat",
-   "title": "NOT humidity now",
+   "title": "Humedad NOT ahora",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -379,7 +378,7 @@
   {
    "id": 7,
    "type": "stat",
-   "title": "NOT wind now",
+   "title": "Viento NOT ahora",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -400,13 +399,13 @@
      "format": "table",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT windspeed AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND windspeed IS NOT NULL ORDER BY time_index DESC LIMIT 1"
+     "rawSql": "SELECT windspeed * 3.6 AS value FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND windspeed * 3.6 IS NOT NULL ORDER BY time_index DESC LIMIT 1"
     }
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "velocityms",
-     "decimals": 1,
+     "unit": "velocitykmh",
+     "decimals": 0,
      "thresholds": {
       "mode": "absolute",
       "steps": [
@@ -416,11 +415,11 @@
        },
        {
         "color": "#fab219",
-        "value": 15
+        "value": 54
        },
        {
         "color": "#d03b3b",
-        "value": 22.2
+        "value": 80
        }
       ]
      },
@@ -447,7 +446,7 @@
   {
    "id": 8,
    "type": "timeseries",
-   "title": "Relative humidity (%) — the dome closes at 90 %",
+   "title": "Humedad relativa (%) — la cúpula se cierra al 90 %",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -530,7 +529,7 @@
   {
    "id": 9,
    "type": "timeseries",
-   "title": "Wind (m/s)",
+   "title": "Viento (km/h) — la cúpula se cierra a 80 km/h",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -551,19 +550,35 @@
      "format": "time_series",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", windspeed AS \"NOT\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND windspeed IS NOT NULL ORDER BY 1"
+     "rawSql": "SELECT time_index AS \"time\", windspeed * 3.6 AS \"NOT\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND windspeed * 3.6 IS NOT NULL ORDER BY 1"
     }
    ],
    "fieldConfig": {
     "defaults": {
-     "unit": "velocityms",
+     "unit": "velocitykmh",
      "custom": {
       "lineWidth": 2,
       "fillOpacity": 0,
       "showPoints": "never",
       "pointSize": 8,
       "insertNulls": 1800000,
-      "spanNulls": false
+      "spanNulls": false,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "transparent",
+        "value": null
+       },
+       {
+        "color": "#d03b3b",
+        "value": 80
+       }
+      ]
      }
     },
     "overrides": [
@@ -597,7 +612,7 @@
   {
    "id": 10,
    "type": "timeseries",
-   "title": "Temperature (°C, NOT)",
+   "title": "Temperatura (°C, NOT)",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -618,7 +633,7 @@
      "format": "time_series",
      "rawQuery": true,
      "editorMode": "code",
-     "rawSql": "SELECT time_index AS \"time\", temperature AS \"temperature\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND temperature IS NOT NULL ORDER BY 1"
+     "rawSql": "SELECT time_index AS \"time\", temperature AS \"temperatura\" FROM doc.etweatherobserved WHERE entity_id = 'urn:ngsi-ld:WeatherObserved:ORM-NOT' AND $__timeFilter(time_index) AND temperature IS NOT NULL ORDER BY 1"
     }
    ],
    "fieldConfig": {
@@ -664,7 +679,7 @@
   {
    "id": 11,
    "type": "timeseries",
-   "title": "Issued forecasts: hours with the dome closed",
+   "title": "Pronósticos emitidos: horas de cúpula cerrada",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"
@@ -731,7 +746,7 @@
   {
    "id": 12,
    "type": "timeseries",
-   "title": "Issued forecasts: seeing (″)",
+   "title": "Pronósticos emitidos: seeing (″)",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "cratedb"

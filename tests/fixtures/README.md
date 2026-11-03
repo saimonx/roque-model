@@ -8,6 +8,4 @@ Small excerpts of real public files, downloaded on 27 Oct 2026, used only to tes
 | `r2d2_sample.html` | ING R2D2 seeing page, first ~20 values of 1 Sep 2026 (cut mid-line on purpose) |
 | `ing_night_2026-09-01.html` | ING nightly weather and observing conditions page, night of 1 Sep 2026 |
 | `gtc_home.html` | GTC atmosportal home page (live panel) at 2026-10-27 18:26 UT |
-| `gtc_humidity_month_head.json` | first 5 points of GTC atmosportal `humidity_month.php` |
-| `tng_dust_24h.json` | TNG API `/api/meteo/weather/dust` (last 24 h) |
-| `tng_current.json` | TNG API `/api/meteo/weather` (current values) |
+| `tonight_sample.json` | a real `site/data/tonight.json` (3 Nov 2026), to check that the web page and the Grafana Cloud dashboard only read fields the forecast writes; copy it again from `site/data/` when the page data change |

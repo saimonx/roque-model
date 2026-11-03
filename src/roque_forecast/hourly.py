@@ -22,9 +22,10 @@ Two modes, because the station readings "just before the night" only exist once 
 night starts: "provisional" (forecast-only twin models, used in the afternoon) and
 "final" (full models, from the start of astronomical night).
 
-Evaluation as in train.py: train 2017-2022, choose settings on 2023, report on
-2024-2026, always against simple reference methods, hour by hour and for the
-night's closed hours.
+Evaluation: the model and its settings come from the search in compare.py (validation
+on 2021, 2022 and 2023, each left out in turn); the copy trained on 2017-2023 is scored
+on 2024-2026, always against simple reference methods, hour by hour and for the night's
+closed hours. The live models are then refitted on 2017-2026 with the same settings.
 
 Usage:
     .venv/bin/python -m roque_forecast.hourly
@@ -188,33 +189,28 @@ def raw_literal(frame: pd.DataFrame) -> pd.Series:
     return humid | (wind >= dome.WIND_LIMIT_MS) | ((frame["h_temp"] <= dome.ICE_TEMP_C) & humid)
 
 
+def chosen_settings() -> tuple[dict, dict]:
+    """RoqueModel's model and settings (final, provisional): those chosen by the wide search
+    over three validation years (compare.py, reports/results/model_search.json)."""
+    from roque_forecast import compare  # imported here: compare.py itself imports this module
+    searched = compare.chosen_settings("final"), compare.chosen_settings("provisional")
+    if not all(searched):
+        raise RuntimeError("No model search found: run `python -m roque_forecast.compare` first.")
+    (kind, settings, trees), (kind_fo, settings_fo, trees_fo) = searched
+    return {"model": kind, **settings, "trees": trees}, {"model": kind_fo, **settings_fo, "trees": trees_fo}
+
+
+def make(settings: dict):
+    """An unfitted model with these settings ("model" and "trees" plus the model's own)."""
+    from roque_forecast import compare
+    rest = {k: v for k, v in settings.items() if k not in ("model", "trees")}
+    return compare.build(settings["model"], rest, settings["trees"])
+
+
 def train_closure(sets: dict) -> tuple[dict, list, pd.DataFrame]:
     target = "closed"
     data = {k: v.dropna(subset=[target]) for k, v in sets.items()}
-
-    def scorer(inputs):
-        return lambda model, frame: brier_score_loss(frame[target], model.predict_proba(frame[inputs])[:, 1])
-
-    # Model and settings: those chosen by the wide search over three validation years
-    # (compare.py, reports/results/model_search.json). Without that file, gradient
-    # boosting with the small grid on 2023 only.
-    from roque_forecast import compare  # imported here: compare.py itself imports this module
-    searched = compare.chosen_settings("final"), compare.chosen_settings("provisional")
-    if all(searched):
-        (kind, settings, trees), (kind_fo, settings_fo, trees_fo) = searched
-        settings = {"model": kind, **settings, "trees": trees}
-        settings_fo = {"model": kind_fo, **settings_fo, "trees": trees_fo}
-    else:
-        def gb(settings):
-            return train.gradient_boosting("classifier", **settings)
-        settings = {"model": "gradient_boosting", "trees": 300, **train.choose_settings(
-            gb, data, target, scorer(CLOSURE_FEATURES), CLOSURE_FEATURES)}
-        settings_fo = {"model": "gradient_boosting", "trees": 300, **train.choose_settings(
-            gb, data, target, scorer(CLOSURE_FORECAST_ONLY), CLOSURE_FORECAST_ONLY)}
-
-    def make(settings):
-        rest = {k: v for k, v in settings.items() if k not in ("model", "trees")}
-        return compare.build(settings["model"], rest, settings["trees"])
+    settings, settings_fo = chosen_settings()
 
     fit_on = pd.concat([data["train"], data["validation"]])
     final = make(settings).fit(fit_on[CLOSURE_FEATURES], fit_on[target])
@@ -242,9 +238,9 @@ def train_closure(sets: dict) -> tuple[dict, list, pd.DataFrame]:
     # The live models (RoqueModel). The test years were kept apart only to measure the
     # scores above, which stay as they are. Now that they are measured, the models that
     # forecast each night are refitted with the same settings on every labelled year
-    # (2017-2026): more hours, and the most recent ones. Checked before doing it: with the
-    # same settings, adding 2024 to the training improved the 2025-2026 scores
-    # (final: wrong in 9.7 % -> 9.2 % of hours; provisional: 13.2 % -> 12.0 %).
+    # (2017-2026): more hours, and the most recent ones. Checked with refit_check() below:
+    # with the same settings, adding 2024 to the training improves the 2025-2026 scores
+    # (reports/results/refit_check.json).
     everything = pd.concat([data["train"], data["validation"], data["test"]])
     live_final = make(settings).fit(everything[CLOSURE_FEATURES], everything[target])
     live_provisional = make(settings_fo).fit(everything[CLOSURE_FORECAST_ONLY], everything[target])
@@ -259,6 +255,28 @@ def train_closure(sets: dict) -> tuple[dict, list, pd.DataFrame]:
              "evaluated_on": {"trained": [int(data["train"]["year"].min()), int(data["validation"]["year"].max())],
                               "tested": [int(test["year"].min()), int(test["year"].max())]}}
     return model, rows, predictions
+
+
+def refit_check(table: pd.DataFrame) -> dict:
+    """Does learning from more recent years help? Same settings, tested on 2025-2026:
+    trained on 2017-2023 against trained on 2017-2024. This is why the live models are
+    refitted on every labelled year."""
+    data = table.dropna(subset=["closed"])
+    years = data.index.get_level_values("night").year
+    test = data[years >= 2025]
+    out = {"tested_on": "2025-2026", "hours": len(test)}
+    final, provisional = chosen_settings()
+    for mode, settings, inputs in [("final", final, CLOSURE_FEATURES),
+                                   ("provisional", provisional, CLOSURE_FORECAST_ONLY)]:
+        out[mode] = {}
+        for last in (2023, 2024):
+            fit_on = data[(years >= 2017) & (years <= last)]
+            model = make(settings).fit(fit_on[inputs], fit_on["closed"])
+            p = model.predict_proba(test[inputs])[:, 1]
+            out[mode][f"trained_2017_{last}"] = {
+                "wrong": round(float(((p >= 0.5) != test["closed"].astype(bool)).mean()), 4),
+                "brier": round(float(brier_score_loss(test["closed"], p)), 4)}
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -292,6 +310,11 @@ def main() -> int:
     config.LOG_DIR.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
                         handlers=[logging.FileHandler(config.LOG_DIR / "hourly.log"), logging.StreamHandler(sys.stdout)])
+    if "--refit-check" in sys.argv:  # only the check, without refitting the live models
+        result = refit_check(pd.read_parquet(config.PROCESSED_DIR / "hour_table.parquet"))
+        (RESULTS_DIR / "refit_check.json").write_text(json.dumps(result, indent=2))
+        log.info("refit check: %s", result)
+        return 0
     table = build_table()
     table.to_parquet(config.PROCESSED_DIR / "hour_table.parquet")
     log.info("hour table: %d hours in %d nights, closed %.1f %% of measured hours", len(table),

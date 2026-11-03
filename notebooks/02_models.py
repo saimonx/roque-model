@@ -11,6 +11,9 @@
 # %% [markdown]
 # # 02 — Forecasting tonight: dome closure, seeing and hours lost
 #
+# > **Previous study, kept as it was.** The current model (RoqueModel, a random forest that forecasts each
+# > night hour) and its scores are in `docs/DETALLES_TECNICOS.md` (in Spanish) and on the web page.
+#
 # **Independent project, not affiliated with GRANTECAN or any observatory.** All data are real and public.
 # Inputs known at the start of the night: the ECMWF IFS HRES forecast (Open-Meteo archive), the NOT station
 # in the 2 hours before the night, last night's outcome and the time of year (`src/roque_forecast/features.py`).

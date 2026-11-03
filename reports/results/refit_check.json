@@ -1,0 +1,24 @@
+{
+  "tested_on": "2025-2026",
+  "hours": 5508,
+  "final": {
+    "trained_2017_2023": {
+      "wrong": 0.0948,
+      "brier": 0.0655
+    },
+    "trained_2017_2024": {
+      "wrong": 0.0881,
+      "brier": 0.0622
+    }
+  },
+  "provisional": {
+    "trained_2017_2023": {
+      "wrong": 0.1204,
+      "brier": 0.0879
+    },
+    "trained_2017_2024": {
+      "wrong": 0.1155,
+      "brier": 0.0847
+    }
+  }
+}

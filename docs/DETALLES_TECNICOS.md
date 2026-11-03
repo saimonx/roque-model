@@ -78,7 +78,8 @@ año) y la contabilidad del WHT (algunos años da por observadas noches con la c
 - **Separación de años:** los ajustes se eligen solo con 2017–2023 (validación en 2021, 2022 y 2023, ver
   abajo) y la prueba es 2024–2026. La copia probada aprendió de 2017–2023; el modelo en directo se volvió a entrenar con los mismos ajustes con
   todo 2017–2026 (30.044 horas, 5.163 cerradas). Comprobado antes: añadir 2024 al entrenamiento mejoró las
-  cifras de 2025–2026 (se equivoca en el 9,5 % → 8,8 % de las horas; provisional 12,0 % → 11,5 %).
+  cifras de 2025–2026 (se equivoca en el 9,5 % → 8,8 % de las horas; provisional 12,0 % → 11,5 %;
+  `reports/results/refit_check.json`).
 - **Búsqueda de ajustes** (`compare.py`, `reports/results/model_search.json`): los dos tipos de modelo más
   fuertes tuvieron una búsqueda igual de amplia, puntuada en tres años de validación (2021, 2022 y 2023, cada
   uno aprendiendo de los demás años de 2017–2023): gradient boosting, 162 combinaciones (tasa de
@@ -91,7 +92,7 @@ año) y la contabilidad del WHT (algunos años da por observadas noches con la c
 |---|---|---|---|---|---|
 | **Random forest** | **91,1 %** | **88,5 %** | **0,0628** | 0,951 | 0,0595 |
 | Gradient boosting | 90,7 % | 88,2 % | 0,0667 | 0,951 | 0,0594 |
-| Red neuronal (MLP) | 90,4 % | 87,6 % | 0,0718 | 0,949 | 0,0650 |
+| Red neuronal (MLP) | 90,3 % | 87,6 % | 0,0718 | 0,949 | 0,0650 |
 | Regresión logística | 88,9 % | 87,2 % | 0,0804 | 0,930 | 0,0658 |
 
 En validación, los dos modelos de árboles empatan (sumando las dos versiones, su Brier se diferencia en un
@@ -138,12 +139,12 @@ cumbre.
 
 ## 5. Probado y descartado
 
-Documentado en [MODELS_01](../reports/MODELS_01.md):
+Documentado en [MODELS_01](../reports/MODELS_01.md) (en inglés):
 
 - modelos por noche separados de cierre y de horas perdidas del WHT (sustituidos por el modelo por horas y su
   suma);
-- modelos de horas perdidas y de cielo despejado del Telescopio Liverpool (no mejoran «igual que anoche» para
-  el cielo);
+- modelos de horas perdidas y de cielo despejado del Telescopio Liverpool (el de cielo despejado apenas mejora
+  «igual que anoche»: Brier skill 0,17 frente a 0,12);
 - un aviso de polvo con CAMS (demasiados pocos casos);
 - seeing hora a hora (no mejora el modelo por noche);
 - recalibración isotónica de las probabilidades (sin mejora).
@@ -154,14 +155,14 @@ Documentado en [MODELS_01](../reports/MODELS_01.md):
   tiempo (r = 0,74 en 2007–2018), pero se queda corta en invierno; añadir el viento fuerte y el hielo cierra
   la mayor parte de esa diferencia.
 - La contabilidad del WHT no es igual de fiable todos los años: desde 2019, muchas noches con las cúpulas
-  cerradas por humedad aparecen como observadas del todo. Esos años (2019–2022, 2024–2025) no se usan para
-  ajustar modelos.
+  cerradas por humedad aparecen como observadas del todo. Por eso esos años (2019–2022, 2024–2025) no se
+  usaron en el estudio de horas perdidas del WHT (RoqueModel no usa el WHT).
 - El viento es lo que más influye en el seeing (Spearman +0,58 con el viento máximo de la noche); los vientos
   del este dan el peor seeing.
 - Para el seeing, la climatología mensual (RMSE 0,34″) mejora a «igual que anoche» (0,41″): ese es el listón
   que tiene que superar un modelo.
 
-Análisis completo: [EDA_01](../reports/EDA_01.md) ([notebook](../notebooks/01_eda.ipynb)) y
+Análisis completo, en inglés: [EDA_01](../reports/EDA_01.md) ([notebook](../notebooks/01_eda.ipynb)) y
 [MODELS_01](../reports/MODELS_01.md) ([notebook](../notebooks/02_models.ipynb)).
 
 ## 7. Cómo funciona cada hora
@@ -222,7 +223,7 @@ uv sync                                                  # crea .venv e instala 
 .venv/bin/python -m roque_forecast.export_data           # datos de entrenamiento descargables
 .venv/bin/python -m roque_forecast.tonight               # pronóstico de esta noche -> site/data/tonight.json
 .venv/bin/python -m roque_forecast.site_data             # evaluación e historial -> site/data/evaluation.json
-.venv/bin/python -m roque_forecast.dashboards            # paneles de Grafana para FIWARE
+.venv/bin/python -m roque_forecast.dashboards            # panel local de Grafana para FIWARE
 .venv/bin/python -m roque_forecast.cloud_dashboard       # panel público de Grafana Cloud
 ```
 
@@ -233,7 +234,7 @@ src/roque_forecast/
   config.py          coordenadas del observatorio, carpetas, ajustes de descarga respetuosa
   polite_http.py     cliente HTTP común (User-Agent, espera, reintentos)
   sources/           un módulo por fuente de datos: descarga + lectura
-  collect.py         recolector: panel en directo del GTC (a FIWARE) y valores del TNG
+  collect.py         recolector: panel en directo del GTC a FIWARE (no guarda nada)
   backfill.py        descarga masiva y reanudable de los archivos históricos
   build_tables.py    ficheros brutos -> tablas Parquet limpias
   astro.py           altura del Sol y noche astronómica (fórmulas de la NOAA)
@@ -248,7 +249,7 @@ src/roque_forecast/
   site_data.py       evaluación e historial en directo para la web
   export_data.py     datos de entrenamiento descargables
   fiware.py          entidades NGSI-v2, Orion y QuantumLeap
-  dashboards.py      paneles de Grafana para FIWARE
+  dashboards.py      panel local de Grafana para FIWARE
   cloud_dashboard.py panel público de Grafana Cloud
   plotting.py        estilo común de las figuras
 site/                web estática (index.html, assets/; data/ se genera)
@@ -256,7 +257,7 @@ infra/               Docker Compose (Orion, QuantumLeap, CrateDB, Grafana) y pan
 scripts/             actualización horaria, publicación y release de modelos
 notebooks/           notebooks de análisis (fuente .py + .ipynb ejecutado)
 reports/             informes, figuras y tablas de métricas
-tests/               tests con ficheros reales pequeños (tests/fixtures/)
+tests/               tests con ficheros reales pequeños (tests/fixtures/); se ejecutan en cada push (tests.yml)
 launchd/             plantillas para programar la actualización en macOS
 data/                datos descargados (no van a git)
 ```

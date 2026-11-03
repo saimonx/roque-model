@@ -148,7 +148,5 @@
     legend(container, items);  // also for one series: it names the chart
   }
 
-  /** Moon icon: the lit part drawn with two arcs (the limb and the terminator ellipse).
-   *  Seen from the northern hemisphere: a waxing Moon is lit on the right. */
   window.Charts = { lineChart };
 })();

@@ -45,7 +45,8 @@ R2D2_SOURCE = "ING R2D2 seeing monitor (astro.ing.iac.es/seeing)"
 COLUMNS = {
     "night": ("date", "Night it belongs to: the date of the evening it starts", "calendar"),
     "hour_utc": ("UTC", "Start of the hour (one row per hour with at least 30 min of astronomical night)", "calendar"),
-    "split": ("", ("train (2017-2022), validation (2023) or test (2024-2026) for the tested copy; "
+    "split": ("", ("fit (2017-2023: the tested copy learnt from these years, and its settings were chosen "
+                  "on 2021, 2022 and 2023, leaving each one out in turn) or test (2024-2026, never seen); "
                   "the live model was refitted on all of them"), "project"),
     "closed": ("0/1", ("THE LABEL: 1 if the dome counts as closed for at least half of the hour "
                       f"(humidity >= {dome.HUMIDITY_LIMIT_PCT:.0f} %, wind >= {dome.WIND_LIMIT_MS} m/s or ice), "
@@ -103,9 +104,7 @@ def training_table() -> pd.DataFrame:
     """The labelled night hours, with the label, its details and the model inputs, in that order."""
     table = pd.read_parquet(config.PROCESSED_DIR / "hour_table.parquet").dropna(subset=["closed"])
     nights = table.index.get_level_values("night")
-    table["split"] = "test"
-    table.loc[table["year"].isin(train.TRAIN_YEARS), "split"] = "train"
-    table.loc[table["year"] == train.VALIDATION_YEAR, "split"] = "validation"
+    table["split"] = "fit"
     table.loc[nights >= train.TEST_START, "split"] = "test"
     out = table.reset_index().rename(columns={"hour": "hour_utc"})
     out["night"] = out["night"].dt.date
@@ -145,7 +144,7 @@ def readme(training: pd.DataFrame, test: pd.DataFrame) -> str:
     first, last = training["night"].min(), training["night"].max()
     return f"""# RoqueModel: the data it learnt from
 
-Independent portfolio project, not affiliated with GRANTECAN or any observatory.
+Independent project, not affiliated with GRANTECAN or any observatory.
 Code: https://github.com/saimonx/roque-model · Page: https://saimonx.github.io/roque-model/
 
 ## Files

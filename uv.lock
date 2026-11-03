@@ -1545,11 +1545,11 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "joblib" },
     { name = "matplotlib" },
+    { name = "numpy" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "requests" },
     { name = "scikit-learn" },
-    { name = "scipy" },
 ]
 
 [package.dev-dependencies]
@@ -1566,11 +1566,11 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.12" },
     { name = "joblib", specifier = ">=1.6.0" },
     { name = "matplotlib", specifier = ">=3.11.2" },
+    { name = "numpy", specifier = ">=2.0" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "pyarrow", specifier = ">=17" },
     { name = "requests", specifier = ">=2.32" },
     { name = "scikit-learn", specifier = ">=1.9.1" },
-    { name = "scipy", specifier = ">=1.18.1" },
 ]
 
 [package.metadata.requires-dev]

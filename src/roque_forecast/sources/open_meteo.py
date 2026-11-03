@@ -21,12 +21,13 @@ The model is ECMWF IFS HRES (`ecmwf_ifs`), the best global model, with a grid
 point 4 km from the telescope. `elevation=2270` asks Open-Meteo to correct the
 temperature from the model's smooth terrain to the real summit height.
 
-**Upper-level wind (jet stream).** Seeing depends on turbulence high up, not only
-at the ground: a strong jet stream at ~12 km (200 hPa) shears the air and blurs
-the stars. The ECMWF archive above has no pressure levels, so the 200 hPa wind
-comes from NOAA's GFS model (`gfs_global`), archived only since March 2021
-(checked 28 Oct 2026). Older nights simply have no value; the gradient-boosting
-model handles missing inputs natively. The day-1 archive has no pressure
+**Upper-level wind.** The ECMWF archive above has no pressure levels, so the wind
+aloft comes from NOAA's GFS model (`gfs_global`), archived only since March 2021
+(checked 28 Oct 2026): at 750 hPa (~2,500 m, the summit height: RoqueModel's wind
+input, because the ECMWF 10 m wind of the lower, sheltered grid point is too weak)
+and at 200 hPa (~12 km, the jet stream, whose shear blurs the stars: a seeing
+input). Older nights simply have no value; the tree models handle missing inputs
+natively. The day-1 archive has no pressure
 levels either, so the 24-hour-old check also uses this short-lead archive.
 """
 

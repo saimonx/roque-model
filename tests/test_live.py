@@ -1,12 +1,12 @@
 """Tests for the live part: which night is "tonight", last night's outcome,
-FIWARE entities, Grafana dashboards and the live track record."""
+FIWARE entities and the page's accuracy figures (dashboards: test_contract.py)."""
 
 import json
 
 import numpy as np
 import pandas as pd
 
-from roque_forecast import dashboards, fiware, site_data, tonight
+from roque_forecast import fiware, site_data, tonight
 
 
 def test_tonight_is_the_running_night_or_the_next_one():
@@ -62,34 +62,6 @@ def test_missing_values_are_left_out_of_entities():
     assert "temperature" not in entity and entity["windSpeed"]["value"] == 3.0
 
 
-def test_dashboards_are_the_same_in_both_languages():
-    es, en = dashboards.dashboard("es"), dashboards.dashboard("en")
-    assert [p["type"] for p in es["panels"]] == [p["type"] for p in en["panels"]]
-    assert [p.get("targets") for p in es["panels"]][:7] == [p.get("targets") for p in en["panels"]][:7]
-    assert es["title"] != en["title"]
-
-
-def test_track_record_scores_the_first_final_forecast_of_each_night(tmp_path, monkeypatch):
-    monkeypatch.setattr(site_data, "FORECASTS_DIR", tmp_path)
-    v = tonight.MODEL_VERSION
-    issued = [
-        {"issued_utc": "2026-10-28T15:00Z", "night": "2026-10-28", "mode": "provisional", "model": v,
-         "closed_h": 2, "seeing_arcsec": 0.7},
-        {"issued_utc": "2026-10-28T20:05Z", "night": "2026-10-28", "mode": "final", "model": v,
-         "closed_h": 8, "seeing_arcsec": 0.8},
-        {"issued_utc": "2026-10-28T23:05Z", "night": "2026-10-28", "mode": "final", "model": v,
-         "closed_h": 9, "seeing_arcsec": 0.8},
-        {"issued_utc": "2026-10-28T20:00Z", "night": "2026-10-28", "mode": "final", "model": "old",
-         "closed_h": 1, "seeing_arcsec": 0.8},  # an earlier model version is never scored
-    ]
-    (tmp_path / "issued.jsonl").write_text("".join(json.dumps(r) + "\n" for r in issued))
-    (tmp_path / "outcomes.jsonl").write_text(json.dumps(
-        {"night": "2026-10-28", "dome_closed_frac": 0.8, "dome_closed_h": 8.1, "seeing_median": None}) + "\n")
-    record = site_data.track_record()
-    # The first final forecast (20:05), not a later one issued in the middle of the night.
-    assert len(record) == 1 and record[0]["mode"] == "final" and record[0]["closed_h"] == 8
-
-
 def test_forecast_vs_measured_pairs_each_hour():
     now = pd.Timestamp("2026-10-31 12:00", tz="UTC")
     times = pd.date_range(now - pd.Timedelta(hours=3), now, freq="min", inclusive="left")
@@ -134,3 +106,17 @@ def test_a_source_that_fails_with_no_copy_still_raises(tmp_path, monkeypatch):
         raise requests.ConnectionError("down")
     with pytest.raises(requests.ConnectionError):
         tonight.fetch_or_last("r2d2", tmp_path / "r2d2.html", pd.Timestamp("2026-11-02", tz="UTC"), {}, down)
+
+
+def test_comparison_counts_wrong_hours_false_alarms_and_misses(tmp_path, monkeypatch):
+    monkeypatch.setattr(site_data.config, "PROCESSED_DIR", tmp_path)
+    # Four test hours: two really closed. The model gets one closed hour and one open hour wrong.
+    pd.DataFrame({"closed": [1, 1, 0, 0], "p_final": [0.9, 0.2, 0.6, 0.1],
+                  "p_provisional": [0.9, 0.9, 0.1, 0.1], "raw": [1.0, 1.0, 1.0, 1.0]}).to_parquet(
+        tmp_path / "hour_predictions.parquet")
+    c = site_data.comparison()
+    assert c["hours"] == 4 and c["real_closed_h"] == 2
+    assert c["final"] == {"closed_h": 2, "wrong": 0.5, "false_alarm_h": 1, "missed_h": 1}
+    assert c["provisional"]["wrong"] == 0.0
+    assert c["raw"] == {"closed_h": 4, "wrong": 0.5, "false_alarm_h": 2, "missed_h": 0}
+    assert c["always_open_wrong"] == 0.5
