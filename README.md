@@ -100,7 +100,14 @@ Para volver a descargar el histórico y entrenar, ver [todos los comandos](docs/
 
 ## Referencias
 
-- Breiman 2001, *Machine Learning* 45, [doi:10.1023/A:1010933404324](https://doi.org/10.1023/A:1010933404324) — random forest.
-- Abárzuza et al. 2025, *RNAAS* 9(2), [doi:10.3847/2515-5172/adb14f](https://doi.org/10.3847/2515-5172/adb14f) — random forest que predice el seeing del Roque con la estación meteorológica.
-- de Sepibus, Masciadri et al. 2026, [arXiv:2607.12900](https://arxiv.org/abs/2607.12900) — persistencia y «precasting» como referencias mínimas.
-- Lombardi et al. 2007, [arXiv:astro-ph/0702570](https://arxiv.org/abs/astro-ph/0702570) — viento y humedad frente al seeing en el Roque.
+- [Abárzuza et al. 2025, RNAAS 9(2)](https://doi.org/10.3847/2515-5172/adb14f): un random forest predice el seeing del Roque con los datos de la estación meteorológica.
+- [de Sepibus, Masciadri et al. 2026, arXiv:2607.12900](https://arxiv.org/abs/2607.12900): persistencia y precasting como métodos de referencia mínimos que un pronóstico debe batir.
+- [Lombardi et al. 2007, arXiv:astro-ph/0702570](https://arxiv.org/abs/astro-ph/0702570): viento y humedad frente al seeing en el Roque.
+- [ING, procedimiento de alarmas del telescopio INT](https://www.ing.iac.es/Astronomy/tonotes/int/observer/old/alert.html): cerrar con humedad del 90 % y con rachas de más de 80 km/h.
+- [Estación meteorológica del NOT](https://www.not.iac.es/weather/): regla de cierre por humedad (90 %, se reabre tras 20 minutos por debajo).
+- [Breiman 2001, Machine Learning 45](https://doi.org/10.1023/A:1010933404324): el artículo original del random forest.
+- [Grinsztajn, Oyallon y Varoquaux 2022, NeurIPS](https://arxiv.org/abs/2207.08815): por qué los modelos de árboles siguen ganando a las redes neuronales en datos en tabla.
+- [Hollmann et al. 2025, Nature 637](https://pubmed.ncbi.nlm.nih.gov/39780007/): TabPFN, un modelo preentrenado para tablas pequeñas.
+- [Masciadri et al. 2016, SPIE 9909](https://arxiv.org/abs/1608.06506): pronóstico operativo de la turbulencia óptica con el modelo Meso-NH para grandes telescopios.
+- [Masciadri et al. 2024, SPIE 13097](https://arxiv.org/abs/2409.05133): FATE, el sistema automático de pronóstico de la turbulencia óptica del VLT (ESO, Paranal).
+- [Mommert 2020, AJ 159](https://arxiv.org/abs/2003.11109): detección de nubes en imágenes de cámaras de todo el cielo con aprendizaje automático.
