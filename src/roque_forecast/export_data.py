@@ -1,6 +1,6 @@
 """Export the exact data RoqueModel learnt from, so anyone can download and check them.
 
-Two CSV files, plus a README with what every column means and where it comes from,
+Two CSV files, plus a README in Spanish with what every column means and where it comes from,
 packed into one zip (data/export/roquemodel_data.zip):
 
 - roquemodel_training_hours.csv: one row per night hour, 2017-2026, with the label
@@ -35,68 +35,78 @@ TRAINING_CSV = "roquemodel_training_hours.csv"
 TEST_CSV = "roquemodel_test_predictions.csv"
 README = "README.md"
 
-NOT_SOURCE = "NOT weather station (not.iac.es/weather/archive/met)"
-OM_ECMWF = "ECMWF IFS forecast archived by Open-Meteo (historical-forecast-api.open-meteo.com)"
-OM_GFS = "NOAA GFS forecast archived by Open-Meteo (historical-forecast-api.open-meteo.com)"
-R2D2_SOURCE = "ING R2D2 seeing monitor (astro.ing.iac.es/seeing)"
+def spanish(number: float) -> str:
+    """A decimal number written the Spanish way: 22.2 -> 22,2."""
+    return str(number).replace(".", ",")
 
-# What each column of the training file means: (unit, meaning, source). The README is
-# written from this table, so the file and its description cannot drift apart.
+
+def thousands(number: int) -> str:
+    """A whole number written the Spanish way: 30044 -> 30.044."""
+    return f"{number:,}".replace(",", ".")
+
+
+NOT_SOURCE = "Estación meteorológica del NOT (not.iac.es/weather/archive/met)"
+OM_ECMWF = "Previsión ECMWF IFS archivada por Open-Meteo (historical-forecast-api.open-meteo.com)"
+OM_GFS = "Previsión NOAA GFS archivada por Open-Meteo (historical-forecast-api.open-meteo.com)"
+R2D2_SOURCE = "Monitor de seeing R2D2 del ING (astro.ing.iac.es/seeing)"
+
+# What each column of the training file means: (unit, meaning, source), in Spanish because the
+# README is written from this table, so the file and its description cannot drift apart.
 COLUMNS = {
-    "night": ("date", "Night it belongs to: the date of the evening it starts", "calendar"),
-    "hour_utc": ("UTC", "Start of the hour (one row per hour with at least 30 min of astronomical night)", "calendar"),
-    "split": ("", ("fit (2017-2023: the tested copy learnt from these years, and its settings were chosen "
-                  "on 2021, 2022 and 2023, leaving each one out in turn) or test (2024-2026, never seen); "
-                  "the live model was refitted on all of them"), "project"),
-    "closed": ("0/1", ("THE LABEL: 1 if the dome counts as closed for at least half of the hour "
-                      f"(humidity >= {dome.HUMIDITY_LIMIT_PCT:.0f} %, wind >= {dome.WIND_LIMIT_MS} m/s or ice), "
-                      "rebuilt minute by minute"), NOT_SOURCE),
-    "closed_frac": ("0-1", "Share of the hour's minutes with the dome closed (the label is closed_frac >= 0.5)", NOT_SOURCE),
-    "measured_minutes": ("min", "Minutes of the hour the station measured (the label needs at least 45)", NOT_SOURCE),
-    "dark_minutes": ("min", "Minutes of astronomical night in the hour", "computed (astro.py)"),
-    "h_rh": ("%", "Forecast relative humidity at mid-hour", OM_ECMWF),
-    "h_dew_spread": ("°C", "Forecast temperature minus dew point at mid-hour", OM_ECMWF),
-    "h_temp": ("°C", "Forecast temperature at mid-hour", OM_ECMWF),
-    "h_wind": ("m/s", "Forecast 10 m wind at mid-hour", OM_ECMWF),
-    "h_wind_u": ("m/s", "Forecast 10 m wind, west-east component", OM_ECMWF),
-    "h_wind_v": ("m/s", "Forecast 10 m wind, south-north component", OM_ECMWF),
-    "h_cloud": ("%", "Forecast cloud cover at mid-hour", OM_ECMWF),
-    "h_precip": ("mm", "Forecast rain during the hour", OM_ECMWF),
-    "h_pressure": ("hPa", "Forecast surface pressure at mid-hour", OM_ECMWF),
-    "h_wind_750": ("m/s", "Forecast wind at 750 hPa (~2.5 km, summit height); empty before March 2021", OM_GFS),
-    "hour_of_night": ("", "Position of the hour in the night (0 = first)", "computed (astro.py)"),
-    "night_fraction": ("0-1", "Position of the hour as a share of the night", "computed (astro.py)"),
-    "fc_rh_mean": ("%", "Forecast humidity, mean over the night", OM_ECMWF),
-    "fc_rh_max": ("%", "Forecast humidity, maximum over the night", OM_ECMWF),
-    "fc_dew_spread_min": ("°C", "Forecast temperature minus dew point, minimum over the night", OM_ECMWF),
-    "fc_temp_mean": ("°C", "Forecast temperature, mean over the night", OM_ECMWF),
-    "fc_temp_drop": ("°C", "Forecast temperature at the start of the night minus at the end", OM_ECMWF),
-    "fc_wind_mean": ("m/s", "Forecast 10 m wind, mean over the night", OM_ECMWF),
-    "fc_wind_max": ("m/s", "Forecast 10 m wind, maximum over the night", OM_ECMWF),
-    "fc_wind_u": ("m/s", "Forecast wind west-east component, mean over the night", OM_ECMWF),
-    "fc_wind_v": ("m/s", "Forecast wind south-north component, mean over the night", OM_ECMWF),
-    "fc_cloud_mean": ("%", "Forecast cloud cover, mean over the night", OM_ECMWF),
-    "fc_cloud_max": ("%", "Forecast cloud cover, maximum over the night", OM_ECMWF),
-    "fc_precip_sum": ("mm", "Forecast rain, total over the night", OM_ECMWF),
-    "fc_pressure_mean": ("hPa", "Forecast pressure, mean over the night", OM_ECMWF),
-    "pre_humidity_mean": ("%", "Measured humidity in the 2 h before the night, mean", NOT_SOURCE),
-    "pre_humidity_max": ("%", "Measured humidity in the 2 h before the night, maximum", NOT_SOURCE),
-    "pre_wind_mean": ("m/s", "Measured wind in the 2 h before the night, mean", NOT_SOURCE),
-    "pre_pressure_mean": ("hPa", "Measured pressure in the 2 h before the night, mean", NOT_SOURCE),
-    "prev_dome_closed_frac": ("0-1", "Last night: share of its minutes with the dome closed", NOT_SOURCE),
-    "prev_seeing_median": ("arcsec", "Last night: median seeing; empty when it could not measure", R2D2_SOURCE),
-    "doy_sin": ("", "Time of year: sine of the day of the year", "calendar"),
-    "doy_cos": ("", "Time of year: cosine of the day of the year", "calendar"),
+    "night": ("fecha", "Noche a la que pertenece: la fecha de la tarde en que empieza", "calendario"),
+    "hour_utc": ("UTC", "Inicio de la hora (una fila por cada hora con al menos 30 min de noche astronómica)", "calendario"),
+    "split": ("", ("fit (2017-2023: la copia probada aprendió de estos años, y sus ajustes se eligieron con "
+                  "2021, 2022 y 2023, dejando cada uno fuera por turnos) o test (2024-2026, nunca vistos); "
+                  "el modelo en directo se volvió a entrenar con todos"), "proyecto"),
+    "closed": ("0/1", ("LA ETIQUETA: 1 si la cúpula cuenta como cerrada al menos la mitad de la hora "
+                      f"(humedad >= {dome.HUMIDITY_LIMIT_PCT:.0f} %, viento >= {spanish(dome.WIND_LIMIT_MS)} m/s o hielo), "
+                      "reconstruida minuto a minuto"), NOT_SOURCE),
+    "closed_frac": ("0-1", "Parte de los minutos de la hora con la cúpula cerrada (la etiqueta es closed_frac >= 0.5)", NOT_SOURCE),
+    "measured_minutes": ("min", "Minutos de la hora que midió la estación (la etiqueta necesita al menos 45)", NOT_SOURCE),
+    "dark_minutes": ("min", "Minutos de noche astronómica en la hora", "calculado (astro.py)"),
+    "h_rh": ("%", "Humedad relativa prevista a mitad de la hora", OM_ECMWF),
+    "h_dew_spread": ("°C", "Temperatura prevista menos punto de rocío a mitad de la hora", OM_ECMWF),
+    "h_temp": ("°C", "Temperatura prevista a mitad de la hora", OM_ECMWF),
+    "h_wind": ("m/s", "Viento previsto a 10 m a mitad de la hora", OM_ECMWF),
+    "h_wind_u": ("m/s", "Viento previsto a 10 m, componente oeste-este", OM_ECMWF),
+    "h_wind_v": ("m/s", "Viento previsto a 10 m, componente sur-norte", OM_ECMWF),
+    "h_cloud": ("%", "Nubosidad prevista a mitad de la hora", OM_ECMWF),
+    "h_precip": ("mm", "Lluvia prevista durante la hora", OM_ECMWF),
+    "h_pressure": ("hPa", "Presión en superficie prevista a mitad de la hora", OM_ECMWF),
+    "h_wind_750": ("m/s", "Viento previsto a 750 hPa (~2,5 km, la altura de la cumbre); vacío antes de marzo de 2021", OM_GFS),
+    "hour_of_night": ("", "Posición de la hora en la noche (0 = la primera)", "calculado (astro.py)"),
+    "night_fraction": ("0-1", "Posición de la hora como parte de la noche", "calculado (astro.py)"),
+    "fc_rh_mean": ("%", "Humedad prevista, media de la noche", OM_ECMWF),
+    "fc_rh_max": ("%", "Humedad prevista, máximo de la noche", OM_ECMWF),
+    "fc_dew_spread_min": ("°C", "Temperatura prevista menos punto de rocío, mínimo de la noche", OM_ECMWF),
+    "fc_temp_mean": ("°C", "Temperatura prevista, media de la noche", OM_ECMWF),
+    "fc_temp_drop": ("°C", "Temperatura prevista al inicio de la noche menos la del final", OM_ECMWF),
+    "fc_wind_mean": ("m/s", "Viento previsto a 10 m, media de la noche", OM_ECMWF),
+    "fc_wind_max": ("m/s", "Viento previsto a 10 m, máximo de la noche", OM_ECMWF),
+    "fc_wind_u": ("m/s", "Viento previsto, componente oeste-este, media de la noche", OM_ECMWF),
+    "fc_wind_v": ("m/s", "Viento previsto, componente sur-norte, media de la noche", OM_ECMWF),
+    "fc_cloud_mean": ("%", "Nubosidad prevista, media de la noche", OM_ECMWF),
+    "fc_cloud_max": ("%", "Nubosidad prevista, máximo de la noche", OM_ECMWF),
+    "fc_precip_sum": ("mm", "Lluvia prevista, total de la noche", OM_ECMWF),
+    "fc_pressure_mean": ("hPa", "Presión prevista, media de la noche", OM_ECMWF),
+    "pre_humidity_mean": ("%", "Humedad medida en las 2 h antes de la noche, media", NOT_SOURCE),
+    "pre_humidity_max": ("%", "Humedad medida en las 2 h antes de la noche, máximo", NOT_SOURCE),
+    "pre_wind_mean": ("m/s", "Viento medido en las 2 h antes de la noche, media", NOT_SOURCE),
+    "pre_pressure_mean": ("hPa", "Presión medida en las 2 h antes de la noche, media", NOT_SOURCE),
+    "prev_dome_closed_frac": ("0-1", "Anoche: parte de sus minutos con la cúpula cerrada", NOT_SOURCE),
+    "prev_seeing_median": ("segundos de arco", "Anoche: mediana del seeing; vacío cuando no se pudo medir", R2D2_SOURCE),
+    "doy_sin": ("", "Época del año: seno del día del año", "calendario"),
+    "doy_cos": ("", "Época del año: coseno del día del año", "calendario"),
 }
 
 TEST_COLUMNS = {
-    "night": ("date", "Night it belongs to", "calendar"),
-    "hour_utc": ("UTC", "Start of the hour", "calendar"),
-    "closed": ("0/1", "What happened (the label, as in the training file)", NOT_SOURCE),
-    "p_final": ("0-1", "RoqueModel final (with the station before the night): chance the dome is closed", "RoqueModel"),
-    "p_provisional": ("0-1", "RoqueModel provisional (forecast only, used in the afternoon)", "RoqueModel"),
-    "forecast_alone": ("0/1", "The closing rules applied to the forecast as it is (1 = close)", OM_ECMWF),
-    "climatology": ("0-1", "Share of closed hours in that month in 2017-2023 (the simplest reference)", "project"),
+    "night": ("fecha", "Noche a la que pertenece", "calendario"),
+    "hour_utc": ("UTC", "Inicio de la hora", "calendario"),
+    "closed": ("0/1", "Lo que pasó (la etiqueta, igual que en el fichero de entrenamiento)", NOT_SOURCE),
+    "p_final": ("0-1", "RoqueModel definitivo (con la estación antes de la noche): probabilidad de cúpula cerrada", "RoqueModel"),
+    "p_provisional": ("0-1", "RoqueModel provisional (solo previsión, el que se usa por la tarde)", "RoqueModel"),
+    "forecast_alone": ("0/1", "Las reglas de cierre aplicadas a la previsión tal cual (1 = cerrar)", OM_ECMWF),
+    "climatology": ("0-1", "Parte de las horas cerradas de ese mes en 2017-2023 (la referencia más sencilla)", "proyecto"),
 }
 
 
@@ -133,7 +143,7 @@ def wrong_share(test: pd.DataFrame, column: str) -> float:
 
 
 def column_table(columns: dict) -> str:
-    rows = ["| Column | Unit | Meaning | Source |", "|---|---|---|---|"]
+    rows = ["| Columna | Unidad | Significado | Fuente |", "|---|---|---|---|"]
     rows += [f"| `{name}` | {unit} | {meaning} | {source} |" for name, (unit, meaning, source) in columns.items()]
     return "\n".join(rows)
 
@@ -141,23 +151,24 @@ def column_table(columns: dict) -> str:
 def readme(training: pd.DataFrame, test: pd.DataFrame) -> str:
     provisional = ", ".join(f"`{c}`" for c in hourly.CLOSURE_FORECAST_ONLY)
     scores = {c: wrong_share(test, c) for c in ("p_final", "p_provisional", "forecast_alone")}
+    percent = {c: f"{share * 100:.1f}".replace(".", ",") + " %" for c, share in scores.items()}
     first, last = training["night"].min(), training["night"].max()
-    return f"""# RoqueModel: the data it learnt from
+    return f"""# RoqueModel: los datos con los que aprendió
 
-Independent project, not affiliated with GRANTECAN or any observatory.
-Code: https://github.com/saimonx/roque-model · Page: https://saimonx.github.io/roque-model/
+Proyecto independiente, sin afiliación con GRANTECAN ni con ningún observatorio.
+Código: https://github.com/saimonx/roque-model · Web: https://saimonx.github.io/roque-model/
 
-## Files
+## Ficheros
 
-- `{TRAINING_CSV}`: {len(training):,} night hours from {first} to {last}, {int(training["closed"].sum()):,} of them
-  with the dome closed. These are exactly the rows the live RoqueModel was fitted on. The final model uses
-  the {len(hourly.CLOSURE_FEATURES)} input columns from `h_rh` to `doy_cos`; the provisional model (afternoon,
-  before the night) uses only {provisional}.
-- `{TEST_CSV}`: {len(test):,} hours of 2024-2026 that the tested copy (trained on 2017-2023 only) had never
-  seen. Counting "closed" when the value is 0.5 or more, it is wrong in {scores["p_final"]:.1%} of the hours
-  (provisional {scores["p_provisional"]:.1%}; forecast alone {scores["forecast_alone"]:.1%}).
+- `{TRAINING_CSV}`: {thousands(len(training))} horas de noche del {first} al {last}, {thousands(int(training["closed"].sum()))} de ellas
+  con la cúpula cerrada. Son exactamente las filas con las que se entrenó el RoqueModel en directo. El modelo
+  definitivo usa las {len(hourly.CLOSURE_FEATURES)} columnas de entrada de `h_rh` a `doy_cos`; el provisional (por la tarde,
+  antes de la noche) solo usa {provisional}.
+- `{TEST_CSV}`: {thousands(len(test))} horas de 2024-2026 que la copia probada (entrenada solo con 2017-2023) no
+  había visto nunca. Contando «cerrada» cuando el valor es 0,5 o más, se equivoca en el {percent["p_final"]} de las horas
+  (provisional {percent["p_provisional"]}; solo la previsión {percent["forecast_alone"]}).
 
-Check it yourself, for example in Python:
+Se puede comprobar, por ejemplo en Python:
 
 ```python
 import pandas as pd
@@ -165,36 +176,36 @@ t = pd.read_csv("{TEST_CSV}")
 print(((t.p_final >= 0.5).astype(int) != t.closed).mean())   # {scores["p_final"]:.3f}
 ```
 
-## Where the numbers come from
+## De dónde salen los datos
 
-All inputs are things that were known before the night started. Nothing is simulated.
+Todas las entradas se conocían antes de empezar la noche. No hay nada simulado.
 
-- **Label and station inputs:** the NOT weather station, one reading per minute
-  (https://www.not.iac.es/weather/archive/met/index.php, "Raw Data"). The dome counts as closed when
-  humidity is {dome.HUMIDITY_LIMIT_PCT:.0f} % or more (it reopens after 20 minutes below), when the wind
-  reaches {dome.WIND_LIMIT_MS} m/s (80 km/h), or when there is ice ({dome.ICE_TEMP_C:.0f} °C or less after
-  {dome.HUMIDITY_LIMIT_PCT:.0f} % humidity in the previous 24 h).
-- **Forecast inputs:** what the ECMWF IFS model forecast for each hour, as archived by Open-Meteo
-  (https://open-meteo.com, CC BY 4.0), at 28.7566 N, 17.8919 W, 2,270 m. The 750 hPa wind comes from the
-  NOAA GFS archive (same service). Any day can be fetched again, for example:
+- **Etiqueta y entradas de la estación:** la estación meteorológica del NOT, una medida por minuto
+  (https://www.not.iac.es/weather/archive/met/index.php, «Raw Data»). La cúpula cuenta como cerrada cuando la
+  humedad llega al {dome.HUMIDITY_LIMIT_PCT:.0f} % (reabre tras 20 minutos por debajo), cuando el viento
+  llega a {spanish(dome.WIND_LIMIT_MS)} m/s (80 km/h) o cuando hay hielo ({dome.ICE_TEMP_C:.0f} °C o menos tras una humedad del
+  {dome.HUMIDITY_LIMIT_PCT:.0f} % en las 24 h anteriores).
+- **Entradas de la previsión:** lo que el modelo ECMWF IFS previó para cada hora, archivado por Open-Meteo
+  (https://open-meteo.com, CC BY 4.0), en 28,7566 N, 17,8919 O, 2.270 m. El viento a 750 hPa viene del archivo
+  NOAA GFS (mismo servicio). Cualquier día se puede volver a descargar, por ejemplo:
   https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=28.7566&longitude=-17.8919&elevation=2270&models=ecmwf_ifs&timezone=UTC&wind_speed_unit=ms&hourly=relative_humidity_2m,temperature_2m&start_date=2024-01-01&end_date=2024-01-02
-- **Last night's seeing:** the ING R2D2 monitor (https://astro.ing.iac.es/seeing/).
+- **Seeing de anoche:** el monitor R2D2 del ING (https://astro.ing.iac.es/seeing/).
 
-The code that downloads the sources and builds these tables is in the repository (`backfill.py`,
-`build_tables.py`, `features.py`, `hourly.py`; this file: `export_data.py`).
+El código que descarga las fuentes y construye estas tablas está en el repositorio (`backfill.py`,
+`build_tables.py`, `features.py`, `hourly.py`; este paquete lo genera `export_data.py`).
 
-## Columns: {TRAINING_CSV}
+## Columnas: {TRAINING_CSV}
 
 {column_table(COLUMNS)}
 
-## Columns: {TEST_CSV}
+## Columnas: {TEST_CSV}
 
 {column_table(TEST_COLUMNS)}
 
-## Credits and licences
+## Créditos y licencias
 
-Data from the Nordic Optical Telescope (NOT), the Isaac Newton Group (ING) and Open-Meteo (CC BY 4.0;
-forecasts by ECMWF and NOAA). Hourly values here are derived from their public data; please cite them.
+Datos del Nordic Optical Telescope (NOT), del Isaac Newton Group (ING) y de Open-Meteo (CC BY 4.0; previsiones
+de ECMWF y NOAA). Los valores por hora de este paquete se derivan de sus datos públicos; se ruega citarlos.
 """
 
 
