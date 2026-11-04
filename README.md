@@ -14,6 +14,9 @@ estación de la cumbre.
   está en sus apartados)
 - **Panel público de Grafana:** https://saimonx.github.io/roque-model/grafana/ (lee de FIWARE, donde el pronóstico se
   publica cada hora: Orion y QuantumLeap en un servidor propio)
+- **FIWARE en directo**, las dos direcciones públicas de las que lee Grafana (JSON, solo lectura):
+  - [Pronóstico de esta noche (Orion)](https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues)
+  - [Últimas medidas de la estación del NOT (QuantumLeap)](https://178-105-253-255.sslip.io/ql/v2/entities/urn:ngsi-ld:WeatherObserved:ORM-NOT?lastN=200)
 - **Datos de entrenamiento:** [roquemodel_data.zip](https://github.com/saimonx/roque-model/releases/download/training-data/roquemodel_data.zip)
   (30.044 horas de noche con su etiqueta y sus datos de entrada, y las respuestas de la copia probada)
 - **Detalles técnicos:** [docs/DETALLES_TECNICOS.md](docs/DETALLES_TECNICOS.md)
