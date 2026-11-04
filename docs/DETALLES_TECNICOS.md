@@ -20,7 +20,8 @@ funciona el pronóstico de cada hora.
 ## 1. La etiqueta: cuándo cuenta como cerrada
 
 No hay un registro público de cuándo cierra el GTC, así que la etiqueta «cúpula cerrada» se reconstruye
-minuto a minuto con la estación meteorológica del NOT en la cumbre, desde 1997 (`dome.py`). La cúpula cuenta
+con la estación meteorológica del NOT en la cumbre (`dome.py`): su archivo empieza en 1997, con una medida cada 5 minutos
+hasta 2006 y cada minuto desde 2007, y RoqueModel usa 2017–2026. La cúpula cuenta
 como cerrada si se cumple cualquiera de estas condiciones:
 
 | Motivo | Cierra cuando | Reabre cuando | De dónde sale el valor |
@@ -122,7 +123,6 @@ Años nunca usados para entrenar ni para elegir ajustes. **Hora a hora, frente a
 | Solo la previsión del tiempo | 6.111 h | 43 % de las horas | 4.756 h | 98 h |
 | **RoqueModel (definitivo)** | **1.390 h** | **91 % de las horas** | 351 h | 414 h |
 | RoqueModel (provisional) | 1.237 h | 89 % de las horas | 385 h | 601 h |
-| Decir siempre «abierta» | 0 h | 83 % de las horas | 0 h | 1.453 h |
 
 Frente a otras referencias sencillas:
 

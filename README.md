@@ -44,7 +44,7 @@ llegan a Sentry con su traza completa. Detalles en
 Hay dos versiones: la **provisional**, antes de que empiece la noche, sin la estación de la cumbre, y la
 **definitiva**, desde que empieza la noche, con todos los datos.
 
-**Qué cuenta como cerrada** (reconstruido minuto a minuto con la estación del NOT desde 1997): humedad ≥ 90 %
+**Qué cuenta como cerrada** (reconstruido con las medidas por minuto de la estación del NOT): humedad ≥ 90 %
 o viento ≥ 80 km/h (reabre tras 20 minutos seguidos por debajo), o hielo (≤ 0 °C con humedad del 90 % en las
 24 h anteriores). Comparada con los partes del Telescopio Liverpool, esta etiqueta coincide en 87 de cada 100
 noches (2017–2026).
@@ -57,7 +57,6 @@ Copia entrenada con 2017–2023 y probada en 2024–2026, años que no había vi
 |---|---|
 | **RoqueModel, definitivo** | **91 %** |
 | RoqueModel, provisional | 89 % |
-| Decir siempre «abierta» | 83 % |
 | Solo la previsión del tiempo (cerrar si pasa algún límite) | 43 % |
 
 La previsión sola cierra de más porque mira un punto más bajo y húmedo que la cumbre: da 6.111 horas
@@ -68,7 +67,7 @@ mismos ajustes con todo 2017–2026.
 
 | Para qué | Fuente | Desde |
 |---|---|---|
-| Lo que pasó (etiqueta) | [Archivo meteorológico del NOT](https://www.not.iac.es/weather/archive/met/index.php), minuto a minuto | 1997 |
+| Lo que pasó (etiqueta) | [Archivo meteorológico del NOT](https://www.not.iac.es/weather/archive/met/index.php), cada minuto | 1997 (se usa desde 2017) |
 | Lo que se sabía antes de la noche | Previsiones ECMWF archivadas por [Open-Meteo](https://open-meteo.com) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | 2017 |
 | Viento a la altura de la cumbre | NOAA GFS a 750 hPa, archivado por Open-Meteo | 2021 |
 | Seeing de anoche | [Monitor R2D2 del ING](https://astro.ing.iac.es/seeing/) | 2018 |

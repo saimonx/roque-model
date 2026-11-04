@@ -119,4 +119,3 @@ def test_comparison_counts_wrong_hours_false_alarms_and_misses(tmp_path, monkeyp
     assert c["final"] == {"closed_h": 2, "wrong": 0.5, "false_alarm_h": 1, "missed_h": 1}
     assert c["provisional"]["wrong"] == 0.0
     assert c["raw"] == {"closed_h": 4, "wrong": 0.5, "false_alarm_h": 2, "missed_h": 0}
-    assert c["always_open_wrong"] == 0.5

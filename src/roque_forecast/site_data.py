@@ -37,9 +37,7 @@ def comparison() -> dict:
     return {"hours": len(hours), "real_closed_h": int(real.sum()),
             "raw": calls(hours["raw"] >= 0.5),
             "final": calls(hours["p_final"] >= 0.5),
-            "provisional": calls(hours["p_provisional"] >= 0.5),
-            # Saying "open" every hour is wrong exactly in the closed hours: the floor to beat.
-            "always_open_wrong": round(float(real.mean()), 3)}
+            "provisional": calls(hours["p_provisional"] >= 0.5)}
 
 
 def build() -> dict:

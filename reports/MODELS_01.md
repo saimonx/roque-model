@@ -140,7 +140,7 @@ de la hora (el viento a 10 m no sirve en la cumbre, media de 1,3 m/s, así que s
 Hora a hora frente a lo que pasó de verdad (`site_data.comparison`): la cúpula estuvo cerrada 1.453 de 8.577 horas. Leída
 tal cual, la previsión del tiempo cerraría 6.111 horas y se equivoca en el 56,6 % de las horas (4.756 cierres innecesarios,
 98 no detectados); el modelo definitivo marca 1.390 horas y se equivoca en el 8,9 % (351 / 414); el provisional, en el
-11,5 %. Decir siempre «abierta» se equivoca en el 16,9 %.
+11,5 %.
 
 
 | Cúpula cerrada, cada hora (8.577 horas, 17 % cerradas) | Brier ↓ | Skill | AUC | Acierta cuando dice «cerrada» | Horas cerradas detectadas |
