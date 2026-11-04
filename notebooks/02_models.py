@@ -9,18 +9,18 @@
 # ---
 
 # %% [markdown]
-# # 02 — Forecasting tonight: dome closure, seeing and hours lost
+# # 02: previsión de esta noche: cierre de cúpula, seeing y horas perdidas
 #
-# > **Previous study, kept as it was.** The current model (RoqueModel, a random forest that forecasts each
-# > night hour) and its scores are in `docs/DETALLES_TECNICOS.md` (in Spanish) and on the web page.
+# > **Estudio previo, conservado tal cual.** El modelo actual (RoqueModel, un random forest que pronostica cada
+# > hora de la noche) y sus resultados están en `docs/DETALLES_TECNICOS.md` y en la web.
 #
-# **Independent project, not affiliated with GRANTECAN or any observatory.** All data are real and public.
-# Inputs known at the start of the night: the ECMWF IFS HRES forecast (Open-Meteo archive), the NOT station
-# in the 2 hours before the night, last night's outcome and the time of year (`src/roque_forecast/features.py`).
+# **Proyecto independiente, sin afiliación con GRANTECAN ni con ningún observatorio.** Todos los datos son reales y públicos.
+# Entradas conocidas al empezar la noche: la previsión ECMWF IFS HRES (archivo de Open-Meteo), la estación del NOT
+# en las 2 horas antes de la noche, lo que pasó anoche y la época del año (`src/roque_forecast/features.py`).
 #
-# Train 2017–2022, choose settings on 2023, **test on 2024–2026** (never seen by any step). Every model is
-# compared with reference methods it must beat: climatology, persistence and precasting.
-# Built with `python -m roque_forecast.features` and `python -m roque_forecast.train`.
+# Entrenar con 2017–2022, elegir ajustes con 2023 y **probar con 2024–2026** (ningún paso los ha visto). Cada modelo se
+# compara con métodos de referencia que tiene que superar: climatología, persistencia y precasting.
+# Generado con `python -m roque_forecast.features` y `python -m roque_forecast.train`.
 
 # %%
 import json
@@ -57,11 +57,11 @@ def skill_bars(ax, frame, column, title, xlabel):
 
 
 # %% [markdown]
-# ## 1. Dome closure risk
+# ## 1. Riesgo de cierre de cúpula
 #
-# Label: the humidity rule (close at ≥ 90 %, reopen after 20 min below) closes the dome for at least 1 hour.
-# About 1 night in 5. Scores: **Brier** (mean squared error of the probability; lower is better) and
-# **Brier skill** against climatology (0 = no better than "the usual for this month", 1 = perfect).
+# Etiqueta: la regla de humedad (cerrar con ≥ 90 %, reabrir tras 20 min por debajo) cierra la cúpula al menos 1 hora.
+# Ocurre aproximadamente 1 de cada 5 noches. Medidas: **Brier** (error cuadrático medio de la probabilidad; cuanto más bajo, mejor) y
+# **Brier skill** frente a la climatología (0 = no mejora «lo habitual de este mes», 1 = perfecto).
 
 # %%
 closure[["inputs", "method", "nights", "brier", "brier_skill_vs_climatology", "auc", "hit_rate", "false_alarm_ratio"]]
@@ -74,8 +74,8 @@ skill_bars(ax, closure[closure["inputs"] == "forecast archive"], "brier_skill_vs
 plotting.save(fig, "06_closure_skill")
 
 # %% [markdown]
-# Is a predicted "30 %" really closed 30 % of the time? The **reliability diagram** groups the test nights by
-# predicted probability and compares with how often the dome really closed. On the diagonal = trustworthy.
+# ¿Un «30 %» previsto se cierra de verdad el 30 % de las veces? El **diagrama de fiabilidad** agrupa las noches de prueba por
+# probabilidad prevista y lo compara con la frecuencia real de cierre. Sobre la diagonal = fiable.
 
 # %%
 bins = np.linspace(0, 1, 11)
@@ -94,8 +94,8 @@ ax.set_title("Reliability, test 2024–2026\n(numbers = nights per bin)")
 plotting.save(fig, "07_closure_reliability")
 
 # %% [markdown]
-# Which inputs matter? **Permutation importance**: shuffle one input on the test nights and measure how much
-# the Brier score worsens.
+# ¿Qué entradas importan? **Importancia por permutación**: se barajan los valores de una entrada en las noches de prueba y se mide
+# cuánto empeora el Brier.
 
 # %%
 def importance_plot(name, title, figure):
@@ -113,9 +113,9 @@ importance_plot("closure", "Dome closure: 10 most important inputs (test)", "08_
 # %% [markdown]
 # ## 2. Seeing
 #
-# Label: median R2D2 seeing of the night (arcsec). Scores: RMSE (root mean squared error, in arcsec) and
-# skill against climatology. Persistence is worse than climatology here: one night's turbulence says
-# little about the next.
+# Etiqueta: mediana del seeing R2D2 de la noche (segundos de arco). Medidas: RMSE (raíz del error cuadrático medio, en segundos de arco) y
+# skill frente a la climatología. Aquí la persistencia es peor que la climatología: la turbulencia de una noche dice
+# poco de la siguiente.
 
 # %%
 seeing[["inputs", "method", "nights", "rmse", "mae", "rmse_skill_vs_climatology"]]
@@ -143,11 +143,11 @@ plotting.save(fig, "10_seeing_predicted_vs_measured")
 importance_plot("seeing", "Seeing: 10 most important inputs (test)", "11_seeing_importance")
 
 # %% [markdown]
-# ## 3. Hours lost to weather (WHT)
+# ## 3. Horas perdidas por el tiempo (WHT)
 #
-# The predicted closure hours are converted to WHT hours with a single factor fitted on the years whose
-# WHT log is reliable (2017, 2018, 2023) and tested on 2026. 2024–2025 are shown for comparison only: in those
-# years the WHT books many closed nights as fully observed (EDA section 6), so no model can match them.
+# Las horas de cierre previstas se convierten en horas del WHT con un único factor ajustado en los años cuyo
+# registro del WHT es fiable (2017, 2018, 2023) y se prueban con 2026. 2024–2025 se muestran solo para comparar: en esos
+# años el WHT da por totalmente observadas muchas noches cerradas (apartado 6 del EDA), así que ningún modelo puede coincidir con ellos.
 
 # %%
 lost[["inputs", "method", "nights", "rmse", "mae", "rmse_skill_vs_climatology"]]
@@ -165,14 +165,14 @@ ax.legend(loc="upper right")
 plotting.save(fig, "12_lost_hours_2026")
 
 # %% [markdown]
-# ## 4. With a forecast issued 24 hours earlier
+# ## 4. Con una previsión emitida 24 horas antes
 #
-# The training archive stitches the first hours of each model run, which is a little better than the forecast
-# an operator has in the afternoon. Open-Meteo also keeps the forecasts made 24 h before (since 2025): a little
-# worse than reality. The rows with `inputs = 24 h old forecast` above use those, on 2025–2026 test nights.
-# The skill barely changes, because most of it comes from the station readings before the night and from the
-# season; without them (`forecast only`), the forecast still beats every baseline for seeing but loses
-# against precasting for the dome.
+# El archivo de entrenamiento une las primeras horas de cada ejecución del modelo, algo mejor que la previsión
+# que tiene un operador por la tarde. Open-Meteo también guarda las previsiones hechas 24 h antes (desde 2025): algo
+# peores que la realidad. Las filas con `inputs = 24 h old forecast` de arriba usan esas previsiones, en las noches de prueba de 2025–2026.
+# El skill apenas cambia, porque casi todo viene de las lecturas de la estación antes de la noche y de la
+# época del año; sin ellas (`forecast only`), la previsión sigue superando a todas las referencias en el seeing, pero pierde
+# frente al precasting en la cúpula.
 
 # %%
 both = pd.concat([closure.assign(target="closure", score=closure["brier_skill_vs_climatology"]),
@@ -180,15 +180,15 @@ both = pd.concat([closure.assign(target="closure", score=closure["brier_skill_vs
 both[both["kind"] == "model"].pivot_table(index=["target", "method"], columns="inputs", values="score").round(3)
 
 # %% [markdown]
-# ## Reading the results
-# - **Dome closure:** gradient boosting gets a Brier skill of 0.55 against climatology, against 0.45 for the best
-#   reference (precasting: "is it already humid before the night?"). It mostly sharpens precasting with the
-#   forecast; the station humidity before the night is by far the strongest input. Between 40 % and 90 % the
-#   probabilities are somewhat too high (reliability diagram): a calibration step is a possible improvement.
-# - **Seeing:** ~18 % less RMSE than climatology. Wind before the night is the strongest input, as in
-#   Abárzuza et al. 2025. Good nights are still hard to tell apart: most of the turbulence is above the
-#   ground layer the station sees.
-# - **Hours lost:** in 2026 the forecast beats both references (RMSE 2.65 h against 2.99 h for climatology, MAE
-#   1.36 h against 1.42 h for persistence).
-# - **Limits:** one site, one forecast model, ~10 years. The labels are a rebuilt rule (closure) and a human
-#   log (WHT), not the GTC's own decisions.
+# ## Cómo leer los resultados
+# - **Cierre de cúpula:** gradient boosting consigue un Brier skill de 0,55 frente a la climatología, frente a 0,45 de la mejor
+#   referencia (precasting: «¿ya hay humedad antes de la noche?»). Sobre todo afina el precasting con la
+#   previsión; la humedad de la estación antes de la noche es, con diferencia, la entrada más fuerte. Entre el 40 % y el 90 % las
+#   probabilidades son algo altas (diagrama de fiabilidad): un paso de calibración es una posible mejora.
+# - **Seeing:** ~18 % menos de RMSE que la climatología. El viento antes de la noche es la entrada más fuerte, como en
+#   Abárzuza et al. 2025. Las noches buenas siguen siendo difíciles de distinguir: casi toda la turbulencia está por encima de la
+#   capa cercana al suelo que ve la estación.
+# - **Horas perdidas:** en 2026 la previsión supera a las dos referencias (RMSE de 2,65 h frente a 2,99 h de la climatología, MAE de
+#   1,36 h frente a 1,42 h de la persistencia).
+# - **Límites:** un sitio, un modelo de previsión, ~10 años. Las etiquetas son una regla reconstruida (cierre) y un registro
+#   humano (WHT), no decisiones del propio GTC.

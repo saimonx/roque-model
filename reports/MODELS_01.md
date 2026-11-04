@@ -1,234 +1,232 @@
-# Models 01 — Forecasting tonight at the Roque de los Muchachos
+# Modelos 01: previsión de esta noche en el Roque de los Muchachos
 
-> **Previous study (28–31 Oct 2026), kept as it was.** Sections 1–3 are the nightly models that came first
-> (gradient boosting, WHT hours lost); section 4 is the first version of the hourly model. The current model
-> (RoqueModel, a random forest that forecasts each night hour) and its scores are in
-> [docs/DETALLES_TECNICOS.md](../docs/DETALLES_TECNICOS.md) (in Spanish) and on the
-> [web page](https://saimonx.github.io/roque-model/).
+> **Estudio previo (28–31 oct 2026), conservado tal cual.** Los apartados 1–3 son los modelos por noche que se hicieron
+> primero (gradient boosting, horas perdidas del WHT); el apartado 4 es la primera versión del modelo por horas. El
+> modelo actual (RoqueModel, un random forest que pronostica cada hora de la noche) y sus resultados están en
+> [docs/DETALLES_TECNICOS.md](../docs/DETALLES_TECNICOS.md) y en la
+> [web](https://saimonx.github.io/roque-model/).
 
-> **Independent project**, not affiliated with GRANTECAN or any observatory. All data are real and public.
-> Notebook: [`notebooks/02_models.ipynb`](../notebooks/02_models.ipynb). Code: `src/roque_forecast/features.py`,
-> `src/roque_forecast/train.py`, `hourly.py`, `validate.py`. Metrics: [`reports/results/`](results/).
+> **Proyecto independiente**, sin afiliación con GRANTECAN ni con ningún observatorio. Todos los datos son reales y públicos.
+> Notebook: [`notebooks/02_models.ipynb`](../notebooks/02_models.ipynb). Código: `src/roque_forecast/features.py`,
+> `src/roque_forecast/train.py`, `hourly.py`, `validate.py`. Métricas: [`reports/results/`](results/).
 
-## The question
+## La pregunta
 
-At the start of the night, using only what is known at that moment:
-1. **Will the dome have to close?** The label is the NOT humidity rule (≥ 90 %, reopen after 20 min
-   below) closing it for at least 1 hour. That happens on about 1 night in 5.
-2. **How good will the seeing be?** The label is the median R2D2 DIMM seeing of the night.
-3. **How many hours will be lost to weather?** The label is the WHT nightly accounting.
+Al empezar la noche, usando solo lo que se sabe en ese momento:
+1. **¿Habrá que cerrar la cúpula?** La etiqueta es que la regla de humedad del NOT (≥ 90 %, reabrir tras 20 min por
+   debajo) la cierre al menos 1 hora. Ocurre aproximadamente 1 de cada 5 noches.
+2. **¿Cómo será el seeing?** La etiqueta es la mediana del seeing DIMM R2D2 de la noche.
+3. **¿Cuántas horas se perderán por el tiempo?** La etiqueta es la contabilidad nocturna del WHT.
 
-## Inputs (all available before the night starts)
+## Entradas (todas disponibles antes de que empiece la noche)
 
-| Group | Inputs | Source |
+| Grupo | Entradas | Fuente |
 |---|---|---|
-| Forecast for the night | humidity (mean, max), dew-point spread, temperature and its drop, wind (mean, max, east–west and north–south parts), cloud cover, precipitation, pressure | ECMWF IFS HRES 9 km through the [Open-Meteo](https://open-meteo.com) forecast archives (CC BY 4.0) |
-| Station before the night | humidity (mean, max), wind and pressure in the 2 h before astronomical night | NOT weather archive |
-| Persistence | last night's closure fraction and median seeing | NOT, R2D2 |
-| Season | sine and cosine of the day of the year | — |
+| Previsión de la noche | humedad (media, máxima), diferencia con el punto de rocío, temperatura y su descenso, viento (medio, máximo, componentes este-oeste y norte-sur), nubosidad, precipitación, presión | ECMWF IFS HRES 9 km mediante los archivos de previsiones de [Open-Meteo](https://open-meteo.com) (CC BY 4.0) |
+| Estación antes de la noche | humedad (media, máxima), viento y presión en las 2 h antes de la noche astronómica | Archivo meteorológico del NOT |
+| Persistencia | fracción de cierre y mediana del seeing de anoche | NOT, R2D2 |
+| Época del año | seno y coseno del día del año | — |
 
-Real forecasts, not measured weather, are what make the evaluation honest. Two archives are used:
-- **Training and main test:** first hours of each model run, from 2017. This is slightly *better* than the
-  afternoon forecast.
-- **Check:** the forecasts issued 24 h earlier, from 2025. These are slightly *worse* than the afternoon
-  forecast.
+Lo que hace honesta la evaluación es usar previsiones reales, no el tiempo medido. Se usan dos archivos:
+- **Entrenamiento y prueba principal:** primeras horas de cada ejecución del modelo, desde 2017. Es algo *mejor* que la
+  previsión de la tarde.
+- **Comprobación:** las previsiones emitidas 24 h antes, desde 2025. Son algo *peores* que la previsión de la tarde.
 
-The real skill lies between the two results.
+El acierto real está entre los dos resultados.
 
-## Method
+## Método
 
-- **Time split:** train 2017–2022 (2,191 nights), choose settings on 2023 (365), test on 2024–Oct 2026 (1,031).
-  The test years were never used for any choice.
-- **Models:** gradient boosting (scikit-learn `HistGradientBoosting`; a 2×2×2 grid chosen on 2023), with a
-  linear or logistic regression as a simpler alternative. Seeing is modelled on a log scale.
-- **Reference methods:** each is turned into a probability using the training years only.
-  - climatology: the usual value for the month;
-  - persistence: same as last night;
-  - precasting: the conditions at the station just before the night;
-  - for closure only, a plain rule on the forecast humidity.
+- **División temporal:** entrenar con 2017–2022 (2.191 noches), elegir ajustes con 2023 (365), probar con 2024–oct 2026
+  (1.031). Los años de prueba no se usaron para ninguna elección.
+- **Modelos:** gradient boosting (`HistGradientBoosting` de scikit-learn; una rejilla 2×2×2 elegida con 2023), con una
+  regresión lineal o logística como alternativa más sencilla. El seeing se modela en escala logarítmica.
+- **Métodos de referencia:** cada uno se convierte en una probabilidad usando solo los años de entrenamiento.
+  - climatología: el valor habitual del mes;
+  - persistencia: igual que anoche;
+  - precasting: las condiciones de la estación justo antes de la noche;
+  - solo para el cierre, una regla simple sobre la humedad prevista.
 
-## Results on the test years (2024–2026)
+## Resultados en los años de prueba (2024–2026)
 
-### 1. Dome closure (1,025 nights)
+### 1. Cierre de cúpula (1.025 noches)
 
-| Method | Brier ↓ | Brier skill vs climatology ↑ | AUC ↑ | Closures warned | False alarms |
+| Método | Brier ↓ | Brier skill frente a climatología ↑ | AUC ↑ | Cierres avisados | Falsas alarmas |
 |---|---|---|---|---|---|
-| Climatology (month) | 0.149 | 0 | 0.70 | — | — |
-| Persistence (last night) | 0.131 | 0.12 | 0.72 | 56 % | 44 % |
-| Precasting (humidity ≥ 90 % before the night) | 0.082 | 0.45 | 0.83 | 71 % | 17 % |
-| Forecast rule (forecast humidity ≥ 95 %) | 0.153 | −0.02 | 0.64 | — | — |
-| **Gradient boosting** | **0.067** | **0.55** | **0.96** | **79 %** | 25 % |
-| Logistic regression | 0.078 | 0.48 | 0.95 | 78 % | 27 % |
-| Gradient boosting, forecast only | 0.094 | 0.37 | 0.91 | 68 % | 33 % |
+| Climatología (mes) | 0,149 | 0 | 0,70 | — | — |
+| Persistencia (anoche) | 0,131 | 0,12 | 0,72 | 56 % | 44 % |
+| Precasting (humedad ≥ 90 % antes de la noche) | 0,082 | 0,45 | 0,83 | 71 % | 17 % |
+| Regla sobre la previsión (humedad prevista ≥ 95 %) | 0,153 | −0,02 | 0,64 | — | — |
+| **Gradient boosting** | **0,067** | **0,55** | **0,96** | **79 %** | 25 % |
+| Regresión logística | 0,078 | 0,48 | 0,95 | 78 % | 27 % |
+| Gradient boosting, solo previsión | 0,094 | 0,37 | 0,91 | 68 % | 33 % |
 
-- **Best model:** gradient boosting cuts the Brier score by 18 % against the best reference (precasting).
-- **24-hour-old forecasts** (398 nights in 2025–2026): skill 0.56, against 0.44 for precasting. The result
-  holds when the forecast is older.
-- **Strongest input:** the station humidity just before the night. The model refines that reading with the
-  forecast wind and precipitation.
-- **Forecast only:** without the station readings (for example, planning tomorrow night) the forecast is still
-  far better than climatology or persistence. It does not reach precasting.
-- **Calibration:** probabilities between 40 % and 90 % are somewhat too high (reliability diagram in the
-  notebook).
+- **Mejor modelo:** gradient boosting reduce el Brier un 18 % frente a la mejor referencia (precasting).
+- **Previsiones de hace 24 horas** (398 noches de 2025–2026): skill 0,56, frente a 0,44 del precasting. El resultado
+  se mantiene cuando la previsión es más antigua.
+- **Entrada más fuerte:** la humedad de la estación justo antes de la noche. El modelo afina esa lectura con el viento y
+  la precipitación previstos.
+- **Solo previsión:** sin las lecturas de la estación (por ejemplo, para planificar la noche de mañana) la previsión sigue
+  siendo mucho mejor que la climatología o la persistencia. No llega al precasting.
+- **Calibración:** las probabilidades entre el 40 % y el 90 % son algo altas (diagrama de fiabilidad en el notebook).
 
-![Closure skill](figures/06_closure_skill.png)
+![Skill del cierre](figures/06_closure_skill.png)
 
-### 2. Seeing (780 nights with R2D2 data)
+### 2. Seeing (780 noches con datos de R2D2)
 
-| Method | RMSE (″) ↓ | MAE (″) ↓ | RMSE skill vs climatology ↑ |
+| Método | RMSE (″) ↓ | MAE (″) ↓ | Skill de RMSE frente a climatología ↑ |
 |---|---|---|---|
-| Climatology (month) | 0.350 | 0.227 | 0 |
-| Persistence (last night) | 0.415 | 0.278 | −0.19 |
-| **Gradient boosting** (with the jet-stream wind) | **0.284** | **0.197** | **0.19** |
-| Gradient boosting, without the jet-stream wind | 0.286 | 0.198 | 0.18 |
-| Linear regression (log) | 0.288 | 0.202 | 0.18 |
-| Gradient boosting, forecast only | 0.310 | 0.219 | 0.11 |
+| Climatología (mes) | 0,350 | 0,227 | 0 |
+| Persistencia (anoche) | 0,415 | 0,278 | −0,19 |
+| **Gradient boosting** (con el viento de la corriente en chorro) | **0,284** | **0,197** | **0,19** |
+| Gradient boosting, sin el viento de la corriente en chorro | 0,286 | 0,198 | 0,18 |
+| Regresión lineal (log) | 0,288 | 0,202 | 0,18 |
+| Gradient boosting, solo previsión | 0,310 | 0,219 | 0,11 |
 
-- **24-hour-old forecasts:** 0.303″ against 0.378″ for climatology (skill 0.20).
-- **Jet-stream wind (added 28 Oct 2026).** Turbulence high up blurs the stars even when the ground is calm.
-  The ECMWF archive has no pressure levels, so the 200 hPa wind (~12 km) comes from the NOAA GFS archive,
-  which starts in March 2021; older nights have no value (gradient boosting handles gaps natively). It was
-  accepted on the validation year only (RMSE 0.347″ → 0.340″ on 2023). On the test years the gain is small
-  but holds in both archives (0.286″ → 0.284″; 24 h old: 0.306″ → 0.303″). The dome models do not use it.
-- **Strongest input:** the station wind before the night, then temperature and season. This matches
-  Abárzuza et al. 2025.
-- **Limit:** a linear model is almost as good. Most of the turbulence is in layers the ground station does
-  not see, so the remaining error is large.
+- **Previsiones de hace 24 horas:** 0,303″ frente a 0,378″ de la climatología (skill 0,20).
+- **Viento de la corriente en chorro (añadido el 28 oct 2026).** La turbulencia en altura emborrona las estrellas aunque
+  en el suelo haya calma. El archivo de ECMWF no tiene niveles de presión, así que el viento a 200 hPa (~12 km) viene del
+  archivo NOAA GFS, que empieza en marzo de 2021; las noches anteriores no tienen valor (gradient boosting admite huecos
+  de forma nativa). Se aceptó solo con el año de validación (RMSE 0,347″ → 0,340″ en 2023). En los años de prueba la
+  mejora es pequeña pero se mantiene en los dos archivos (0,286″ → 0,284″; con 24 h de antigüedad: 0,306″ → 0,303″). Los
+  modelos de cúpula no lo usan.
+- **Entrada más fuerte:** el viento de la estación antes de la noche, y después la temperatura y la época del año.
+  Coincide con Abárzuza et al. 2025.
+- **Límite:** un modelo lineal es casi igual de bueno. Casi toda la turbulencia está en capas que la estación del suelo
+  no ve, así que el error restante es grande.
 
-### 3. Hours lost to weather (WHT)
+### 3. Horas perdidas por el tiempo (WHT)
 
-**Why a calibration line.** Only three years combine a forecast archive with a reliable WHT log: 2017, 2018
-and 2023. Section 4 of the EDA explains which years are reliable. Those three years are too few for their own
-model. Instead, the closure-hours forecast is converted with one factor fitted on those years:
-`lost = 0.85 × predicted closed hours`.
+**Por qué una línea de calibración.** Solo tres años combinan un archivo de previsiones con un registro fiable del WHT:
+2017, 2018 y 2023. El apartado 4 del EDA explica qué años son fiables. Esos tres años son muy pocos para un modelo propio.
+En su lugar, la previsión de horas de cierre se convierte con un único factor ajustado en esos años:
+`perdidas = 0,85 × horas cerradas previstas`.
 
-- The predicted hours used for the fit come from models that had not seen that year ("out of fold").
-- A free intercept was rejected on the same years, before looking at 2026. It added 0.6 h to every clear
-  night.
+- Las horas previstas que se usan en el ajuste vienen de modelos que no habían visto ese año («out of fold»).
+- Un término independiente libre se rechazó con esos mismos años, antes de mirar 2026. Añadía 0,6 h a cada noche despejada.
 
-| Test set | Method | RMSE (h) ↓ | MAE (h) ↓ |
+| Conjunto de prueba | Método | RMSE (h) ↓ | MAE (h) ↓ |
 |---|---|---|---|
-| **2026** (reliable, 299 nights) | Climatology (month, 2010–2018) | 2.99 | 2.09 |
-| | Persistence (last night) | 3.23 | 1.42 |
-| | **Calibrated closure forecast** | **2.65** | **1.36** |
-| 2024–2025 (suspect log, comparison only) | Climatology | 2.65 | 2.09 |
-| | Persistence | 2.87 | 1.21 |
-| | Calibrated closure forecast | 2.93 | 1.55 |
+| **2026** (fiable, 299 noches) | Climatología (mes, 2010–2018) | 2,99 | 2,09 |
+| | Persistencia (anoche) | 3,23 | 1,42 |
+| | **Previsión de cierre calibrada** | **2,65** | **1,36** |
+| 2024–2025 (registro dudoso, solo para comparar) | Climatología | 2,65 | 2,09 |
+| | Persistencia | 2,87 | 1,21 |
+| | Previsión de cierre calibrada | 2,93 | 1,55 |
 
-- **2026:** the forecast beats both references on both scores.
-- **2024–2025:** it does not, because in those years the log books many closed nights as observed. The model
-  is right about the weather and the label is not. This is why those years are excluded from fitting.
+- **2026:** la previsión supera a las dos referencias en las dos medidas.
+- **2024–2025:** no las supera, porque en esos años el registro da por observadas muchas noches cerradas. El modelo acierta
+  con el tiempo y la etiqueta no. Por eso esos años se excluyen del ajuste.
 
-## 4. The design used live (28 Oct 2026): one closure label, one hourly model, three checks
+## 4. El diseño usado en directo (28 oct 2026): una etiqueta de cierre, un modelo por horas, tres comprobaciones
 
-Sections 1–3 study the night as a whole. The live product is simpler and is the one to read:
+Los apartados 1–3 estudian la noche en conjunto. El producto en directo es más sencillo y es el que hay que leer:
 
-| Question | Model | Label |
+| Pregunta | Modelo | Etiqueta |
 |---|---|---|
-| Is the dome closed this hour? | RoqueModel, a random forest per night hour (`hourly.py`; model and settings from `compare.py`), provisional and final | `dome.closed`: humidity ≥ 90 % (reopen after 20 min), **or** gusts ≥ 22.2 m/s (80 km/h, INT limit, same reopen), **or** ice (≤ 0 °C with humidity ≥ 90 % in the previous 24 h) |
-| How many hours closed tonight? | sum of the hourly probabilities | same label, summed over the night |
-| Seeing of the night | section 2 (`train.py`) | R2D2 median |
+| ¿Está cerrada la cúpula esta hora? | RoqueModel, un random forest por hora de noche (`hourly.py`; modelo y ajustes de `compare.py`), provisional y definitivo | `dome.closed`: humedad ≥ 90 % (reabrir tras 20 min), **o** rachas ≥ 22,2 m/s (80 km/h, límite del INT, misma reapertura), **o** hielo (≤ 0 °C con humedad ≥ 90 % en las 24 h anteriores) |
+| ¿Cuántas horas cerrada esta noche? | suma de las probabilidades por hora | la misma etiqueta, sumada en toda la noche |
+| Seeing de la noche | apartado 2 (`train.py`) | mediana de R2D2 |
 
-**The ice rule** was calibrated against the Liverpool Telescope reports of 2017–2022 (never the test
-years): it adds 29 nights to the label, and the LT lost 26 of them.
+**La regla del hielo** se calibró con los partes del Telescopio Liverpool de 2017–2022 (nunca los años de prueba): añade
+29 noches a la etiqueta, y el LT perdió 26 de ellas.
 
-**Hourly slots:** UTC hours with ≥ 30 minutes of astronomical night (32,153 hours, 2017–2026). An hour is
-labelled closed when the label covers at least half of it, and only if ≥ 45 minutes were measured. Inputs:
-the ECMWF forecast at mid-hour (the 10 m wind is useless at the summit, mean 1.3 m/s, so the GFS 750 hPa
-wind is added from 2021), the nightly inputs of section 1, and the position of the hour in the night.
+**Franjas por hora:** horas UTC con ≥ 30 minutos de noche astronómica (32.153 horas, 2017–2026). Una hora se etiqueta como
+cerrada cuando la etiqueta cubre al menos la mitad, y solo si se midieron ≥ 45 minutos. Entradas: la previsión ECMWF a mitad
+de la hora (el viento a 10 m no sirve en la cumbre, media de 1,3 m/s, así que se añade el viento a 750 hPa de GFS desde
+2021), las entradas por noche del apartado 1 y la posición de la hora en la noche.
 
-### Results on the test years (2024–2026)
+### Resultados en los años de prueba (2024–2026)
 
-Hour by hour against what really happened (`site_data.comparison`): the dome was closed 1,453 of 8,577
-hours. Read literally, the weather forecast would close 6,111 hours and is wrong in 56.6 % of the hours
-(4,756 needless closures, 98 missed); the final model calls 1,390 hours and is wrong in 8.9 % (351 / 414);
-provisional 11.5 %. Always "open" is wrong in 16.9 %.
+Hora a hora frente a lo que pasó de verdad (`site_data.comparison`): la cúpula estuvo cerrada 1.453 de 8.577 horas. Leída
+tal cual, la previsión del tiempo cerraría 6.111 horas y se equivoca en el 56,6 % de las horas (4.756 cierres innecesarios,
+98 no detectados); el modelo definitivo marca 1.390 horas y se equivoca en el 8,9 % (351 / 414); el provisional, en el
+11,5 %. Decir siempre «abierta» se equivoca en el 16,9 %.
 
 
-| Dome closed, each hour (8,577 hours, 17 % closed) | Brier ↓ | Skill | AUC | Right when it says "closed" | Closed hours caught |
+| Cúpula cerrada, cada hora (8.577 horas, 17 % cerradas) | Brier ↓ | Skill | AUC | Acierta cuando dice «cerrada» | Horas cerradas detectadas |
 |---|---|---|---|---|---|
-| Climatology (month) | 0.136 | 0 | 0.66 | — | — |
-| Raw forecast, read literally | 0.566 | −3.16 | 0.63 | 22 % | 93 % |
-| Persistence (same hour last night) | 0.120 | 0.12 | 0.69 | 52 % | 47 % |
-| Precasting (humidity before night) | 0.081 | 0.41 | 0.85 | 67 % | 77 % |
-| Model, provisional | 0.084 | 0.38 | 0.91 | 69 % | 59 % |
-| **Model, final** | **0.063** | **0.54** | **0.95** | **75 %** | **72 %** |
+| Climatología (mes) | 0,136 | 0 | 0,66 | — | — |
+| Previsión tal cual | 0,566 | −3,16 | 0,63 | 22 % | 93 % |
+| Persistencia (misma hora de anoche) | 0,120 | 0,12 | 0,69 | 52 % | 47 % |
+| Precasting (humedad antes de la noche) | 0,081 | 0,41 | 0,85 | 67 % | 77 % |
+| Modelo, provisional | 0,084 | 0,38 | 0,91 | 69 % | 59 % |
+| **Modelo, definitivo** | **0,063** | **0,54** | **0,95** | **75 %** | **72 %** |
 
-| Closed hours of the night (1,028 nights) | MAE | RMSE |
+| Horas cerradas de la noche (1.028 noches) | MAE | RMSE |
 |---|---|---|
-| Climatology (month) | 1.95 h | 2.87 h |
-| Persistence (last night) | 1.33 h | 2.94 h |
-| Raw forecast | 4.67 h | 5.93 h |
-| Model, provisional | 1.24 h | 2.06 h |
-| **Model, final** | **0.87 h** | **1.68 h** |
+| Climatología (mes) | 1,95 h | 2,87 h |
+| Persistencia (anoche) | 1,33 h | 2,94 h |
+| Previsión tal cual | 4,67 h | 5,93 h |
+| Modelo, provisional | 1,24 h | 2,06 h |
+| **Modelo, definitivo** | **0,87 h** | **1,68 h** |
 
-The provisional model loses to precasting on the hour: precasting already uses the station just before
-the night, which the provisional model cannot have. Once the night starts the final model uses it too and
-beats every reference.
+El modelo provisional pierde frente al precasting en la hora: el precasting ya usa la estación justo antes de la noche, algo
+que el provisional no puede tener. Cuando empieza la noche, el definitivo también la usa y supera a todas las referencias.
 
-### Does the label reflect reality? (`validate.py`, `results/validation.json`)
+### ¿Refleja la etiqueta la realidad? (`validate.py`, `results/validation.json`)
 
-Checked against **one source for every year**, so the check means the same thing every year: the
-**Liverpool Telescope** night reports (2017–2026, 3,322 nights with a report). Both are asked, night by
-night, whether at least half of the night was lost:
+Comprobada con **una sola fuente para todos los años**, para que la comprobación signifique lo mismo cada año: los partes
+nocturnos del **Telescopio Liverpool** (2017–2026, 3.322 noches con parte). A ambos se les pregunta, noche a noche, si se
+perdió al menos la mitad de la noche:
 
-- Agreement 87.2 % of nights (72–93 % by year; lowest in 2021, when the LT lost 148 nights, cloud and dust
-  included).
-- Label "lost" (529 nights) → LT also lost 95.7 %. Label open all night (2,458) → LT kept the night 89.9 %.
-- LT lost 909 nights, the label 529: the LT also closes for cloud, dust and caution.
-- Correlation of the hours: 0.74; mean 2.75 h lost by the LT against 1.61 h closed by the label.
+- Coinciden en el 87,2 % de las noches (72–93 % según el año; el más bajo, 2021, cuando el LT perdió 148 noches, incluidas
+  nubes y polvo).
+- Etiqueta «perdida» (529 noches) → el LT también la perdió en el 95,7 %. Etiqueta abierta toda la noche (2.458) → el LT
+  conservó la noche en el 89,9 %.
+- El LT perdió 909 noches y la etiqueta 529: el LT también cierra por nubes, polvo y precaución.
+- Correlación de las horas: 0,74; media de 2,75 h perdidas por el LT frente a 1,61 h cerradas según la etiqueta.
 
-Sources looked at and not used, because they do not cover every year in the same way:
-- **GTC public archive** (CAB): science exposure times show when the GTC was certainly open (Jan 2024 – Sep
-  2025: 1,499 h exposing, label "closed" in 0.8 % of those minutes), but data become public one year later
-  and the archive cannot show closures.
-- **TNG weather downtime**: only the last 365 days are published (Oct 2025 – Oct 2026: correlation 0.90).
-- **WHT nightly accounting**: some years book nights with the dome closed as observed (EDA, section 4).
+Fuentes estudiadas y no usadas, porque no cubren todos los años de la misma manera:
+- **Archivo público del GTC** (CAB): los tiempos de exposición científica muestran cuándo el GTC estuvo con certeza abierto
+  (ene 2024 – sep 2025: 1.499 h exponiendo, etiqueta «cerrada» en el 0,8 % de esos minutos), pero los datos se hacen públicos
+  un año después y el archivo no puede mostrar cierres.
+- **Tiempo perdido por meteorología del TNG:** solo se publican los últimos 365 días (oct 2025 – oct 2026: correlación 0,90).
+- **Contabilidad nocturna del WHT:** algunos años dan por observadas noches con la cúpula cerrada (EDA, apartado 4).
 
-### Live models refitted on 2017–2026 (31 Oct 2026)
+### Modelos en directo reentrenados con 2017–2026 (31 oct 2026)
 
-The scores above come from models trained on 2017–2023 and tested on 2024–2026. Once measured, the live
-RoqueModel (final and provisional) is refitted with the same settings on every labelled year, 2017–2026
-(30,044 hours, 5,163 closed). Before doing it: trained on 2017–2023 vs 2017–2024 with the same settings and
-scored on 2025–2026, the extra year improved Brier 0.0655 → 0.0622 (final) and 0.0879 → 0.0847
-(provisional). The live track record keeps scoring the refitted models on new nights.
+Los resultados anteriores vienen de modelos entrenados con 2017–2023 y probados con 2024–2026. Una vez medidos, el RoqueModel
+en directo (definitivo y provisional) se reentrena con los mismos ajustes en todos los años con etiqueta, 2017–2026
+(30.044 horas, 5.163 cerradas). Antes de hacerlo: entrenando con 2017–2023 frente a 2017–2024 con los mismos ajustes y
+midiendo en 2025–2026, el año adicional mejoró el Brier de 0,0655 a 0,0622 (definitivo) y de 0,0879 a 0,0847 (provisional).
+El historial en directo sigue midiendo los modelos reentrenados en las noches nuevas.
 
-### Model choice: random forest (31 Oct 2026, `compare.py`)
+### Elección del modelo: random forest (31 oct 2026, `compare.py`)
 
-Gradient boosting (162 combinations) and random forest (288) got equally wide settings searches on the
-validation years 2021–2023; logistic regression and an MLP smaller ones. Validation Brier, final /
-provisional: gradient boosting 0.0594 / 0.0856, random forest 0.0595 / 0.0869 (per year the two swap:
-final 0.0516 / 0.0559 / 0.0708 against 0.0521 / 0.0568 / 0.0695). Within 2 %, so the test decides:
-random forest 0.0628 / 0.0839 against 0.0667 / 0.0859 (right 91.1 % / 88.5 % against 90.7 % / 88.2 %).
-That choice looked at the test years, so those scores may be slightly optimistic. Night totals: MAE
-0.87 h against 0.77 h (worse), RMSE 1.68 h against 1.75 h (better).
+Gradient boosting (162 combinaciones) y random forest (288) tuvieron búsquedas de ajustes igual de amplias en los años de
+validación 2021–2023; la regresión logística y una MLP, más pequeñas. Brier de validación, definitivo / provisional: gradient
+boosting 0,0594 / 0,0856, random forest 0,0595 / 0,0869 (por años se alternan: definitivo 0,0516 / 0,0559 / 0,0708 frente a
+0,0521 / 0,0568 / 0,0695). A menos de un 2 %, así que decide la prueba: random forest 0,0628 / 0,0839 frente a 0,0667 / 0,0859
+(aciertos 91,1 % / 88,5 % frente a 90,7 % / 88,2 %). Esa elección miró los años de prueba, así que esos resultados pueden ser
+algo optimistas. Totales por noche: MAE 0,87 h frente a 0,77 h (peor), RMSE 1,68 h frente a 1,75 h (mejor).
 
-### Tried and dropped
+### Probado y descartado
 
-- Separate nightly closure and WHT hours models in the live product (section 1 and 3): replaced by the sum
-  of the hourly model, which answers both with one label.
-- Hour-by-hour seeing: RMSE 0.358″ against 0.409″ for climatology, but no better than the nightly model
-  for the night as a whole, and the hourly R2D2 label is noisy.
-- Separate humidity and wind models combined as `1 − (1 − p_h)(1 − p_w)`: same Brier as one model on the
-  composite label, so the single label was kept.
-- Liverpool Telescope hours-lost and photometric-sky models: the LT label mixes reasons the GTC does not
-  share (it closes earlier), and the photometric model barely beat persistence (Brier skill 0.17 against
-  0.12). The LT reports are kept as a check only.
-- CAMS dust warning: 18 dust nights in the test years, the CAMS archive only from August 2022, 93 % false
-  alarms.
+- Modelos separados de cierre por noche y de horas del WHT en el producto en directo (apartados 1 y 3): sustituidos por la suma
+  del modelo por horas, que responde a las dos cosas con una sola etiqueta.
+- Seeing hora a hora: RMSE 0,358″ frente a 0,409″ de la climatología, pero no mejor que el modelo por noche para la noche en
+  conjunto, y la etiqueta horaria de R2D2 tiene mucho ruido.
+- Modelos separados de humedad y viento combinados como `1 − (1 − p_h)(1 − p_w)`: mismo Brier que un modelo con la etiqueta
+  compuesta, así que se mantuvo la etiqueta única.
+- Modelos de horas perdidas y de cielo fotométrico del Telescopio Liverpool: la etiqueta del LT mezcla motivos que el GTC no
+  comparte (cierra antes), y el modelo fotométrico apenas superaba a la persistencia (Brier skill 0,17 frente a 0,12). Los
+  partes del LT se conservan solo como comprobación.
+- Aviso de polvo de CAMS: 18 noches de polvo en los años de prueba, archivo de CAMS solo desde agosto de 2022, 93 % de falsas
+  alarmas.
 
-## Limitations and next steps
+## Limitaciones y siguientes pasos
 
-- **Proxy labels.** The closure label is rebuilt from the NOT station (humidity, wind, ice). Dust and cloud
-  closures are not in it, and none of the labels are the GTC's own operating decisions (section 4 checks them).
-- **One forecast model at one grid point.** The grid point is 4 km away, on smoothed terrain, and is usually
-  wetter and calmer than the summit. The model learns to correct that.
-- **Closure recalibration, tested and rejected (28 Oct 2026).** Isotonic regression was checked without
-  touching the test years: out-of-fold probabilities for each year 2017–2023 (model trained on the other six),
-  then a nested leave-one-year-out fit of the isotonic curve. Brier 0.0517 raw against 0.0521 recalibrated
-  (forecast-only model: 0.0922 against 0.0933), so it is not applied. The check runs on every training
-  (`train.calibration_check`, saved in `results/settings.json`). On the test years the model is somewhat
-  over-confident between 40 % and 90 %; with ~250 nights in those bins this may be noise or a change in the
-  climate of the last years, and the live track record is where to watch it.
-- **Possible improvements:** a longer archive of
-  pressure-level forecasts for the jet stream (training now has it only from 2021).
+- **Etiquetas aproximadas.** La etiqueta de cierre se reconstruye con la estación del NOT (humedad, viento, hielo). Los cierres
+  por polvo y nubes no están en ella, y ninguna de las etiquetas es una decisión de operación del propio GTC (el apartado 4 las
+  comprueba).
+- **Un modelo de previsión en un punto de la rejilla.** El punto está a 4 km, sobre un terreno suavizado, y suele ser más húmedo
+  y tranquilo que la cumbre. El modelo aprende a corregirlo.
+- **Recalibración del cierre, probada y rechazada (28 oct 2026).** La regresión isotónica se comprobó sin tocar los años de
+  prueba: probabilidades «out of fold» de cada año de 2017–2023 (modelo entrenado con los otros seis) y, después, un ajuste
+  anidado de la curva isotónica dejando un año fuera cada vez. Brier 0,0517 sin recalibrar frente a 0,0521 recalibrado (modelo
+  solo con previsión: 0,0922 frente a 0,0933), así que no se aplica. La comprobación se ejecuta en cada entrenamiento
+  (`train.calibration_check`, guardada en `results/settings.json`). En los años de prueba el modelo se confía algo de más entre
+  el 40 % y el 90 %; con ~250 noches en esos tramos puede ser ruido o un cambio en el clima de los últimos años, y es el
+  historial en directo donde hay que vigilarlo.
+- **Posibles mejoras:** un archivo más largo de previsiones por niveles de presión para la corriente en chorro (ahora el
+  entrenamiento solo lo tiene desde 2021).

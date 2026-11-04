@@ -1,11 +1,11 @@
-# Test fixtures
+# Datos de prueba
 
-Small excerpts of real public files, downloaded on 27 Oct 2026, used only to test the parsers.
+Pequeños extractos de ficheros públicos reales, descargados el 27 oct 2026, que solo se usan para probar los analizadores.
 
-| File | Source |
+| Fichero | Fuente |
 |---|---|
-| `not_sample.tsv.gz` | NOT weather archive, first 5 minutes of 1 Sep 2026 |
-| `r2d2_sample.html` | ING R2D2 seeing page, first ~20 values of 1 Sep 2026 (cut mid-line on purpose) |
-| `ing_night_2026-09-01.html` | ING nightly weather and observing conditions page, night of 1 Sep 2026 |
-| `gtc_home.html` | GTC atmosportal home page (live panel) at 2026-10-27 18:26 UT |
-| `tonight_sample.json` | a real `site/data/tonight.json` (3 Nov 2026), to check that the web page and the Grafana Cloud dashboard only read fields the forecast writes; copy it again from `site/data/` when the page data change |
+| `not_sample.tsv.gz` | Archivo meteorológico del NOT, primeros 5 minutos del 1 sep 2026 |
+| `r2d2_sample.html` | Página de seeing R2D2 del ING, primeros ~20 valores del 1 sep 2026 (cortada a mitad de línea a propósito) |
+| `ing_night_2026-09-01.html` | Página del ING de meteorología y condiciones de observación, noche del 1 sep 2026 |
+| `gtc_home.html` | Portada de atmosportal del GTC (panel en directo) el 2026-10-27 a las 18:26 UT |
+| `tonight_sample.json` | un `site/data/tonight.json` real (3 nov 2026), para comprobar que la web y el panel de Grafana Cloud solo leen campos que escribe el pronóstico; hay que volver a copiarlo de `site/data/` cuando cambien los datos de la web |

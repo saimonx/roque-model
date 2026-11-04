@@ -139,7 +139,7 @@ cumbre.
 
 ## 5. Probado y descartado
 
-Documentado en [MODELS_01](../reports/MODELS_01.md) (en inglés):
+Documentado en [MODELS_01](../reports/MODELS_01.md):
 
 - modelos por noche separados de cierre y de horas perdidas del WHT (sustituidos por el modelo por horas y su
   suma);
@@ -162,7 +162,7 @@ Documentado en [MODELS_01](../reports/MODELS_01.md) (en inglés):
 - Para el seeing, la climatología mensual (RMSE 0,34″) mejora a «igual que anoche» (0,41″): ese es el listón
   que tiene que superar un modelo.
 
-Análisis completo, en inglés: [EDA_01](../reports/EDA_01.md) ([notebook](../notebooks/01_eda.ipynb)) y
+Análisis completo: [EDA_01](../reports/EDA_01.md) ([notebook](../notebooks/01_eda.ipynb)) y
 [MODELS_01](../reports/MODELS_01.md) ([notebook](../notebooks/02_models.ipynb)).
 
 ## 7. Cómo funciona cada hora

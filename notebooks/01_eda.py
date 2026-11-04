@@ -9,24 +9,24 @@
 # ---
 
 # %% [markdown]
-# # 01 — Exploratory analysis of observing conditions at the Roque de los Muchachos
+# # 01: análisis exploratorio de las condiciones de observación en el Roque de los Muchachos
 #
-# > **Previous study, kept as it was.** The current model (RoqueModel, a random forest that forecasts each
-# > night hour) and its scores are in `docs/DETALLES_TECNICOS.md` (in Spanish) and on the web page.
+# > **Estudio previo, conservado tal cual.** El modelo actual (RoqueModel, un random forest que pronostica cada
+# > hora de la noche) y sus resultados están en `docs/DETALLES_TECNICOS.md` y en la web.
 #
-# **Independent project, not affiliated with GRANTECAN or any observatory.** All data are real and public:
-# NOT weather archive (1997→), ING R2D2 seeing monitor (2018→) and ING nightly accounting of the
-# William Herschel Telescope (2007→). See the README for sources.
+# **Proyecto independiente, sin afiliación con GRANTECAN ni con ningún observatorio.** Todos los datos son reales y públicos:
+# archivo meteorológico del NOT (1997→), monitor de seeing R2D2 del ING (2018→) y contabilidad nocturna del
+# Telescopio William Herschel publicada por el ING (2007→). Las fuentes están en el README.
 #
-# Questions for this notebook:
-# 1. How complete is each source, year by year?
-# 2. Does the dome-closure rule rebuilt from humidity (close at ≥ 90 %, reopen after 20 min below)
-#    agree with the hours the WHT really lost to weather?
-# 3. What does the seeing look like, and which weather variables move with it?
-# 4. How strong are the naive baselines (persistence: "tonight = last night")? Any model must beat them.
+# Preguntas de este notebook:
+# 1. ¿Cómo de completa es cada fuente, año a año?
+# 2. ¿La regla de cierre de cúpula reconstruida con la humedad (cerrar con ≥ 90 %, reabrir tras 20 min por debajo)
+#    coincide con las horas que el WHT perdió de verdad por el tiempo?
+# 3. ¿Cómo es el seeing y qué variables meteorológicas se mueven con él?
+# 4. ¿Cómo de fuertes son las referencias más simples (persistencia: «esta noche = anoche»)? Cualquier modelo tiene que superarlas.
 #
-# A **night** is labelled with the date on which it starts, and only **astronomical night**
-# (Sun more than 18° below the horizon) is used.
+# Cada **noche** se etiqueta con la fecha en que empieza y solo se usa la **noche astronómica**
+# (Sol a más de 18° por debajo del horizonte).
 
 # %%
 import numpy as np
@@ -43,10 +43,10 @@ nights = nights[nights.index < pd.Timestamp.now().normalize()]  # finished night
 print(f"{len(nights):,} nights, {nights.index.min().date()} → {nights.index.max().date()}")
 
 # %% [markdown]
-# ## 1. Data coverage
+# ## 1. Cobertura de los datos
 #
-# A night counts as "usable" for the weather when at least 80 % of its 10-minute blocks have NOT data;
-# for seeing when R2D2 recorded at least 40 values; for losses when the ING page has real accounting.
+# Una noche cuenta como «útil» para la meteorología cuando al menos el 80 % de sus bloques de 10 minutos tiene datos del NOT;
+# para el seeing, cuando R2D2 registró al menos 40 valores; para las pérdidas, cuando la página del ING tiene contabilidad real.
 
 # %%
 usable = pd.DataFrame({
@@ -66,11 +66,11 @@ plotting.save(fig, "01_coverage")
 usable.T
 
 # %% [markdown]
-# ## 2. Rebuilt dome closures vs. real weather losses
+# ## 2. Cierres de cúpula reconstruidos frente a pérdidas reales por el tiempo
 #
-# The NOT public export has no rain or dome flags, so the closure is rebuilt from humidity.
-# If the rule is sensible, the closed fraction of each night should track the fraction of the
-# night the WHT (4.2 m, same mountain) lost to weather.
+# La exportación pública del NOT no incluye indicadores de lluvia ni de cúpula, así que el cierre se reconstruye con la humedad.
+# Si la regla tiene sentido, la fracción cerrada de cada noche debería seguir a la fracción de la
+# noche que el WHT (4,2 m, misma montaña) perdió por el tiempo.
 
 # %%
 both = nights[["dome_closed_frac", "wht_weather_lost_frac"]].dropna()
@@ -91,7 +91,7 @@ ax.legend(loc="upper center")
 plotting.save(fig, "02_closure_vs_losses_monthly")
 
 # %% [markdown]
-# Night by night: how often do the two sources agree on "most of the night was lost"?
+# Noche a noche: ¿con qué frecuencia coinciden las dos fuentes en que «se perdió la mayor parte de la noche»?
 
 # %%
 closed_most = both["dome_closed_frac"] > 0.5
@@ -111,9 +111,9 @@ ax.set_title("Each night (darker = more nights)")
 plotting.save(fig, "02_closure_vs_losses_nights")
 
 # %% [markdown]
-# Nights the rule misses are the interesting ones: losses without high humidity are usually
-# **wind**, **dust (calima)**, **snow/ice on the dome** or clouds with dry air. They tell us which
-# extra inputs the closure model needs.
+# Las noches que la regla no detecta son las interesantes: las pérdidas sin humedad alta suelen deberse a
+# **viento**, **polvo (calima)**, **nieve o hielo en la cúpula** o nubes con aire seco. Indican qué
+# entradas adicionales necesita el modelo de cierre.
 
 # %%
 missed = both[(both["wht_weather_lost_frac"] > 0.5) & (both["dome_closed_frac"] < 0.1)]
@@ -121,7 +121,7 @@ print(f"{len(missed)} nights lost by the WHT with < 10 % rebuilt closure")
 nights.loc[missed.index, ["humidity_max", "wind_max", "wind_mean", "temp_mean", "wht_weather_lost_h"]].describe().round(1)
 
 # %% [markdown]
-# ## 3. Seeing (R2D2, nightly median)
+# ## 3. Seeing (R2D2, mediana de la noche)
 
 # %%
 seeing = nights["seeing_median"].dropna()
@@ -139,8 +139,8 @@ ax.set_title("Distribution of nightly seeing, R2D2 2018–2026")
 plotting.save(fig, "03_seeing_hist")
 
 # %% [markdown]
-# How does seeing change with the weather? We bin each variable into quantiles and plot the median
-# seeing per bin (robust to outliers), with the 25–75 % band.
+# ¿Cómo cambia el seeing con el tiempo? Se divide cada variable en cuantiles y se dibuja la mediana del
+# seeing por tramo (resistente a valores atípicos), con la banda del 25–75 %.
 
 # %%
 features = {"wind_mean": "mean wind (m/s)", "wind_max": "max wind (m/s)", "humidity_mean": "mean humidity (%)",
@@ -165,8 +165,8 @@ fig.tight_layout()
 plotting.save(fig, "03_seeing_vs_weather")
 
 # %% [markdown]
-# Wind direction matters at a mountain-top site: air arriving over the island's caldera is more
-# turbulent than air arriving from the open ocean.
+# La dirección del viento importa en la cima de una montaña: el aire que llega sobre la caldera de la isla es más
+# turbulento que el que llega desde mar abierto.
 
 # %%
 data = nights[["wind_dir_mean", "seeing_median"]].dropna()
@@ -184,10 +184,10 @@ ax.set_ylim(0, by_sector["median"].max() * 1.25)
 plotting.save(fig, "03_seeing_by_wind_direction")
 
 # %% [markdown]
-# ## 4. How strong is persistence?
+# ## 4. ¿Cómo de fuerte es la persistencia?
 #
-# The simplest forecast: tonight will be like last night. If last night predicts tonight well, a
-# model must do better than that to be useful (de Sepibus, Masciadri et al. 2026).
+# La previsión más simple: esta noche será como anoche. Si anoche predice bien esta noche, un
+# modelo tiene que hacerlo mejor para ser útil (de Sepibus, Masciadri et al. 2026).
 
 # %%
 def persistence_scores(series: pd.Series) -> dict:
@@ -209,7 +209,7 @@ pd.DataFrame({
 }).round(3)
 
 # %% [markdown]
-# ## 5. Long-term view: weather losses per year (WHT)
+# ## 5. Visión a largo plazo: pérdidas por el tiempo por año (WHT)
 
 # %%
 accounted = nights.loc[nights["wht_has_accounting"].fillna(False).astype(bool)]
@@ -234,15 +234,15 @@ plotting.save(fig, "05_losses_per_year")
 yearly.round(1)
 
 # %% [markdown]
-# ## 6. Label quality: can the WHT losses be trusted every year?
+# ## 6. Calidad de la etiqueta: ¿se puede confiar en las pérdidas del WHT todos los años?
 #
-# In 2019–2022 and 2024–2025 the WHT reports about half the weather losses of other years, while the
-# humidity-based closure stays at the same level. A real change in the weather would move both. The
-# accounting itself points to the cause: on many nights the page reports the **whole night as observed
-# with zero losses of any kind** even though the NOT humidity kept domes closed nearly all night. Those
-# look like nights without a filled-in report rather than real observing (the WHT was being adapted for
-# the WEAVE instrument in part of that period). The cause is not documented publicly, so we only flag
-# them. We count them per year.
+# En 2019–2022 y 2024–2025 el WHT declara aproximadamente la mitad de pérdidas por el tiempo que otros años, mientras que el
+# cierre basado en la humedad sigue en el mismo nivel. Un cambio real del tiempo movería los dos. La propia
+# contabilidad apunta a la causa: muchas noches la página declara **toda la noche como observada,
+# sin pérdidas de ningún tipo**, aunque la humedad del NOT mantuvo las cúpulas cerradas casi toda la noche. Parecen
+# noches con el parte sin rellenar, no observación real (el WHT se estaba adaptando para
+# el instrumento WEAVE en parte de ese periodo). La causa no está documentada públicamente, así que solo se
+# señalan. Se cuentan por año.
 
 # %%
 all_observed = ((accounted["wht_weather_lost_h"] == 0) & (accounted["wht_tech_lost_h"] == 0)
@@ -265,5 +265,5 @@ for label, mask in [("2007–2018", early), ("2019–2026", ~early)]:
           f"{pair.corr().iloc[0, 1]:.2f}")
 
 # %% [markdown]
-# ## Summary
-# Findings are written up in `reports/EDA_01.md`.
+# ## Resumen
+# Las conclusiones están en `reports/EDA_01.md`.
