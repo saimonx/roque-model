@@ -40,7 +40,7 @@ a { color: var(--series-1); }
 /* Header */
 .top { border-bottom: 1px solid var(--border); background: var(--surface-2); }
 .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; padding-bottom: 14px; }
-.sub { margin: 2px 0 0; color: var(--text-2); font-size: 0.9rem; }
+.sub { margin: 2px 0 0; color: var(--text-2); font-size: 0.9rem; text-wrap: balance; }
 .grafana-link { flex: none; font-size: 0.875rem; font-weight: 600; text-decoration: none; padding: 6px 12px;
   border: 1px solid var(--series-1); border-radius: 8px; white-space: nowrap; }
 .grafana-link:hover { background: var(--series-1); color: #fff; }

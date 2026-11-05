@@ -3,7 +3,7 @@
 [![tests](https://github.com/saimonx/roque-model/actions/workflows/tests.yml/badge.svg)](https://github.com/saimonx/roque-model/actions/workflows/tests.yml)
 [![vigilancia cada hora](https://healthchecks.io/b/2/0437fc28-5880-4f5a-b616-9f2a2ea0c8bb.svg)](docs/DETALLES_TECNICOS.md#7-cómo-funciona-cada-hora)
 
-Un modelo de previsión de apertura de la cúpula del telescopio para observar desde el Roque de los Muchachos
+Un modelo random forest de previsión de apertura de la cúpula del telescopio para observar desde el Roque de los Muchachos
 (La Palma).
 
 Se actualiza cada hora y da, para cada hora de la noche, la probabilidad de que haya que cerrar la cúpula por humedad,

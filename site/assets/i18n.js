@@ -2,7 +2,7 @@
 // Keys used in index.html: data-i18n (plain text) and data-i18n-html (trusted HTML written here).
 window.I18N = {
   es: {
-    subtitle: "Un modelo de previsión de apertura de la cúpula del telescopio para observar desde el Roque de los Muchachos (La Palma)",
+    subtitle: "Un modelo random forest de previsión de apertura de la cúpula del telescopio para observar desde el Roque de los Muchachos (La Palma)",
     independent: "Proyecto independiente, no afiliado a GRANTECAN ni a ningún observatorio. Datos reales y públicos; no es una herramienta operativa.",
     night_of: "Previsión para esta noche, {date}",
     window: "Noche astronómica de {start} a {end} ({hours} h) · última actualización {at} {updated}",
