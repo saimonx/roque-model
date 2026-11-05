@@ -51,6 +51,7 @@
         <span class="cell-bar" style="background:var(${COLORS[h.level]})"></span>
         <span class="cell-p">${pct(h.p_closed)}</span>`)).join("");
     $("strip-raw").innerHTML = d.hours.map((h, i) => cell("raw", h, i, `
+        <span class="cell-hour">${h.local.slice(0, 2)}h</span>
         <span class="cell-bar" style="background:var(${h.raw_closed ? "--critical" : "--good"})"></span>
         <span class="cell-p">${h.raw_closed ? t.raw_close_word : t.raw_open_word}</span>`)).join("");
     [["strip", "model"], ["strip-raw", "raw"]].forEach(([id, line]) => $(id).querySelectorAll(".cell").forEach((b) =>

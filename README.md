@@ -25,7 +25,7 @@ estación de la cumbre.
 > el NOT, el TNG, el Telescopio Liverpool ni ninguna otra institución. Todos los datos son reales y públicos,
 > y se citan abajo.
 
-![La web de RoqueModel: previsión de esta noche, hora a hora (3 nov 2026)](reports/figures/web.jpg)
+![La web de RoqueModel: previsión de esta noche, hora a hora (5 nov 2026)](reports/figures/web.jpg)
 
 ## Cómo funciona
 
