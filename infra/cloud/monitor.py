@@ -27,9 +27,13 @@ Configuration in /opt/roquemodel/monitor.env (never in Git):
 To relaunch a late forecast it uses a deploy key of the repository (/root/.ssh/roquemodel_kick):
 it can only write to this repository, and only pushes to the `kick` branch.
 
+The same script also starts the forecast every hour (cron at :05, --launch): GitHub's own schedule
+skips most runs, and this server is always on, so the page does not depend on any personal computer.
+
 Usage:
     python3 monitor.py            # check, repair, report
     python3 monitor.py --dry-run  # check only: no repair, no report
+    python3 monitor.py --launch   # only start the hourly forecast (up to 3 tries), no checks, no report
 """
 
 import datetime as dt
@@ -287,10 +291,11 @@ def check_server(repair: bool) -> None:
     summary.append(f"servidor: contenedores en marcha, disco al {used:.0%}, {available_mb} MB libres")
 
 
-def launch_forecast() -> None:
+def launch_forecast() -> bool:
     """Start the hourly forecast now: push one empty commit on top of main to the repository's `kick`
     branch, which the workflow listens to (GitHub reads the workflow from the pushed commit, so it
-    must contain main's files). The server's deploy key can only write to this repository."""
+    must contain main's files). The server's deploy key can only write to this repository.
+    Returns True if the push worked."""
     key = "/root/.ssh/roquemodel_kick"
     folder = os.path.join(COMPOSE_DIR, "kick")
     ssh = f"ssh -i {key} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
@@ -298,14 +303,29 @@ def launch_forecast() -> None:
            "-c", "user.email=546832+saimonx@users.noreply.github.com"]
     shutil.rmtree(folder, ignore_errors=True)
     steps = [[*git, "clone", "-q", "--depth", "1", "--branch", "main", f"git@github.com:{REPO}.git", folder],
-             [*git, "-C", folder, "commit", "-q", "--allow-empty", "-m", f"Relaunch the forecast ({NOW:%Y-%m-%d %H:%M} UTC)"],
+             [*git, "-C", folder, "commit", "-q", "--allow-empty", "-m", f"Start the forecast ({NOW:%Y-%m-%d %H:%M} UTC)"],
              [*git, "-C", folder, "push", "-q", "--force", "origin", "HEAD:kick"]]
     for step in steps:
         result = subprocess.run(step, capture_output=True, text=True, timeout=180, check=False)
         if result.returncode:
             notes.append(f"reparación: no se pudo lanzar el pronóstico ({result.stderr.strip()[:200]})")
-            return
+            return False
     notes.append("reparación: lanzado el pronóstico en GitHub")
+    return True
+
+
+def launch_only() -> int:
+    """The hourly start (cron at :05). Up to 3 tries, 30 s apart, because a single network timeout must
+    not cost an hour. It does not ping Healthchecks.io: that is the job of the check at :35, which
+    also notices if these starts stop working (the forecast gets late)."""
+    for attempt in range(1, 4):
+        if launch_forecast():
+            print(f"{NOW:%Y-%m-%d %H:%M} UTC: pronóstico lanzado (intento {attempt})")
+            return 0
+        print(f"{NOW:%Y-%m-%d %H:%M} UTC: intento {attempt} fallido: {notes[-1]}")
+        if attempt < 3:
+            time.sleep(30)
+    return 1
 
 
 def report(url: str, failed: bool, text: str) -> None:
@@ -314,6 +334,8 @@ def report(url: str, failed: bool, text: str) -> None:
 
 
 def main() -> int:
+    if "--launch" in sys.argv:
+        return launch_only()
     dry_run = "--dry-run" in sys.argv
     cfg = config()
     token = cfg.get("GH_TOKEN") or None

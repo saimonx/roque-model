@@ -10,8 +10,8 @@ on:
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:            # and by hand, from the Actions tab
   push:
-    branches: [kick]            # and by the FIWARE server's hourly health check when the forecast is late
-                                # (infra/cloud/monitor.py pushes one empty commit there with a deploy key)
+    branches: [kick]            # and every hour by the FIWARE server (cron at :05, infra/cloud/monitor.py
+                                # --launch pushes one empty commit there with a deploy key): the usual start
 
 permissions:
   contents: write               # to push the gh-pages branch and read the runtime release

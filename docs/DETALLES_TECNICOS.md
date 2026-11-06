@@ -183,14 +183,16 @@ Análisis completo: [EDA_01](../reports/EDA_01.md) ([notebook](../notebooks/01_e
 Cada ejecución queda registrada (`forecasts/issued.jsonl`, publicado con la web) junto con lo que pasó de
 verdad la noche anterior (`outcomes.jsonl`): es un historial en directo que ninguna elección de ajustes ha
 visto. El programador de GitHub se salta muchas ejecuciones en repositorios con poca actividad, así que el
-flujo también se lanza desde fuera cada hora (`gh workflow run`); el programador queda como reserva.
+flujo lo lanza cada hora el servidor de FIWARE (cron a los :05, `infra/cloud/monitor.py --launch`: sube un commit
+vacío a la rama `kick`, con una clave que solo puede escribir en este repositorio). No depende de ningún ordenador
+personal; el programador de GitHub queda como reserva.
 
 **Vigilancia cada hora** (`infra/cloud/monitor.py`, cron del servidor a los :35): comprueba la web (pronóstico
 reciente y coherente: probabilidades entre 0 y 1, horas abiertas + cerradas = noche, el modelo que toca según la
 hora), FIWARE (Orion, QuantumLeap, que coincide con la web, historial reciente, escritura sin token rechazada,
 certificado HTTPS), el panel público de Grafana (abre y sus paneles tienen datos), GitHub (últimas ejecuciones
 correctas y flujos activos) y el propio servidor (contenedores, disco, memoria). Arregla solo lo que puede
-(arranca contenedores parados y, con un token, relanza el pronóstico) y avisa por correo a través de
+(arranca contenedores parados y relanza el pronóstico si lleva más de 3 horas sin ejecutarse) y avisa por correo a través de
 Healthchecks.io, que también avisa si la comprobación deja de llegar (servidor caído). Estado ahora:
 ![vigilancia](https://healthchecks.io/b/2/0437fc28-5880-4f5a-b616-9f2a2ea0c8bb.svg)
 
