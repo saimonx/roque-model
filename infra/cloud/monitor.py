@@ -100,6 +100,28 @@ def get_json(url: str, **kw):
     return json.loads(body)
 
 
+class ServiceDown(Exception):
+    """The service answered 5xx (or did not answer) on every try: its outage, not RoqueModel's."""
+
+
+def get_json_retry(url: str, tries: int = 3, wait_s: int = 20, **kw):
+    """Like get_json, but retries server errors and timeouts, which are usually brief.
+
+    A 4xx (bad token, missing repo...) is not retried: that one is ours to fix."""
+    for attempt in range(1, tries + 1):
+        try:
+            status, body = http(url, **kw)
+        except (urllib.error.URLError, TimeoutError) as e:
+            status, body = None, str(e)
+        if status == 200:
+            return json.loads(body)
+        if status is not None and status < 500:
+            raise RuntimeError(f"{url} answered {status}")
+        if attempt < tries:
+            time.sleep(wait_s)
+    raise ServiceDown(f"{url} answered {status or 'nothing'} {tries} times")
+
+
 def parse_time(text: str) -> dt.datetime:
     return dt.datetime.fromisoformat(text)
 
@@ -233,15 +255,27 @@ def check_grafana() -> None:
 # --------------------------------------------------------------------------
 @check("github")
 def check_github(token: str | None) -> bool:
-    """Returns True if the hourly forecast looks late (so self-repair can launch it)."""
+    """Returns True if the hourly forecast looks late (so self-repair can launch it).
+
+    If GitHub's API itself is down (5xx on every try) this is only a note, not a failure: the
+    forecast does not need the API (it is started with git over SSH), and a late forecast is still
+    caught by the web and FIWARE checks."""
+    try:
+        return _check_github(token)
+    except ServiceDown as e:
+        notes.append(f"github: no se ha podido comprobar, la API de GitHub falla ({e})")
+        return False
+
+
+def _check_github(token: str | None) -> bool:
     auth = {"Authorization": f"Bearer {token}"} if token else {}
-    workflows = get_json(f"https://api.github.com/repos/{REPO}/actions/workflows", headers=auth)["workflows"]
+    workflows = get_json_retry(f"https://api.github.com/repos/{REPO}/actions/workflows", headers=auth)["workflows"]
     for w in workflows:
         if w["state"] != "active":
             problems.append(f"github: el flujo «{w['name']}» está desactivado ({w['state']})")
     late = False
     for name, max_age_h in (("forecast.yml", 3), ("tests.yml", None)):
-        runs = get_json(f"https://api.github.com/repos/{REPO}/actions/workflows/{name}/runs?per_page=5&status=completed",
+        runs = get_json_retry(f"https://api.github.com/repos/{REPO}/actions/workflows/{name}/runs?per_page=5&status=completed",
                         headers=auth)["workflow_runs"]
         if not runs:
             problems.append(f"github: {name} no tiene ejecuciones")
