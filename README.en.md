@@ -24,7 +24,7 @@ actually measured.
 - **Technical details:** [docs/TECHNICAL_DETAILS.md](docs/TECHNICAL_DETAILS.md)
 
 > **Independent project.** It is not affiliated with, endorsed by or made for GRANTECAN, the IAC, the ING, the NOT,
-> the TNG, the Liverpool Telescope or any other institution. All data is real and public, and cited below.
+> the TNG, the Liverpool Telescope or any other institution. All data are real and public, and cited below.
 
 ![The RoqueModel website: tonight's forecast, hour by hour (9 Nov 2026)](reports/figures/web_en.jpg)
 

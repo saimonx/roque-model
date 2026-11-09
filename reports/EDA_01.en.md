@@ -4,7 +4,7 @@
 
 > **Earlier study (27–28 Oct 2026), kept as it was.** The current model (RoqueModel, a random forest that
 > forecasts each hour of the night) and its results are in [docs/TECHNICAL_DETAILS.md](../docs/TECHNICAL_DETAILS.md)
-> and on the [website](https://saimonx.github.io/roque-model/).
+> and on the [website](https://saimonx.github.io/roque-model/?lang=en).
 
 Independent project, not affiliated with GRANTECAN or any observatory. Only real public data (see the README).
 Full analysis and code: [`notebooks/01_eda.ipynb`](../notebooks/01_eda.ipynb).

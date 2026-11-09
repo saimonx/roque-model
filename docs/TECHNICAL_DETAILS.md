@@ -29,7 +29,7 @@ as closed if any of these conditions is met:
 | Reason | Closes when | Reopens when | Where the value comes from |
 |---|---|---|---|
 | Humidity | humidity reaches **90%** | it has been below 90% for **20 minutes in a row** | Closing rule of the NOT telescope |
-| Wind | wind reaches **80 km/h** (22.2 m/s) | it has been below for **20 minutes in a row** | Closing limit of the INT telescope (ING alerts procedure) |
+| Wind | wind reaches **80 km/h** (22.2 m/s) | it has been below for **20 minutes in a row** | Closing limit of the INT telescope (ING alarm procedure) |
 | Ice | temperature ≤ **0 °C** and humidity reached 90% in the previous **24 h** | the temperature rises above 0 °C | This project's own rule, tuned with the Liverpool Telescope night reports from 2017–2022 (adds 29 nights; the LT lost 26 of them) |
 
 An hour counts as closed if the dome is closed for at least 30 of its 60 minutes. Clouds and dust are not
@@ -79,7 +79,7 @@ year) and the WHT's night accounting (some years it counts nights with the dome 
 - **Two versions:** provisional (before the night, without the summit station, whose readings do not exist yet) and
   final (from the start of astronomical night, with all the inputs).
 - **Year split:** the settings are chosen only with 2017–2023 (validation on 2021, 2022 and 2023, see
-  below) and the test is 2024–2026. The tested copy learned from 2017–2023; the live model was retrained with the same
+  below) and the test is 2024–2026. The tested copy learnt from 2017–2023; the live model was retrained with the same
   settings on all of 2017–2026 (30,044 hours, 5,163 closed). Checked beforehand: adding 2024 to the training improved
   the 2025–2026 figures (wrong on 9.5% → 8.8% of hours; provisional 12.0% → 11.5%;
   `reports/results/refit_check.json`).
@@ -99,7 +99,7 @@ year) and the WHT's night accounting (some years it counts nights with the dome 
 | Logistic regression | 88.9% | 87.2% | 0.0804 | 0.930 | 0.0658 |
 
 In validation, the two tree models tie (adding up both versions, their Brier differs by
-0.9%, whereas from one year to another it changes by more than 30%, and each one wins one of the three years). Rule:
+0.9%, whereas from one year to the next it changes by more than 30%, and each one wins one of the three years). Rule:
 if they are within 2% of each other in validation, the lower error on the test decides, and the random forest is
 better on the test in both versions. Because this choice looked at the test years, its test figures may be somewhat
 optimistic; no setting was chosen with them.
@@ -159,7 +159,7 @@ Documented in [MODELS_01](../reports/MODELS_01.en.md):
 - The WHT's night accounting is not equally reliable every year: since 2019, many nights with the domes
   closed because of humidity appear as fully observed. That is why those years (2019–2022, 2024–2025) were not
   used in the study of WHT hours lost (RoqueModel does not use the WHT).
-- Wind is what most influences seeing (Spearman +0.58 with the night's maximum wind); easterly
+- Wind has the strongest influence on seeing (Spearman +0.58 with the night's maximum wind); easterly
   winds give the worst seeing.
 - For seeing, the monthly climatology (RMSE 0.34″) beats "same as last night" (0.41″): that is the bar
   a model has to clear.

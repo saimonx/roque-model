@@ -6,7 +6,7 @@
 > first (gradient boosting, WHT lost hours); section 4 is the first version of the hourly model. The
 > current model (RoqueModel, a random forest that forecasts each hour of the night) and its results are in
 > [docs/TECHNICAL_DETAILS.md](../docs/TECHNICAL_DETAILS.md) and on the
-> [website](https://saimonx.github.io/roque-model/).
+> [website](https://saimonx.github.io/roque-model/?lang=en).
 
 > **Independent project**, not affiliated with GRANTECAN or any observatory. All data are real and public.
 > Notebook: [`notebooks/02_models.ipynb`](../notebooks/02_models.ipynb). Code: `src/roque_forecast/features.py`,
@@ -30,7 +30,7 @@ At the start of the night, using only what is known at that moment:
 | Time of year | sine and cosine of the day of the year | — |
 
 What makes the evaluation honest is using real forecasts, not the measured weather. Two archives are used:
-- **Training and main test:** the first hours of each model run, since 2017. It is somewhat *better* than the
+- **Training and main test:** the first hours of each model run, since 2017. They are somewhat *better* than the
   afternoon forecast.
 - **Check:** the forecasts issued 24 h earlier, since 2025. They are somewhat *worse* than the afternoon forecast.
 
@@ -228,7 +228,7 @@ somewhat optimistic. Nightly totals: MAE 0.87 h versus 0.77 h (worse), RMSE 1.68
   nested fit of the isotonic curve leaving one year out each time. Brier 0.0517 without recalibration versus 0.0521 recalibrated (forecast-only
   model: 0.0922 versus 0.0933), so it is not applied. The check runs at every training
   (`train.calibration_check`, saved in `results/settings.json`). In the test years the model is somewhat overconfident between
-  40% and 90%; with ~250 nights in those ranges this may be noise or a change in the climate of recent years, and it is the
-  live record where it has to be watched.
+  40% and 90%; with ~250 nights in those ranges this may be noise or a change in the climate of recent years, and it is in the
+  live record that it has to be watched.
 - **Possible improvements:** a longer archive of pressure-level forecasts for the jet stream (training currently
   only has it from 2021).
