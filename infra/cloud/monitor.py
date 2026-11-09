@@ -54,7 +54,9 @@ FIWARE = f"https://{FIWARE_HOST}"
 FORECAST_ID = "urn:ngsi-ld:WeatherForecast:ORM-tonight"
 NOT_ID = "urn:ngsi-ld:WeatherObserved:ORM-NOT"
 GRAFANA = "https://ardentcloset2195.grafana.net"
-GRAFANA_TOKEN = "da7d86c2a1c543a38467827c9f34b1c8"  # the public dashboard's access token (public link)
+# The public dashboards' access tokens (public links): one in Spanish (/grafana/), one in English (/grafana/en/).
+GRAFANA_TOKENS = {"es": "da7d86c2a1c543a38467827c9f34b1c8", "en": "76bc0c1e23534e81b865e99f0b6f2a7f"}
+GRAFANA_PATHS = {"es": "grafana/", "en": "grafana/en/"}
 GRAFANA_PANELS = {2: "horas que se podrá observar", 6: "probabilidad por hora", 14: "estación del NOT"}
 REPO = "saimonx/roque-model"
 COMPOSE_DIR = "/opt/roquemodel"
@@ -182,9 +184,10 @@ def check_web() -> dict | None:
     wrong = evaluation["comparison"]["final"]["wrong"]
     if not 0.05 <= wrong <= 0.15:
         problems.append(f"web: el acierto publicado es raro ({1 - wrong:.1%})")
-    status, body = http(WEB + "grafana/")
-    if status != 200 or GRAFANA_TOKEN.encode() not in body:
-        problems.append("web: /grafana/ no lleva al panel")
+    for lang, path in GRAFANA_PATHS.items():
+        status, body = http(WEB + path)
+        if status != 200 or GRAFANA_TOKENS[lang].encode() not in body:
+            problems.append(f"web: /{path} no lleva al panel")
     summary.append(f"web: pronóstico de hace {age:.0f} min, modelo {page['mode']}, "
                    f"{forecast['closed_h']} h cerradas de {night['length_h']}")
     return page
@@ -233,21 +236,22 @@ def check_fiware(page: dict | None) -> None:
 # --------------------------------------------------------------------------
 @check("grafana")
 def check_grafana() -> None:
-    status, _ = http(f"{GRAFANA}/api/public/dashboards/{GRAFANA_TOKEN}")
-    if status != 200:
-        problems.append(f"grafana: el panel público no abre ({status})")
-        return
     body = json.dumps({"intervalMs": 3600000, "maxDataPoints": 500,
                        "timeRange": {"from": "now-24h", "to": "now+12h", "timezone": "Atlantic/Canary"}}).encode()
-    for panel, label in GRAFANA_PANELS.items():
-        status, raw = http(f"{GRAFANA}/api/public/dashboards/{GRAFANA_TOKEN}/panels/{panel}/query", method="POST",
-                           data=body, headers={"Content-Type": "application/json"})
-        result = json.loads(raw).get("results", {}).get("A", {}) if status == 200 else {}
-        frames = result.get("frames") or []
-        rows = len(frames[0]["data"]["values"][0]) if frames and frames[0].get("data", {}).get("values") else 0
-        if status != 200 or result.get("error") or rows == 0:
-            problems.append(f"grafana: el panel «{label}» no tiene datos ({status} {result.get('error', '')})")
-    summary.append("grafana: el panel público abre y sus paneles tienen datos")
+    for lang, token in GRAFANA_TOKENS.items():
+        status, _ = http(f"{GRAFANA}/api/public/dashboards/{token}")
+        if status != 200:
+            problems.append(f"grafana: el panel público ({lang}) no abre ({status})")
+            continue
+        for panel, label in GRAFANA_PANELS.items():
+            status, raw = http(f"{GRAFANA}/api/public/dashboards/{token}/panels/{panel}/query", method="POST",
+                               data=body, headers={"Content-Type": "application/json"})
+            result = json.loads(raw).get("results", {}).get("A", {}) if status == 200 else {}
+            frames = result.get("frames") or []
+            rows = len(frames[0]["data"]["values"][0]) if frames and frames[0].get("data", {}).get("values") else 0
+            if status != 200 or result.get("error") or rows == 0:
+                problems.append(f"grafana: el panel «{label}» ({lang}) no tiene datos ({status} {result.get('error', '')})")
+    summary.append("grafana: los dos paneles públicos (es, en) abren y tienen datos")
 
 
 # --------------------------------------------------------------------------
