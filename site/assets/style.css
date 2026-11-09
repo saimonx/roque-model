@@ -44,6 +44,14 @@ a { color: var(--series-1); }
 .grafana-link { flex: none; font-size: 0.875rem; font-weight: 600; text-decoration: none; padding: 6px 12px;
   border: 1px solid var(--series-1); border-radius: 8px; white-space: nowrap; }
 .grafana-link:hover { background: var(--series-1); color: #fff; }
+/* Language switch (ES · EN), next to the Grafana link */
+.top-actions { flex: none; display: flex; align-items: center; gap: 10px; }
+.lang-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.lang-switch button { font: inherit; font-size: 0.8rem; font-weight: 600; padding: 5px 10px; border: 0; background: transparent;
+  color: var(--text-2); cursor: pointer; }
+.lang-switch button + button { border-left: 1px solid var(--border); }
+.lang-switch button[aria-pressed="true"] { background: var(--series-1); color: #fff; }
+.lang-switch button:focus-visible { outline: 2px solid var(--series-1); outline-offset: -2px; }
 /* Training-data download (sections 3 and 5) */
 .data-download { margin-top: 0.9rem; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
   background: var(--surface-2); }

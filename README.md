@@ -1,5 +1,7 @@
 # RoqueModel
 
+[English](README.en.md) · **Español**
+
 [![tests](https://github.com/saimonx/roque-model/actions/workflows/tests.yml/badge.svg)](https://github.com/saimonx/roque-model/actions/workflows/tests.yml)
 [![vigilancia cada hora](https://healthchecks.io/b/2/0437fc28-5880-4f5a-b616-9f2a2ea0c8bb.svg)](docs/DETALLES_TECNICOS.md#7-cómo-funciona-cada-hora)
 
@@ -10,8 +12,8 @@ Se actualiza cada hora y da, para cada hora de la noche, la probabilidad de que 
 viento o hielo. Aprende de las previsiones del tiempo archivadas desde 2017 y de lo que midió de verdad la
 estación de la cumbre.
 
-- **Web, actualizada cada hora:** https://saimonx.github.io/roque-model/ (la explicación completa del modelo
-  está en sus apartados)
+- **Web, actualizada cada hora:** https://saimonx.github.io/roque-model/ (en español e inglés; la explicación
+  completa del modelo está en sus apartados)
 - **Panel público de Grafana:** https://saimonx.github.io/roque-model/grafana/ (lee de FIWARE, donde el pronóstico se
   publica cada hora: Orion y QuantumLeap en un servidor propio)
 - **FIWARE en directo**, las dos direcciones públicas de las que lee Grafana (JSON, solo lectura):
@@ -25,7 +27,7 @@ estación de la cumbre.
 > el NOT, el TNG, el Telescopio Liverpool ni ninguna otra institución. Todos los datos son reales y públicos,
 > y se citan abajo.
 
-![La web de RoqueModel: previsión de esta noche, hora a hora (5 nov 2026)](reports/figures/web.jpg)
+![La web de RoqueModel: previsión de esta noche, hora a hora (9 nov 2026)](reports/figures/web.jpg)
 
 ## Cómo funciona
 

@@ -1,3 +1,5 @@
+[English](EDA_01.en.md) · **Español**
+
 # EDA 01: condiciones de observación en el Roque de los Muchachos
 
 > **Estudio previo (27–28 oct 2026), conservado tal cual.** El modelo actual (RoqueModel, un random forest que

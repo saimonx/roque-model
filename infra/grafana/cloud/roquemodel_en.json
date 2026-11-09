@@ -1,0 +1,1467 @@
+{
+ "uid": "roquemodel-public-en",
+ "title": "RoqueModel — tonight's dome-closure forecast",
+ "tags": [
+  "roquemodel",
+  "public"
+ ],
+ "timezone": "Atlantic/Canary",
+ "refresh": "1h",
+ "schemaVersion": 39,
+ "editable": false,
+ "graphTooltip": 1,
+ "time": {
+  "from": "now-7h/d+19h",
+  "to": "now-7h/d+7h"
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "text",
+   "title": "",
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 3
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**RoqueModel**: hour-by-hour probability that the dome is closed tonight at the Roque de los Muchachos Observatory (La Palma), because of humidity, wind or ice. Full explanation of the model on the [project's website](https://saimonx.github.io/roque-model/?lang=en). Updated every hour (GitHub Actions); these data arrive through FIWARE (Orion and QuantumLeap). **Independent project, not affiliated with GRANTECAN or any observatory.** Real, public data: NOT weather station and ECMWF and NOAA GFS forecasts via Open-Meteo (CC BY 4.0). Times in Canary time."
+   }
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "Hours available for observing",
+   "description": "Night hours minus the dome-closed hours forecast by RoqueModel.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "",
+     "columns": [
+      {
+       "selector": "openHoursForecast",
+       "text": "Hours",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "decimals": 0,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#d03b3b"
+       },
+       {
+        "value": 3,
+        "color": "#fab219"
+       },
+       {
+        "value": 6,
+        "color": "#0ca30c"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "Forecast dome-closed hours",
+   "description": "Sum of the probabilities of all the hours of the night.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "",
+     "columns": [
+      {
+       "selector": "domeClosedHours",
+       "text": "Hours",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "decimals": 1,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#0ca30c"
+       },
+       {
+        "value": 2,
+        "color": "#fab219"
+       },
+       {
+        "value": 5,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "Current model",
+   "description": "Provisional before the night starts (without the summit station); final from its start.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "",
+     "columns": [
+      {
+       "selector": "forecastMode",
+       "text": "Model",
+       "type": "string"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0,
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "provisional": {
+         "text": "Provisional",
+         "color": "#fab219",
+         "index": 0
+        },
+        "final": {
+         "text": "Final",
+         "color": "#0ca30c",
+         "index": 1
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#2a78d6"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 5,
+   "type": "stat",
+   "title": "Astronomical night hours",
+   "description": "Length of tonight's astronomical night.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 3,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "",
+     "columns": [
+      {
+       "selector": "nightLengthHours",
+       "text": "Hours",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "decimals": 1,
+     "mappings": [],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#2a78d6"
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "value",
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "/.*/",
+     "values": false
+    }
+   }
+  },
+  {
+   "id": 6,
+   "type": "barchart",
+   "title": "RoqueModel: probability of the dome being closed, by hour",
+   "description": "Green: under 20%. Yellow: 20 to 50%. Red: over 50%.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 7,
+    "w": 16,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyClosureProbability",
+     "columns": [
+      {
+       "selector": "hourLocal",
+       "text": "Hour",
+       "type": "string"
+      },
+      {
+       "selector": "probability",
+       "text": "RoqueModel",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "min": 0,
+     "max": 1,
+     "decimals": 0,
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "#0ca30c"
+       },
+       {
+        "value": 0.2,
+        "color": "#fab219"
+       },
+       {
+        "value": 0.5,
+        "color": "#d03b3b"
+       }
+      ]
+     },
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "xField": "Hour",
+    "showValue": "always",
+    "barWidth": 0.85,
+    "groupWidth": 0.7,
+    "orientation": "vertical",
+    "colorByField": "RoqueModel",
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single"
+    }
+   }
+  },
+  {
+   "id": 7,
+   "type": "table",
+   "title": "Weather forecast alone: close or open",
+   "description": "The closing rules (humidity ≥ 90%, wind ≥ 80 km/h or ice) applied to the forecast as it is.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 7,
+    "w": 8,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyClosureProbability",
+     "columns": [
+      {
+       "selector": "hourLocal",
+       "text": "Hour",
+       "type": "string"
+      },
+      {
+       "selector": "forecastAloneClosed",
+       "text": "Forecast alone",
+       "type": "boolean"
+      }
+     ]
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "align": "center"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Forecast alone"
+      },
+      "properties": [
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "true": {
+            "text": "close",
+            "color": "#d03b3b"
+           },
+           "false": {
+            "text": "open",
+            "color": "#0ca30c"
+           }
+          }
+         }
+        ]
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-background",
+         "mode": "basic"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   }
+  },
+  {
+   "id": 8,
+   "type": "timeseries",
+   "title": "Forecast: humidity (%)",
+   "description": "Forecast humidity at the summit. The dome closes at 90%.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyWeatherForecast",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "rh",
+       "text": "Humidity",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "max": 100,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 90,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Humidity"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 9,
+   "type": "timeseries",
+   "title": "Forecast: wind at 750 hPa (km/h)",
+   "description": "Forecast wind at summit height (GFS). Limit: 80 km/h.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyWeatherForecast",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "wind750",
+       "text": "wind750",
+       "type": "number"
+      }
+     ],
+     "computed_columns": [
+      {
+       "selector": "wind750 * 3.6",
+       "text": "Wind",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "wind750": true
+      }
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "velocitykmh",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 80,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Wind"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#1baf7a"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 10,
+   "type": "timeseries",
+   "title": "Forecast: temperature and dew point (°C)",
+   "description": "If they meet, there is a risk of condensation; below 0 °C, of ice.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyWeatherForecast",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "temp",
+       "text": "Temperature",
+       "type": "number"
+      },
+      {
+       "selector": "dew",
+       "text": "Dew point",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Temperature"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Dew point"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 11,
+   "type": "timeseries",
+   "title": "Forecast: cloud (%)",
+   "description": "Total forecast cloud cover.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 24,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyWeatherForecast",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "cloud",
+       "text": "Cloud",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000
+     },
+     "min": 0,
+     "max": 100
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Cloud"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#8e8d87"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 12,
+   "type": "timeseries",
+   "title": "Forecast: rain (mm)",
+   "description": "Forecast precipitation per hour.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 24,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyWeatherForecast",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "precip",
+       "text": "Rain",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "lengthmm",
+     "custom": {
+      "drawStyle": "bars",
+      "lineWidth": 2,
+      "fillOpacity": 80,
+      "showPoints": "never",
+      "spanNulls": false
+     },
+     "min": 0
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Rain"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 13,
+   "type": "timeseries",
+   "title": "Forecast: pressure (hPa)",
+   "description": "Forecast pressure at the summit.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 24,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "hourlyWeatherForecast",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "pressure",
+       "text": "Pressure",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "pressurehpa",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Pressure"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#8e8d87"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   }
+  },
+  {
+   "id": 14,
+   "type": "timeseries",
+   "title": "NOT station, last 24 h: humidity (%)",
+   "description": "Real measurement at the summit. The dome closes at 90%.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 31,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/ql/v2/entities/urn:ngsi-ld:WeatherObserved:ORM-NOT?lastN=200",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "($i := index; $v := attributes[attrName=\"relativeHumidity\"].values; $map($i, function($t, $k) { {\"t\": $t, \"v\": $v[$k] * 100} }))",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "v",
+       "text": "Humidity",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "max": 100,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 90,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Humidity"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "24h"
+  },
+  {
+   "id": 15,
+   "type": "timeseries",
+   "title": "NOT station, last 24 h: wind (km/h)",
+   "description": "Real measurement at the summit. Limit: 80 km/h.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 31,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/ql/v2/entities/urn:ngsi-ld:WeatherObserved:ORM-NOT?lastN=200",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "($i := index; $v := attributes[attrName=\"windSpeed\"].values; $map($i, function($t, $k) { {\"t\": $t, \"v\": $v[$k] * 3.6} }))",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "v",
+       "text": "Wind",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "velocitykmh",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 80,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Wind"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#1baf7a"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "24h"
+  },
+  {
+   "id": 16,
+   "type": "timeseries",
+   "title": "Forecast against measured: humidity, last 24 h (%)",
+   "description": "The forecast looks at a point lower and damper than the summit: that is why it closes too often.",
+   "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "roquemodel-fiware"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 31,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "yesoreyeram-infinity-datasource",
+      "uid": "roquemodel-fiware"
+     },
+     "type": "json",
+     "source": "url",
+     "format": "table",
+     "parser": "backend",
+     "url": "https://178-105-253-255.sslip.io/orion/v2/entities/urn:ngsi-ld:WeatherForecast:ORM-tonight?options=keyValues",
+     "url_options": {
+      "method": "GET"
+     },
+     "root_selector": "forecastVsMeasured",
+     "columns": [
+      {
+       "selector": "t",
+       "text": "Hour",
+       "type": "timestamp"
+      },
+      {
+       "selector": "forecast",
+       "text": "Forecast",
+       "type": "number"
+      },
+      {
+       "selector": "measured",
+       "text": "Measured (NOT)",
+       "type": "number"
+      }
+     ]
+    }
+   ],
+   "transformations": [],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "showPoints": "never",
+      "spanNulls": 3600000,
+      "thresholdsStyle": {
+       "mode": "dashed"
+      }
+     },
+     "min": 0,
+     "max": 100,
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "value": null,
+        "color": "transparent"
+       },
+       {
+        "value": 90,
+        "color": "#d03b3b"
+       }
+      ]
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Forecast"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#8e8d87"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Measured (NOT)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "24h"
+  }
+ ]
+}

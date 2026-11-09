@@ -5,12 +5,24 @@
   const LOCAL_TZ = "Atlantic/Canary";
   const state = { tonight: null, evaluation: null, hour: null, line: null };
 
-  const T = () => window.I18N.es;
+  // Language: ?lang=es|en in the address, else the visitor's last choice, else the browser's
+  // language (Spanish for any "es-…", English otherwise). Both share one page and one address.
+  const LANGS = ["es", "en"];
+  const pickLang = () => {
+    const q = new URLSearchParams(location.search).get("lang");
+    if (LANGS.includes(q)) return q;
+    try { const saved = localStorage.getItem("roquemodel-lang"); if (LANGS.includes(saved)) return saved; } catch (e) { /* storage blocked */ }
+    const browser = (navigator.languages && navigator.languages[0]) || navigator.language || "es";
+    return browser.toLowerCase().startsWith("es") ? "es" : "en";
+  };
+  let lang = pickLang();
+  const T = () => window.I18N[lang];
   const fill = (text, values) => text.replace(/\{(\w+)\}/g, (_, k) => (values[k] != null ? values[k] : ""));
   const $ = (id) => document.getElementById(id);
-  const locale = () => "es-ES";
+  const locale = () => (lang === "es" ? "es-ES" : "en-GB");
+  const PC = () => (lang === "es" ? " %" : "%");  // "91 %" in Spanish, "91%" in English
   const num = (v, digits = 1) => (v == null ? T().na : v.toLocaleString(locale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }));
-  const pct = (p) => (p == null ? T().na : Math.round(p * 100) + " %");
+  const pct = (p) => (p == null ? T().na : Math.round(p * 100) + PC());
   const timeLocal = (iso, withDate) => new Date(iso).toLocaleString(locale(), {
     timeZone: LOCAL_TZ, hour: "2-digit", minute: "2-digit", ...(withDate ? { day: "numeric", month: "short" } : {}) });
   // The update time with a.m./p.m. and the Canary offset from UTC (UTC+0 in winter, UTC+1 in summer).
@@ -26,6 +38,12 @@
   const COLORS = { low: "--good", medium: "--warning", high: "--critical" };
 
   function applyTexts() {
+    document.documentElement.lang = lang;
+    const desc = document.querySelector('meta[name="description"]');
+    if (desc) desc.content = T().description;
+    document.querySelectorAll("[data-i18n-alt]").forEach((n) => { n.alt = T()[n.dataset.i18nAlt]; });
+    document.querySelectorAll("[data-i18n-href]").forEach((n) => { n.href = T()[n.dataset.i18nHref]; });
+    document.querySelectorAll(".lang-switch button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.lang === lang));
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = T()[n.dataset.i18n] || ""; });
     document.querySelectorAll("[data-i18n-html]").forEach((n) => { n.innerHTML = T()[n.dataset.i18nHtml] || ""; });
     document.querySelectorAll("[data-i18n-title]").forEach((n) => { n.title = T()[n.dataset.i18nTitle]; });
@@ -72,7 +90,7 @@
     const t = T(), h = d.hours[i], n = d.night, ex = d.explain;
     const end = new Date(new Date(h.t).getTime() + 3600e3).toISOString();
     const kmh = (ms) => (ms == null ? t.na : num(ms * 3.6, 0));
-    const signed = (x) => (Math.abs(x) < 0.005 ? "≈0" : (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0)) + " %";
+    const signed = (x) => (Math.abs(x) < 0.005 ? "≈0" : (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0)) + PC();
     const maxAbs = Math.max(0.05, ...Object.values(h.why).map(Math.abs));
 
     // How our model gets its percentage: starting point + one amount per group of inputs.
@@ -119,7 +137,7 @@
     const ice = humid && r.temp != null && r.temp <= L.ice_temp;
     const yes = (b) => `<td class="${b ? "rule-yes" : ""}">${b ? t.yes : t.no}</td>`;
     const rawRows = [
-      `<tr><th scope="row">${t.raw_rows.humidity}</th><td>${num(r.rh, 0)} %</td><td>${t.raw_cond.humidity}</td>${yes(humid)}</tr>`,
+      `<tr><th scope="row">${t.raw_rows.humidity}</th><td>${num(r.rh, 0)}${PC()}</td><td>${t.raw_cond.humidity}</td>${yes(humid)}</tr>`,
       `<tr><th scope="row">${t.raw_rows.wind}${r.wind_level === "10m" ? " *" : ""}</th><td>${kmh(r.wind_ms)} km/h</td><td>${t.raw_cond.wind}</td>${yes(windy)}</tr>`,
       `<tr><th scope="row">${t.raw_rows.ice}</th><td>${num(r.temp, 1)} °C</td><td>${t.raw_cond.ice}</td>${yes(ice)}</tr>`,
     ];
@@ -142,7 +160,7 @@
     $("night-title").textContent = fill(t.night_of, { date });
     const updated = stampLocal(d.issued_utc);
     $("night-window").textContent = fill(t.window, { start: timeLocal(n.start_utc), end: timeLocal(n.end_utc), hours: num(n.length_h),
-      updated, at: updated.startsWith("1:") ? "a la" : "a las" });  // "a la 1:05", "a las 3:05"
+      updated, at: t.window_at[updated.startsWith("1:") ? 0 : 1] });  // Spanish: "a la 1:05", "a las 3:05"
 
     // Sources that did not answer this run: the forecast used their last good copy.
     const stale = Object.entries(d.stale || {});
@@ -209,7 +227,7 @@
     ["night_forecast", "station", "last_night", "calendar"].forEach((g) => { if (g in h.why) steps.push([t.groups[g], h.why[g]]); });
     const top = Math.max(0.5, ...steps.reduce((acc2, s2) => { const last = acc2.length ? acc2[acc2.length - 1] : 0; acc2.push(last + s2[1]); return acc2; }, []));
     let run = 0;
-    const signed = (x) => (Math.abs(x) < 0.005 ? "≈0" : (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0)) + " %";
+    const signed = (x) => (Math.abs(x) < 0.005 ? "≈0" : (x >= 0 ? "+" : "−") + num(Math.abs(x * 100), 0)) + PC();
     const rows = steps.map(([label, v, isBase]) => {
       const from = isBase ? 0 : run, to = isBase ? v : run + v;
       run = to;
@@ -255,7 +273,7 @@
     const ours = fin.searches[kind], ch = ours.chosen;
     $("rm1-search-text").innerHTML = fill(t.rm1_search_text, { n: ours.combinations, years: search.validation_years.join(", ") });
     $("rm1-settings").innerHTML = Object.keys(t.set_names[kind]).map((k) => {
-      const rows = ours.one_at_a_time[k].map((r) => `<tr class="${r.value === ch[k] ? "chosen" : ""}"><td>${settingValue(k, r.value)}${r.value === ch[k] ? " ✓" : ""}</td><td>${num(r.right * 100, 1)} %</td><td>${num(r.brier, 4)}</td></tr>`).join("");
+      const rows = ours.one_at_a_time[k].map((r) => `<tr class="${r.value === ch[k] ? "chosen" : ""}"><td>${settingValue(k, r.value)}${r.value === ch[k] ? " ✓" : ""}</td><td>${num(r.right * 100, 1)}${PC()}</td><td>${num(r.brier, 4)}</td></tr>`).join("");
       return `<div class="setting"><h5>${t.set_names[kind][k]}</h5><table class="small"><thead><tr><th>${t.set_cols[0]}</th><th>${t.set_cols[1]}</th><th>${t.set_cols[2]}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }).join("");
 
@@ -281,7 +299,7 @@
       <span class="bar-val">${pct(v)}</span></li>`).join("");
     table($("rm5-table"), t.rm5_cols, models.map((m) => `<tr class="${m.name === kind ? "chosen" : ""}"><th scope="row">${name(m.name)}</th>
       <td class="muted">${t.model_desc[m.name]}</td><td>${num(m.combinations, 0)}</td><td>${num(m.validation_brier, 4)}</td>
-      <td>${num(m.test.right * 100, 1)} %</td><td>${pv[m.name] ? num(pv[m.name].test.right * 100, 1) + " %" : t.na}</td>
+      <td>${num(m.test.right * 100, 1)}${PC()}</td><td>${pv[m.name] ? num(pv[m.name].test.right * 100, 1) + PC() : t.na}</td>
       <td>${num(m.test.brier, 4)}</td><td>${num(m.test.auc, 3)}</td></tr>`));
     $("rm5-note").innerHTML = t.rm5_note;
     // Why these four, and what was left out.
@@ -294,7 +312,7 @@
     const t = T();
     if (key === "learning_rate") return num(v, 2);
     if (key === "l2_regularization") return num(v, 0);
-    if (key === "max_features") return typeof v === "number" ? `${num(v * 100, 0)} %` : t.set_values[v] || v;
+    if (key === "max_features") return typeof v === "number" ? `${num(v * 100, 0)}${PC()}` : t.set_values[v] || v;
     if (key === "min_samples_leaf" && v === 1) return "1";
     return t.set_values[v] !== undefined ? t.set_values[v] : v;
   }
@@ -322,13 +340,13 @@
     const fc = d.hourly.map((h) => ({ ...h, t: new Date(h.t) }));
     const base = { timeFormat: fmt };
     miniCharts($("fc-grid"), [
-      { ...base, series: [{ label: t.c_rh, color: "--series-1", values: pts(fc, "rh") }], yMin: 0, yMax: 100, unit: " %",
+      { ...base, series: [{ label: t.c_rh, color: "--series-1", values: pts(fc, "rh") }], yMin: 0, yMax: 100, unit: PC(),
         threshold: { v: 90, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
       { ...base, series: [{ label: t.c_wind750, color: "--series-3", values: pts(fc, "wind750", kmh) }], yMin: 0,
         yMax: Math.ceil(top(fc, "wind750", kmh, 80) * 1.1), unit: " km/h", threshold: { v: 80, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
       { ...base, series: [{ label: t.c_temp, color: "--series-2", values: pts(fc, "temp") }, { label: t.c_dew, color: "--series-1", values: pts(fc, "dew") }],
         yMin: Math.min(-2, ...fc.map((p) => Math.floor(Math.min(p.temp, p.dew) - 1))), unit: " °C", threshold: { v: 0, label: t.c_ice }, valueFormat: (v) => Math.round(v) },
-      { ...base, series: [{ label: t.c_cloud, color: "--text-3", values: pts(fc, "cloud") }], yMin: 0, yMax: 100, unit: " %", valueFormat: (v) => Math.round(v) },
+      { ...base, series: [{ label: t.c_cloud, color: "--text-3", values: pts(fc, "cloud") }], yMin: 0, yMax: 100, unit: PC(), valueFormat: (v) => Math.round(v) },
       { ...base, series: [{ label: t.c_rain, color: "--series-1", values: pts(fc, "precip") }], yMin: 0,
         yMax: Math.max(1, ...fc.map((p) => p.precip || 0)) * 1.2, unit: " mm", valueFormat: (v) => num(v, 1) },
       { ...base, series: [{ label: t.c_pressure, color: "--text-3", values: pts(fc, "pressure") }], unit: " hPa", valueFormat: (v) => Math.round(v) },
@@ -340,7 +358,7 @@
     const st = d.station_24h.map((p) => ({ ...p, t: new Date(p.t) }));
     const sb = { timeFormat: fmt, maxGapMs: 30 * 60e3 };
     miniCharts($("station-grid"), [
-      { ...sb, series: [{ label: t.c_rh, color: "--series-1", values: pts(st, "rh") }], yMin: 0, yMax: 100, unit: " %", threshold: { v: 90, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
+      { ...sb, series: [{ label: t.c_rh, color: "--series-1", values: pts(st, "rh") }], yMin: 0, yMax: 100, unit: PC(), threshold: { v: 90, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
       { ...sb, series: [{ label: t.c_wind_station, color: "--series-3", values: pts(st, "wind", kmh) }], yMin: 0,
         yMax: Math.ceil(top(st, "wind", kmh, 80) * 1.1), unit: " km/h", threshold: { v: 80, label: t.c_limit }, valueFormat: (v) => Math.round(v) },
       { ...sb, series: [{ label: t.c_pressure, color: "--text-3", values: pts(st, "pressure") }], unit: " hPa", valueFormat: (v) => Math.round(v) },
@@ -350,7 +368,7 @@
     const vs = d.forecast_vs_measured.map((p) => ({ ...p, t: new Date(p.t) }));
     Charts.lineChart($("chart-vs"), {
       series: [{ label: t.c_vs_fc, color: "--baseline", values: pts(vs, "forecast") }, { label: t.c_vs_measured, color: "--series-2", values: pts(vs, "measured") }],
-      yMin: 0, yMax: 100, unit: " %", threshold: { v: 90, label: t.c_limit }, timeFormat: fmt, valueFormat: (v) => Math.round(v), ariaLabel: t.vs_title,
+      yMin: 0, yMax: 100, unit: PC(), threshold: { v: 90, label: t.c_limit }, timeFormat: fmt, valueFormat: (v) => Math.round(v), ariaLabel: t.vs_title,
     });
 
   }
@@ -367,6 +385,17 @@
     const link = e.target.closest('a[href^="http"]');
     if (link) { link.target = "_blank"; link.rel = "noopener"; }
   }, true);
+  // The ES · EN switch: change the language in place (no reload), remember it and put it in the
+  // address, so a copied link opens in the same language.
+  document.querySelectorAll(".lang-switch button").forEach((b) => b.addEventListener("click", () => {
+    if (b.dataset.lang === lang) return;
+    lang = b.dataset.lang;
+    try { localStorage.setItem("roquemodel-lang", lang); } catch (e) { /* storage blocked */ }
+    const url = new URL(location.href);
+    url.searchParams.set("lang", lang);
+    history.replaceState(null, "", url);
+    render();
+  }));
   function render() {
     applyTexts();
     if (state.tonight) renderTonight(state.tonight);

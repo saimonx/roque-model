@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from roque_forecast import cloud_dashboard, config, dashboards, fiware, tonight
 
@@ -25,11 +26,12 @@ def forecast_key_values() -> dict:
     return {k: (v["value"] if isinstance(v, dict) and "value" in v else v) for k, v in entity.items()}
 
 
-def test_grafana_cloud_reads_only_fields_the_forecast_entity_has():
+@pytest.mark.parametrize("lang", ["es", "en"])
+def test_grafana_cloud_reads_only_fields_the_forecast_entity_has(lang):
     # Grafana reads tonight's forecast entity from Orion; the station history (QuantumLeap) is
     # selected with a JSONata expression and checked by hand.
     entity = forecast_key_values()
-    for panel in cloud_dashboard.dashboard()["panels"]:
+    for panel in cloud_dashboard.dashboard(lang)["panels"]:
         for target in panel.get("targets", []):
             if target["url"] != cloud_dashboard.FORECAST_URL:
                 continue
@@ -64,4 +66,5 @@ def test_hourly_curve_has_the_fields_the_charts_read():
 
 def test_saved_dashboards_are_the_generated_ones():
     assert json.loads(dashboards.DASHBOARD_FILE.read_text(encoding="utf-8")) == dashboards.dashboard()
-    assert json.loads(cloud_dashboard.OUT_FILE.read_text(encoding="utf-8")) == cloud_dashboard.dashboard()
+    for lang, out in cloud_dashboard.OUT_FILES.items():
+        assert json.loads(out.read_text(encoding="utf-8")) == cloud_dashboard.dashboard(lang), lang

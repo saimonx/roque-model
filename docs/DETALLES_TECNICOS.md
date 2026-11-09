@@ -1,3 +1,5 @@
+[English](TECHNICAL_DETAILS.md) · **Español**
+
 # RoqueModel — detalles técnicos
 
 Complemento del [README](../README.md) y de la [web](https://saimonx.github.io/roque-model/): cómo se
@@ -177,8 +179,10 @@ Análisis completo: [EDA_01](../reports/EDA_01.md) ([notebook](../notebooks/01_e
 4. `scripts/publish_site.sh` sube `site/` a la rama `gh-pages` como un único commit, para que las
    actualizaciones de cada hora no se acumulen en el historial de `main`. GitHub Pages la sirve.
 5. `tonight.py` publica también el pronóstico en **FIWARE** (apartado 8), y el **panel público de Grafana
-   Cloud** lo lee de ahí: la web y Grafana dan las mismas cifras porque salen del mismo cálculo. El panel lo
-   genera `cloud_dashboard.py`.
+   Cloud** lo lee de ahí: la web y Grafana dan las mismas cifras porque salen del mismo cálculo. Hay un panel
+   en español (`/grafana/`) y otro en inglés (`/grafana/en/`); los dos los genera `cloud_dashboard.py`. La web
+   tiene los dos idiomas en la misma dirección (botón ES · EN, o `?lang=en`), con todos sus textos en
+   `site/assets/i18n.js`.
 
 Cada ejecución queda registrada (`forecasts/issued.jsonl`, publicado con la web) junto con lo que pasó de
 verdad la noche anterior (`outcomes.jsonl`): es un historial en directo que ninguna elección de ajustes ha

@@ -20,3 +20,12 @@ def test_wrong_share_counts_like_the_page():
 def test_column_table_is_markdown():
     table = export_data.column_table({"a": ("m/s", "wind", "NOT")})
     assert table.splitlines()[-1] == "| `a` | m/s | wind | NOT |"
+
+
+def test_english_tables_describe_the_same_columns():
+    assert list(export_data.COLUMNS_EN) == list(export_data.COLUMNS)
+    assert list(export_data.TEST_COLUMNS_EN) == list(export_data.TEST_COLUMNS)
+    for es, en in [(export_data.COLUMNS, export_data.COLUMNS_EN), (export_data.TEST_COLUMNS, export_data.TEST_COLUMNS_EN)]:
+        for name in es:
+            # same unit except the words for it
+            assert (es[name][0] == en[name][0]) or es[name][0] in ("fecha", "segundos de arco"), name

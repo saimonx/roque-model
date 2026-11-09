@@ -1,3 +1,5 @@
+[English](MODELS_01.en.md) · **Español**
+
 # Modelos 01: previsión de esta noche en el Roque de los Muchachos
 
 > **Estudio previo (28–31 oct 2026), conservado tal cual.** Los apartados 1–3 son los modelos por noche que se hicieron
