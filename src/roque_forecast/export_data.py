@@ -49,7 +49,7 @@ def thousands(number: int) -> str:
 NOT_SOURCE = "Estación meteorológica del NOT (not.iac.es/weather/archive/met)"
 OM_ECMWF = "Previsión ECMWF IFS archivada por Open-Meteo (historical-forecast-api.open-meteo.com)"
 OM_GFS = "Previsión NOAA GFS archivada por Open-Meteo (historical-forecast-api.open-meteo.com)"
-R2D2_SOURCE = "Monitor de seeing R2D2 del ING (astro.ing.iac.es/seeing)"
+R2D2_SOURCE = "Monitor de seeing R2D2 del ING (astro.ing.iac.es/seeing/index.php)"
 
 # What each column of the training file means: (unit, meaning, source), in Spanish because the
 # README is written from this table, so the file and its description cannot drift apart.
@@ -113,7 +113,7 @@ TEST_COLUMNS = {
 NOT_SOURCE_EN = "NOT weather station (not.iac.es/weather/archive/met)"
 OM_ECMWF_EN = "ECMWF IFS forecast archived by Open-Meteo (historical-forecast-api.open-meteo.com)"
 OM_GFS_EN = "NOAA GFS forecast archived by Open-Meteo (historical-forecast-api.open-meteo.com)"
-R2D2_SOURCE_EN = "ING R2D2 seeing monitor (astro.ing.iac.es/seeing)"
+R2D2_SOURCE_EN = "ING R2D2 seeing monitor (astro.ing.iac.es/seeing/index.php)"
 
 # The same tables in English, for README.en.md (tests check that they describe the same columns).
 COLUMNS_EN = {
@@ -255,7 +255,7 @@ Todas las entradas se conocían antes de empezar la noche. No hay nada simulado.
   (https://open-meteo.com, CC BY 4.0), en 28,7566 N, 17,8919 O, 2.270 m. El viento a 750 hPa viene del archivo
   NOAA GFS (mismo servicio). Cualquier día se puede volver a descargar, por ejemplo:
   https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=28.7566&longitude=-17.8919&elevation=2270&models=ecmwf_ifs&timezone=UTC&wind_speed_unit=ms&hourly=relative_humidity_2m,temperature_2m&start_date=2024-01-01&end_date=2024-01-02
-- **Seeing de anoche:** el monitor R2D2 del ING (https://astro.ing.iac.es/seeing/).
+- **Seeing de anoche:** el monitor R2D2 del ING (https://astro.ing.iac.es/seeing/index.php).
 
 El código que descarga las fuentes y construye estas tablas está en el repositorio (`backfill.py`,
 `build_tables.py`, `features.py`, `hourly.py`; este paquete lo genera `export_data.py`).
@@ -320,7 +320,7 @@ All the inputs were known before the night started. Nothing is simulated.
   (https://open-meteo.com, CC BY 4.0), at 28.7566 N, 17.8919 W, 2,270 m. The 750 hPa wind comes from the
   NOAA GFS archive (same service). Any day can be downloaded again, for example:
   https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=28.7566&longitude=-17.8919&elevation=2270&models=ecmwf_ifs&timezone=UTC&wind_speed_unit=ms&hourly=relative_humidity_2m,temperature_2m&start_date=2024-01-01&end_date=2024-01-02
-- **Last night's seeing:** the ING R2D2 monitor (https://astro.ing.iac.es/seeing/).
+- **Last night's seeing:** the ING R2D2 monitor (https://astro.ing.iac.es/seeing/index.php).
 
 The code that downloads the sources and builds these tables is in the repository (`backfill.py`,
 `build_tables.py`, `features.py`, `hourly.py`; this package is written by `export_data.py`).

@@ -72,7 +72,7 @@ mismos ajustes con todo 2017–2026.
 | Lo que pasó (etiqueta) | [Archivo meteorológico del NOT](https://www.not.iac.es/weather/archive/met/index.php), cada minuto | 1997 (se usa desde 2017) |
 | Lo que se sabía antes de la noche | Previsiones ECMWF archivadas por [Open-Meteo](https://open-meteo.com) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | 2017 |
 | Viento a la altura de la cumbre | NOAA GFS a 750 hPa, archivado por Open-Meteo | 2021 |
-| Seeing de anoche | [Monitor R2D2 del ING](https://astro.ing.iac.es/seeing/) | 2018 |
+| Seeing de anoche | [Monitor R2D2 del ING](https://astro.ing.iac.es/seeing/index.php) | 2018 |
 | Comprobar la etiqueta | [Partes nocturnos del Telescopio Liverpool](https://telescope.livjm.ac.uk/Reports/) | 2007 |
 
 ## Ponerlo en marcha

@@ -1,6 +1,6 @@
 """ING R2D2 DIMM seeing monitor — our label for "how sharp were the stars".
 
-Public page: https://astro.ing.iac.es/seeing/
+Public page: https://astro.ing.iac.es/seeing/index.php
 Coverage: since 2018-09-19, one value every 15-35 s while it is dark.
 
 "Seeing" is the blur caused by atmospheric turbulence, measured in

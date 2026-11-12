@@ -69,7 +69,7 @@ of 2017–2026.
 | What happened (label) | [NOT weather archive](https://www.not.iac.es/weather/archive/met/index.php), every minute | 1997 (used from 2017) |
 | What was known before the night | ECMWF forecasts archived by [Open-Meteo](https://open-meteo.com) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)) | 2017 |
 | Wind at summit height | NOAA GFS at 750 hPa, archived by Open-Meteo | 2021 |
-| Last night's seeing | [ING R2D2 monitor](https://astro.ing.iac.es/seeing/) | 2018 |
+| Last night's seeing | [ING R2D2 monitor](https://astro.ing.iac.es/seeing/index.php) | 2018 |
 | Checking the label | [Liverpool Telescope night reports](https://telescope.livjm.ac.uk/Reports/) | 2007 |
 
 ## Getting started
