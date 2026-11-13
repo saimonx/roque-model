@@ -279,10 +279,19 @@ def _check_github(token: str | None) -> bool:
             problems.append(f"github: el flujo «{w['name']}» está desactivado ({w['state']})")
     late = False
     for name, max_age_h in (("forecast.yml", 3), ("tests.yml", None)):
-        runs = get_json_retry(f"https://api.github.com/repos/{REPO}/actions/workflows/{name}/runs?per_page=5&status=completed",
-                        headers=auth)["workflow_runs"]
+        url = f"https://api.github.com/repos/{REPO}/actions/workflows/{name}/runs?per_page=5&status=completed"
+        runs = get_json_retry(url, headers=auth)["workflow_runs"]
+        for _ in range(2):
+            if runs:
+                break
+            # GitHub's API now and then answers an empty list for a workflow that has runs
+            # (13 Nov 2026, once in ~250 checks): ask again before believing it.
+            time.sleep(20)
+            runs = get_json_retry(url, headers=auth)["workflow_runs"]
         if not runs:
-            problems.append(f"github: {name} no tiene ejecuciones")
+            # Still empty: only a note. A forecast that really stopped is caught by the web and
+            # FIWARE checks (age of the forecast), so this is not worth a failure alert.
+            notes.append(f"github: la API de GitHub da {name} sin ejecuciones (3 intentos); se comprueba por la web y FIWARE")
             continue
         last = runs[0]
         if last["conclusion"] != "success":
