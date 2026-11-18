@@ -46,7 +46,6 @@ from zoneinfo import ZoneInfo
 import joblib
 import numpy as np
 import pandas as pd
-import requests
 
 from roque_forecast import astro, config, dome, explain, features, hourly, observability
 from roque_forecast.build_tables import MIN_NIGHT_COVERAGE, MIN_SEEING_POINTS, VALID_RANGES
@@ -111,45 +110,51 @@ def download_live(session: PoliteSession, now: pd.Timestamp, folder: Path) -> di
 
     stale = {}
     # One past day too, to show the forecast next to what the station measured.
-    forecast_file = fetch_or_last("open_meteo", folder / "open_meteo.json", now, stale,
-                                  lambda dest: save_json(dest, lambda: open_meteo.download_current(session, forecast_days=3, past_days=1)))
-    upper_file = fetch_or_last("open_meteo_upper", folder / "open_meteo_upper.json", now, stale,
-                               lambda dest: save_json(dest, lambda: open_meteo.download_current_upper(session, forecast_days=3, past_days=1)))
-    not_file = fetch_or_last("not", folder / "not.tsv.gz", now, stale,
-                             lambda dest: not_mast.download_range(session, start, now.to_pydatetime().replace(tzinfo=None), dest))
+    forecast = fetch_or_last("open_meteo", folder / "open_meteo.json", now, stale,
+                             lambda dest: save_json(dest, lambda: open_meteo.download_current(session, forecast_days=3, past_days=1)),
+                             lambda path: open_meteo.parse(json.loads(path.read_text(encoding="utf-8"))))
+    upper = fetch_or_last("open_meteo_upper", folder / "open_meteo_upper.json", now, stale,
+                          lambda dest: save_json(dest, lambda: open_meteo.download_current_upper(session, forecast_days=3, past_days=1)),
+                          lambda path: open_meteo.parse_upper(json.loads(path.read_text(encoding="utf-8"))))
+    minutes = fetch_or_last("not", folder / "not.tsv.gz", now, stale,
+                            lambda dest: not_mast.download_range(session, start, now.to_pydatetime().replace(tzinfo=None), dest),
+                            lambda path: clean_minutes(not_mast.parse(path)))
     # date2 is exclusive: today + 1 includes this morning's data.
-    r2d2_file = fetch_or_last("r2d2", folder / "r2d2.html", now, stale,
-                              lambda dest: r2d2.download_range(session, today - timedelta(days=2), today + timedelta(days=1), dest))
-    return {"forecast": open_meteo.parse(json.loads(forecast_file.read_text(encoding="utf-8"))),
-            "upper": open_meteo.parse_upper(json.loads(upper_file.read_text(encoding="utf-8"))),
-            "minutes": clean_minutes(not_mast.parse(not_file)),
-            "seeing": r2d2.parse(r2d2_file),
-            "stale": stale}
+    seeing = fetch_or_last("r2d2", folder / "r2d2.html", now, stale,
+                           lambda dest: r2d2.download_range(session, today - timedelta(days=2), today + timedelta(days=1), dest),
+                           r2d2.parse)
+    return {"forecast": forecast, "upper": upper, "minutes": minutes, "seeing": seeing, "stale": stale}
 
 
-def fetch_or_last(source: str, dest: Path, now: pd.Timestamp, stale: dict, fetch) -> Path:
-    """Download one source with `fetch(dest)`; if that fails, use its last good copy.
+def fetch_or_last(source: str, dest: Path, now: pd.Timestamp, stale: dict, fetch, read):
+    """Download one source with `fetch(dest)` and read it with `read(path)`; if either
+    fails, read its last good copy instead. Returns what `read` gives.
 
-    A good download is also copied to LAST_DIR, with the time it was fetched. When the
+    A download only counts as good if it also reads well: a server can answer
+    with a cut or garbled file (on 18 Nov 2026 the NOT sent a truncated .gz),
+    which must not crash the forecast nor replace the last good copy.
+    A good download is copied to LAST_DIR, with the time it was fetched. When the
     last copy is used, `stale[source]` gets that time, so the page can say so. With no
-    copy at all the error is raised: there is nothing to forecast with.
+    usable copy at all the error is raised: there is nothing to forecast with.
     """
     LAST_DIR.mkdir(parents=True, exist_ok=True)
     times = json.loads(LAST_TIMES.read_text(encoding="utf-8")) if LAST_TIMES.exists() else {}
     last = LAST_DIR / dest.name
     try:
         fetch(dest)
-    except (requests.RequestException, RuntimeError) as error:
+        data = read(dest)
+    except Exception as error:  # any failure: network, server error page, cut or garbled file
         if not last.exists():
             raise
-        log.warning("%s did not answer (%s): using its last copy, fetched %s", source, error, times.get(source, "?"))
+        log.warning("%s failed (%s: %s): using its last copy, fetched %s",
+                    source, type(error).__name__, error, times.get(source, "?"))
         shutil.copyfile(last, dest)
         stale[source] = times.get(source)
-        return dest
+        return read(dest)  # if the last copy is bad too, this raises
     shutil.copyfile(dest, last)
     times[source] = iso(now)
     LAST_TIMES.write_text(json.dumps(times, indent=1), encoding="utf-8")
-    return dest
+    return data
 
 
 def clean_minutes(df: pd.DataFrame) -> pd.DataFrame:
