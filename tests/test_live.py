@@ -137,6 +137,32 @@ def test_a_cut_download_falls_back_and_keeps_the_good_copy(tmp_path, monkeypatch
     assert (tmp_path / "last" / "not.tsv.gz").read_bytes() == good
 
 
+def test_a_hung_download_gives_up_and_uses_the_last_copy(tmp_path, monkeypatch):
+    """20 Nov 2026: a source hung and the run was cancelled after 20 min. Past the
+    deadline the forecast must stop waiting and use the last good copy."""
+    import threading
+    import time
+    monkeypatch.setattr(tonight, "LAST_DIR", tmp_path / "last")
+    monkeypatch.setattr(tonight, "LAST_TIMES", tmp_path / "last" / "fetched.json")
+    first, second = pd.Timestamp("2026-11-20 15:05", tz="UTC"), pd.Timestamp("2026-11-20 16:05", tz="UTC")
+    stale = {}
+    tonight.fetch_or_last("r2d2", tmp_path / "r2d2.html", first, stale,
+                          lambda dest: dest.write_text("good"), lambda path: path.read_text())
+
+    release = threading.Event()
+
+    def hangs(dest):
+        release.wait(5)  # stands in for a server that never answers
+        dest.write_text("late")
+    monkeypatch.setattr(tonight, "FETCH_DEADLINE_S", 0.2)
+    started = time.monotonic()
+    assert tonight.fetch_or_last("r2d2", tmp_path / "r2d2.html", second, stale, hangs,
+                                 lambda path: path.read_text()) == "good"
+    assert time.monotonic() - started < 2
+    assert stale == {"r2d2": "2026-11-20T15:05:00Z"}
+    release.set()
+
+
 def test_comparison_counts_wrong_hours_false_alarms_and_misses(tmp_path, monkeypatch):
     monkeypatch.setattr(site_data.config, "PROCESSED_DIR", tmp_path)
     # Four test hours: two really closed. The model gets one closed hour and one open hour wrong.

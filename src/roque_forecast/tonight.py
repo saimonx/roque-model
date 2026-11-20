@@ -39,6 +39,7 @@ import json
 import logging
 import shutil
 import sys
+import threading
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -68,6 +69,10 @@ MODELS_DIR = config.DATA_DIR / "models"
 # The last copy of each live source that downloaded well, and when it was fetched.
 LAST_DIR = config.RAW_DIR / "tonight" / "last"
 LAST_TIMES = LAST_DIR / "fetched.json"
+# Longest wait for one source, retries included. Each request already has a timeout, but
+# that limit is per read and the session retries, so a server that answers very slowly
+# could hold the forecast far longer (20 Nov 2026: a run hung 20 min and was cancelled).
+FETCH_DEADLINE_S = 180
 
 
 
@@ -140,10 +145,14 @@ def fetch_or_last(source: str, dest: Path, now: pd.Timestamp, stale: dict, fetch
     LAST_DIR.mkdir(parents=True, exist_ok=True)
     times = json.loads(LAST_TIMES.read_text(encoding="utf-8")) if LAST_TIMES.exists() else {}
     last = LAST_DIR / dest.name
+    # Download under another name: a download that is still running after the deadline
+    # may write it later, and must not overwrite the copy this run reads.
+    incoming = dest.with_name("incoming-" + dest.name)
     try:
-        fetch(dest)
-        data = read(dest)
-    except Exception as error:  # any failure: network, server error page, cut or garbled file
+        run_with_deadline(lambda: fetch(incoming), FETCH_DEADLINE_S)
+        data = read(incoming)
+        incoming.replace(dest)
+    except Exception as error:  # any failure: network, server error page, cut or garbled file, too slow
         if not last.exists():
             raise
         log.warning("%s failed (%s: %s): using its last copy, fetched %s",
@@ -155,6 +164,28 @@ def fetch_or_last(source: str, dest: Path, now: pd.Timestamp, stale: dict, fetch
     times[source] = iso(now)
     LAST_TIMES.write_text(json.dumps(times, indent=1), encoding="utf-8")
     return data
+
+
+def run_with_deadline(function, seconds: float):
+    """Run `function()` and return what it gives; raise TimeoutError if it takes longer
+    than `seconds`. It runs in a daemon thread, so a hung download is left behind (it
+    cannot be stopped from outside) and does not keep the program from finishing."""
+    result = {}
+
+    def target():
+        try:
+            result["value"] = function()
+        except Exception as error:  # noqa: BLE001 - handed back to the caller below
+            result["error"] = error
+
+    thread = threading.Thread(target=target, daemon=True)
+    thread.start()
+    thread.join(seconds)
+    if thread.is_alive():
+        raise TimeoutError(f"no answer in {seconds:.0f} s")
+    if "error" in result:
+        raise result["error"]
+    return result.get("value")
 
 
 def clean_minutes(df: pd.DataFrame) -> pd.DataFrame:
