@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Generic observatory icon (night sky, open dome, telescope); not any observatory's logo. -->
+  <rect width="64" height="64" rx="14" fill="#0e2a4f"/>
+  <circle cx="12" cy="13" r="2" fill="#ffffff"/>
+  <circle cx="51" cy="11" r="1.6" fill="#ffffff"/>
+  <circle cx="46" cy="24" r="1.2" fill="#cfe2f8"/>
+  <circle cx="19" cy="25" r="1.1" fill="#cfe2f8"/>
+  <!-- dome: a half circle; the slit is a band painted in the sky colour -->
+  <path d="M13 42 A19 19 0 0 1 51 42 Z" fill="#f2f4f7"/>
+  <rect x="28.5" y="20" width="7" height="22" fill="#0e2a4f"/>
+  <!-- telescope tube looking out of the slit -->
+  <line x1="31.5" y1="39" x2="35.5" y2="21" stroke="#5aa2ee" stroke-width="6.5" stroke-linecap="round"/>
+  <!-- building under the dome -->
+  <rect x="15" y="42" width="34" height="13" fill="#d5dbe3"/>
+  <rect x="15" y="42" width="34" height="2.5" fill="#9aa6b5"/>
+</svg>
